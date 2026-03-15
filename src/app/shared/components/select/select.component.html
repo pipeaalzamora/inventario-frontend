@@ -1,0 +1,114 @@
+<label 
+    class="dot-label select" 
+    [class.without-input]="withoutInput()" 
+    (click)="toggleOptions(!optionsShown(), $event)"
+    [class.compact]="compact()"
+    #labelEl
+>
+    <div class="dot-label-icon">
+        <i class="{{ icon() }}"></i>
+    </div>
+    <span 
+        class="dot-label-text"
+        [style]="labelBackgroundColor() ? { 'background-color': labelBackgroundColor() } : {}"
+    >
+        {{ label() }}
+    </span>
+    <span class="dot-label-selected-option" [class.multiple]="multiSelect()">
+        @if (multiSelect()) {
+            @if (selectedMultiple().length === 0) {
+                <span class="placeholder-text">{{ placeholder() }}</span>
+            } @else {
+                @for (item of selectedMultiple(); track item[searchBy()]) {
+                    <span class="dot-badge secondary">
+                        {{ item[searchBy()] }}
+                        <button type="button" class="badge-remove" (click)="removeMultiple(item, $event)">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </span>
+
+                    <!-- TODO: EDITAR LA OPCION PARA QUE NO WRAPEE CON EL CHECKBOX Y LA OPCION RTENGA OVERFLOW HIDDEN CON ELIPSIS -->
+                }
+            }
+        } @else {
+            @if (withNullOption() && isOptionEquals(null)) {
+                Sin Asignar
+            } @else {
+                {{ selectedOption() }}
+            }
+        }
+    </span>
+
+    <div class="errors-container for-select" [class.visible]="showErrors()" [matTooltip]="getErrorsTooltip()">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+
+    <button class="dot-label-btn" type="button" animate.enter="pop-in" animate.leave="pop-out">
+        <i class="fa-solid fa-chevron-up"></i>
+        <i class="fa-solid fa-chevron-down"></i>
+    </button>
+</label>
+
+<!-- Hidden field mirror to integrate with Signal Forms Field directive-->
+    <!-- was this really necessary? idk -->
+@if (field(); as fieldRef) {
+    @if (isNumericField()) {
+        <input type="number" #fieldMirror [field]="fieldNumber()" hidden>
+    } @else {
+        <input type="text" #fieldMirror [field]="fieldString()" hidden>
+    }
+}
+
+<div class="dot-select-options shadow" [class.hide]="!optionsShown()" #optionsContainerEl>
+    @if (!withoutInput()) {
+        <label class="dot-select-options-search-container">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input 
+                type="text" 
+                placeholder="{{ placeholder() }}"
+                (input)="filterOptions($event)"
+                #input
+            >
+        </label>
+    }
+    @if (withNullOption()) {
+        <div class="dot-select-option mt-05"
+            (click)="select(null, true)"
+            [class.selected]="isOptionEquals(null)"
+        >
+            Sin Asignar
+        </div>
+    }
+    @for (option of filteredOptions(); track $index) {
+        <div class="dot-select-option" 
+            (click)="multiSelect() ? selectMultiple(option) : select(option, true)"
+            [class.selected]="isOptionEquals(option)"
+            [class.mt-05]="$first && !withoutInput()"
+            [class.with-checkbox]="multiSelect()"
+        >
+            @if (multiSelect()) {
+                <label class="dot-checkbox">
+                    <input type="checkbox" [checked]="isOptionEquals(option)">
+                    <div class="dot-checkbox-box"></div>
+                </label>
+            }
+            {{ option[searchBy()] }}
+        </div>
+    } @empty {
+        <span class="dot-select-option empty">Sin coincidencias</span>
+    }
+</div>
+
+@if (confirmSwitch()) {
+    <dot-modal #switchSupplierModal
+        [withCancel]="true"
+        okText="Continuar"
+        (callback)="changeSelectionByUser($event); confirmSwitchCallback().call(this); switchSupplierModal.closeModal()"
+        (cancelCallback)="switchSupplierModal.closeModal()"
+        modalType="caution"
+    >
+        <p class="confirmation-switch-text">
+            {{ confirmSwitchText() ?? 'Cambiar de opción puede afectar datos relacionados. ¿Desea continuar?' }}
+        </p>
+    </dot-modal>
+}

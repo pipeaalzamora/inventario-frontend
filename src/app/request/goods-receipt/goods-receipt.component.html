@@ -1,0 +1,292 @@
+<ng-template #goodsReceiptHeader>
+    <div class="cont">
+        <dot-go-back fallback="purchase-order-form"
+            [replacePath]="actualPurchase() ? { orderId: actualPurchase()!.id } : {}"
+        />
+        <h1>Recepción</h1>
+    </div>
+
+    <div class="cont">
+        <button class="dot-btn success" 
+            (click)="confirmReceiptModal.openModal()"
+            [disabled]="pendingProducts().length > 0"
+        >
+            <i class="fa-solid fa-floppy-disk"></i>
+            @if (!isMobile()) {
+                Finalizar verificación
+            }
+        </button>
+    </div>
+</ng-template>
+
+<dot-section-wrapper [headerRef]="goodsReceiptHeader" [withStickyToolbar]="true" columns=".5fr 1fr">
+    <div class="section-col">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <h3>Información de la orden</h3>
+            </div>
+
+            <div class="info-container">
+                <div class="info-item-core">
+                    <div class="core-item">
+                        <span class="core-item-label">N° de orden</span>
+                        <span class="core-item-value">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            {{ actualPurchase()?.displayId }}
+                        </span>
+                    </div>
+                    <div class="core-item">
+                        <span class="core-item-label">Fecha de creación</span>
+                        <span class="core-item-value">
+                            <i class="fa-regular fa-calendar"></i>
+                            <time datetime="DD/MM/YYYY">
+                                {{ actualPurchase()?.createdAt | date: 'dd/MM/yyyy' }}
+                            </time>
+
+                            <time datetime="Hh:mm">
+                                {{ actualPurchase()?.createdAt | date: 'HH:mm' }}
+                            </time>
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Proveedor</span>
+                    <span class="info-item-value">{{ actualPurchase()?.supplierName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Tienda</span>
+                    <span class="info-item-value">{{ actualPurchase()?.storeName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Destino</span>
+                    <span class="info-item-value">{{ actualPurchase()?.warehouseName }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <h3>Resumen de la orden</h3>
+            </div>
+
+            <div class="summary-container">
+                <div class="summary-item shadow-inset">
+                    <span class="summary-item-label pending">Pendientes</span>
+                    <span class="summary-item-value">{{ pendingProducts().length }}</span>
+                </div>
+                <div class="summary-item shadow-inset">
+                    <span class="summary-item-label approved">Aprobados</span>
+                    <span class="summary-item-value">{{ approvedProducts().length }}</span>
+                </div>
+                <div class="summary-item shadow-inset">
+                    <span class="summary-item-label rejected">Rechazados</span>
+                    <span class="summary-item-value">{{ rejectedProducts().length }}</span>
+                </div>
+                <div class="summary-item shadow-inset">
+                    <span class="summary-item-label partial">Parciales</span>
+                    <span class="summary-item-value">{{ partialProducts().length }}</span>
+                </div>
+                <div class="summary-item shadow-inset">
+                    <span class="summary-item-label exceded">Exceso</span>
+                    <span class="summary-item-value">{{ excededProducts().length }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-col">
+
+        <div class="dot-card shadow items">
+            <div class="toolbar"
+                [class.mt-1]="isMobile()"
+            >
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>
+                            Productos
+                        </h3>
+
+                        <span class="dot-badge tertiary lg">
+                            {{ products().length }}
+                        </span>
+                    </div> 
+
+                    <div class="cont">
+                        <dot-search 
+                            [controller]="controller"
+                            placeholder="Nombre, sku, cantidad"
+                            align="flex-end"
+                            [customLabelColor]="isMobile() ? 'background-2' : 'background-3'"
+                        />    
+                    </div>
+                </div>
+            </div>
+
+            <div class="products-container">
+                @for(product of controller.GetData().data; track product.id) {
+                    <div class="product-item">
+                        <div class="product-item-cell product-name">
+                            <h4>{{ product.productName }}</h4>
+                        </div>
+
+                        <div class="product-item-cell expected">
+                            <span>
+                                {{ product.expectedQuantity }}
+                            </span>
+
+                            <span class="product-item-cell-label">
+                                Esperado
+                            </span>
+                        </div>
+                        <div class="product-item-cell quantity-container">
+                            <div class="quantity-value">
+                                <label>
+                                    <input 
+                                        type="number"
+                                        [value]="product.quantity" 
+                                        min="0"
+                                        [max]="product.expectedQuantity"
+                                        (input)="updateQuantity($event, product)"
+                                        [class.success]="product.status === 'approved'"
+                                        [class.caution]="product.status === 'partial'"
+                                        [class.danger]="product.status === 'rejected'"
+                                    />
+                                </label>
+                                <button 
+                                    class="dot-btn success secondary"
+                                    (click)="approveQuantity(product)"
+                                    [class.md]="!isMobile()"
+                                    [disabled]="product.status === 'approved'"
+                                >
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
+                                <button 
+                                    class="dot-btn danger secondary"
+                                    [class.md]="!isMobile()"
+                                    (click)="rejectQuantity(product)"
+                                    [disabled]="product.status === 'rejected'"
+                                >
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <span class="product-item-cell-label">
+                                Recibido
+                            </span>
+                        </div>
+                        <div class="product-item-cell unit-price">
+                            {{ product.unitPrice | clpCurrency }}
+                            <span class="product-item-cell-label">
+                                @if (!isMobile()) {
+                                    Precio unit.
+                                } @else {
+                                    Precio unitario
+                                }
+                            </span>
+                        </div>
+                        <div class="product-item-cell expected">
+                            <span class="dot-badge unit-measure">
+                                {{ product.purchaseUnit }}
+                            </span>
+
+                            <span class="product-item-cell-label">
+                                U. de medida
+                            </span>
+                        </div>
+                        <div class="product-item-cell status">
+                            <span class="dot-badge not-bordered contrast all-width status-product"
+                                [class.success]="product.status === 'approved'"
+                                [class.caution]="product.status === 'partial'"
+                                [class.danger]="product.status === 'rejected'"
+                                [class.exceded]="product.status === 'exceded'"
+                            >
+                                @switch(product.status) {
+                                    @case('approved') {
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        Aprobado
+                                    }
+                                    @case('partial') {
+                                        <i class="fa-solid fa-circle-half-stroke"></i>
+                                        Parcial
+                                    }
+                                    @case('rejected') {
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                        Rechazado
+                                    }
+                                    @case('exceded') {
+                                        <i class="fa-solid fa-circle-xmark"></i>
+                                        Exceso
+                                    }
+                                    @default {
+                                        <i class="fa-solid fa-clock"></i>
+                                        Pendiente
+                                    }
+                                }
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="dot-card shadow">
+            <label class="dot-label textarea" 
+                dot-input
+                [withValueConfirmation]="true"
+            >
+                <div class="dot-label-icon">
+                    <i class="fa-solid fa-comment"></i>
+                </div>
+                <span class="dot-label-text">Observación</span>
+                <textarea
+                    placeholder="Esta observación dejará un registro en la orden de compra." 
+                    (input)="setObservationValue($event)"
+                ></textarea>
+            </label>
+        </div>
+    </div>
+</dot-section-wrapper>
+
+<div class="toolbar-bulk-container shadow">
+    <div class="toolbar-section">
+        <label>
+            <input 
+                type="number"
+                placeholder="Cantidad"
+                min="0" 
+                (input)="updateBulkQuantity($event)"
+            />
+        </label>
+        <button class="dot-btn success md secondary" (click)="approveBulkQuantity()">
+            <i class="fa-solid fa-check"></i>
+        </button>
+        <button class="dot-btn danger md secondary" (click)="rejectBulkQuantity()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="toolbar-section">
+        <button class="dot-btn md secondary" (click)="cleanSelections()">Cerrar</button>
+    </div>
+</div>
+
+<dot-modal #confirmReceiptModal
+    tittleText="Confirmar recepción de productos"
+    modalType="success"
+    [withCancel]="true"
+    (callback)="confirmReceipt()"
+    (cancelCallback)="confirmReceiptModal.closeModal()"
+    okText="Finalizar verificación"
+    cancelText="Volver"
+>
+    <div class="modal-text">
+        <p>
+            Estás a punto de finalizar la verificación de los productos según la factura.
+        </p>
+    
+        <span class="next-step">
+            <i class="fa-solid fa-circle-info"></i>
+            En la siguiente etapa podrás revisar la información ingresada, adjuntar los documentos necesarios y completar la recepción de la orden de compra.
+        </span>
+    </div>
+</dot-modal>

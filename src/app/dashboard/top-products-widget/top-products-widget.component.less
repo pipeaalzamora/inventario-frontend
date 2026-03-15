@@ -1,0 +1,117 @@
+.widget-description {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--background-3);
+  border-left: 4px solid var(--brand);
+  border-radius: 0.5rem;
+
+  p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.top-products-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  thead {
+    background: var(--background-3);
+    border-bottom: 2px solid var(--border-light);
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-dark);
+
+      &.ranking-col,
+      &.requests-col,
+      &.percentage-col {
+        text-align: center;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-very-light);
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: var(--background-4);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 1rem;
+      color: var(--text);
+
+      &.ranking-col,
+      &.requests-col,
+      &.percentage-col {
+        text-align: center;
+      }
+    }
+  }
+}
+
+.ranking-badge {
+  display: inline-block;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.ranking-top {
+  background-color: var(--brand);
+  color: var(--color-zinc-950);
+}
+
+.ranking-high {
+  background-color: var(--background-2);
+  color: white;
+}
+
+.ranking-medium {
+  background: color-mix(in oklch, var(--background-3) 100%, transparent 0%);
+  color: var(--text);
+}
+
+.product-name {
+  font-weight: 500;
+  max-width: 250px;
+}
+
+.requests-col,
+.percentage-col {
+  color: var(--text-dark);
+  font-weight: 500;
+}
+
+@media (min-width: 1024px) {
+  .top-products-table {
+    font-size: 1rem;
+
+    thead th,
+    tbody td {
+      padding: 1.25rem;
+    }
+  }
+
+  .product-name {
+    max-width: 300px;
+  }
+}

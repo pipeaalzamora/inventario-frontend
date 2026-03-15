@@ -1,0 +1,126 @@
+@if (item().isMenuVisible) {
+    <div class="sidenav-item" 
+        (mouseenter)="handleMouseEnter()"
+        [class.close]="!isOpened()"
+        [matTooltip]="!isOpened() && !checkForChilds(item()) ? item().text : ''"
+        matTooltipPosition="right"
+    >
+        <mat-expansion-panel
+            class="sidenav-expansion-panel"
+            [disabled]="handleDisable()"
+            [class.close]="!isOpened()"
+            [class.active]="actualRoute().includes(item().name)"
+            [link]="redirectLink()!"
+            [replace]="true"
+        >
+            <mat-expansion-panel-header [class.expandible]="checkForChilds(item()) && !isOpened()">
+                <mat-panel-title>
+                    <!-- <div class="icon-container">
+                        <i class="{{ item().icon }}"
+                            [class.only-icon]="!isOpened()"
+                        >
+                        </i>
+                    </div>
+                    <span class="sidenav-matText"
+                        [class.only-icon]="!isOpened()"
+                    >
+                        {{ item().text }}
+                    </span> -->
+                    @if (!isOpened()) {
+                        <div class="icon-container">
+                            <i class="{{ item().icon }}"></i>
+                            
+                            @if (item().abbreviation) {
+                                <span class="abbreviation">{{ item().abbreviation }}</span>
+                            }
+                        </div>
+                    } @else {
+                        <!-- ⭐ Cuando está abierto, mostrar layout normal -->
+                        <i class="{{ item().icon }}"></i>
+                        <span class="sidenav-matText">{{ item().text }}</span>
+                    }
+                </mat-panel-title>
+            </mat-expansion-panel-header>
+            @if (checkForChilds(item())) {
+                <ul>
+                    @for (subItem of item().menuList; track $index) {
+                        @if (subItem.isMenuVisible) {
+                            @if (checkForChilds(subItem)) {
+                                <mat-expansion-panel 
+                                    class="subItem" 
+                                    [class.active]="actualRoute().includes(subItem.name)"
+                                >
+                                    <mat-expansion-panel-header>
+                                        <mat-panel-title>
+                                            <div class="icon-container">
+                                                <i class="{{ subItem.icon }}"></i>
+                                            </div>
+                                            <span class="matText">
+                                                {{ subItem.text }}
+                                            </span>
+                                        </mat-panel-title>
+                                    </mat-expansion-panel-header>
+                                    <ul>
+                                        @for (subSubItem of subItem.menuList; track $index) {
+                                            @if (subSubItem.isMenuVisible) {
+                                                <!-- <a link="{{ subSubItem.name }}" [replace]="true" class="subItemLink" [class.active]="actualRoute().includes(subSubItem.name)">
+                                                    <li>
+                                                        @if (subSubItem.icon) {
+                                                            <div class="icon-container">
+                                                                <i class="{{ subSubItem.icon }}"></i>
+                                                            </div>
+                                                        }
+                                                        <span>
+                                                            {{ subSubItem.text  }}
+                                                        </span>
+                                                    </li>
+                                                </a> -->
+                                                <a link="{{ subSubItem.name }}" class="subItemLink" [class.active]="actualRoute().includes(subSubItem.name)">
+                                                    <li>
+                                                        @if (subSubItem.icon) {
+                                                            <div class="icon-container">
+                                                                <i class="{{ subSubItem.icon }}"></i>
+                                                            </div>
+                                                        }
+                                                        <span>
+                                                            {{ subSubItem.text  }}
+                                                        </span>
+                                                    </li>
+                                                </a>
+                                            }
+                                        }
+                                    </ul>
+                                </mat-expansion-panel>
+                            } @else {
+                                <!-- <a link="{{ subItem.name }}" class="subItemLink" [replace]="true" [class.active]="actualRoute().includes(subItem.name)">
+                                    <li>
+                                        @if (subItem.icon) {
+                                            <div class="icon-container">
+                                                <i class="{{ subItem.icon }}"></i>
+                                            </div>
+                                        }
+                                        {{ subItem.text }}
+                                    </li>
+                                </a> -->
+                                <a link="{{ subItem.name }}" class="subItemLink" [class.active]="actualRoute().includes(subItem.name)">
+                                    <li>
+                                        @if (subItem.icon) {
+                                            <div class="icon-container">
+                                                <i class="{{ subItem.icon }}"></i>
+                                            </div>
+                                        }
+                                        {{ subItem.text }}
+                                    </li>
+                                </a>
+                            }
+                        }
+                    }
+                </ul>
+            }
+        </mat-expansion-panel>
+
+        @if (item().hasBottomDivider) {
+            <div class="sidenav-divider"></div>
+        }
+    </div>
+}

@@ -1,0 +1,71 @@
+:host {
+    display: contents;
+}
+
+.accordion-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+
+    transition: gap var(--animation-duration-default) ease-out;
+
+    &.closed {
+        gap: 0;
+    }
+}
+
+.accordion-header-comp {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: var(--default-rounded);
+        background-color: transparent;
+        transform: translate(-50%, -50%);
+        opacity: 0.4;
+        padding-inline: 3rem;
+        z-index: -1;
+
+        transition: background-color var(--animation-duration-default) ease-out,
+            width var(--animation-duration-default) ease-out,
+            height var(--animation-duration-default) ease-out;
+    }
+
+    &:hover {
+        &::after {
+            background-color: var(--background-4);
+            width: calc(100% + 3rem);
+            height: 68px;
+
+            //TODO: QUIZAS ESTO SEA UN PROBLEMA AL NO USAR EL COMPONENTE EN UNA CARD, CORREGIR CUANDO OCURRA ESTO;
+        }
+    }
+
+    & > i.fa-caret-down {
+        font-size: 1.25rem;
+        padding-right: 1rem;
+
+        transition: transform var(--animation-duration-long) ease-out;
+
+        &.rotated {
+            transform: rotateX(180deg);
+        }
+    }
+}
+
+.accordion-content {
+    overflow: hidden;
+}

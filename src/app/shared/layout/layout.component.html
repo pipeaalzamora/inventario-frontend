@@ -1,0 +1,9 @@
+<div id="layout-container" [class.open]="isSidebarOpen()" [class.mobile]="isMobile()"> 
+    <dot-sidebar/>
+    <div id="main-app-content">
+        <dot-nav-header/>
+        <main id="content-router">
+            <router-outlet></router-outlet>
+        </main>
+    </div>
+</div>

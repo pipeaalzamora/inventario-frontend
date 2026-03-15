@@ -1,0 +1,114 @@
+.filter-item {
+    // GRUPO
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+        &:hover {
+
+            .group-actions {
+                .remove-group {
+                    opacity: 1;
+                    pointer-events: all;
+                }
+            }
+        }
+
+        .group-actions {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+            justify-content: space-between;
+
+            .remove-group {
+                opacity: 0;
+                pointer-events: none;
+
+                transition: background-color var(--animation-duration-short) ease-in-out, 
+                    color var(--animation-duration-short) ease-in-out,
+                    scale var(--animation-duration-short) ease-in-out,
+                    opacity var(--animation-duration-short) ease-in-out
+                ;
+            }
+        }
+    }
+
+    //ITEM
+
+    .filter-condition {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .filters-container {
+        display: flex;
+        flex-direction: column;
+
+        .filter-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+
+            .logic-condition {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                width: 100% !important;
+            }
+            .logic {
+
+                &.withItems {
+                    min-width: 42px;
+                    max-width: 42px;
+                }
+            }
+            
+            @media screen and (max-width: 750px) {
+                .logic-condition {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    margin-bottom: 1rem;
+                    width: 100% !important;
+                }
+            }
+        }
+    }
+}
+
+.filter-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+// :host ::ng-deep mat-form-field {
+//     height: 50px !important;
+
+//     .mat-mdc-form-field-infix {
+//         padding: 0 0 !important;
+//         padding-top: 1.2rem !important;
+//     }
+
+//     .mat-mdc-form-field-flex {
+//         max-height: 50px !important;
+//         height: 50px !important;
+//         min-height: 50px !important;
+//         padding: 0 !important;
+//     }
+
+//     .mat-mdc-text-field-wrapper .mat-mdc-form-field-flex .mat-mdc-floating-label {
+//         top: 40% !important;
+//     }
+
+//     mat-label {
+//         font-size: .8rem !important;
+//         transform: translateY(-40px) !important;
+//     }
+// }

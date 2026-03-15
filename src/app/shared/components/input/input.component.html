@@ -1,0 +1,53 @@
+@if (!isHidden()) {
+    @if (icon()) {
+        <div class="dot-label-icon">
+            <i [class]="icon()"></i>
+        </div>
+    }
+
+    @if (prefix()) {
+        <div class="dot-label-prefix" #prefixEl>
+            {{ prefix() }}
+        </div>
+    }
+    
+    @if (label()) {
+        <div class="dot-label-text">
+            {{ label() }}
+            @if (isRequired()) {
+                <span class="required-mark">*</span>
+            }
+        </div>
+    }
+    
+    
+    <!-- Visible input -->
+    <input 
+        #inputEl
+        [type]="type()" 
+        [value]="fieldValue()"
+        [placeholder]="placeholder()"
+        [disabled]="isDisabled()"
+        [readonly]="isReadonly()"
+        (input)="onInput($event)"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+    >
+
+    <!-- Field mirror for Signal Forms integration -->
+    @if (field(); as fieldRef) {
+        @if (isNumericField()) {
+            <input type="number" [field]="fieldNumber()" hidden>
+        } @else {
+            <input type="text" [field]="fieldString()" hidden>
+        }
+    }
+
+
+    <div class="errors-container" 
+        [class.visible]="showErrors()" 
+        [matTooltip]="getErrorsTooltip()"
+    >
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+}

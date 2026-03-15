@@ -1,0 +1,160 @@
+.empty-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: auto;
+
+    svg {
+        width: 15rem;
+        height: auto;
+
+        path {
+            fill: color-mix(in oklch, var(--text) 30%, transparent 70%);
+        }
+    }
+
+    @media (max-width: 768px) {
+        padding-block: 2rem;
+
+        svg {
+            width: 10rem;
+        }
+
+        span.empty {
+            font-size: 1.2rem !important;
+        }
+    }
+
+    span.empty {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: color-mix(in oklch, var(--text) 30%, transparent 70%);
+    }
+}
+
+.all-notifications,
+.new-notifications {
+    position: relative;
+    
+    .spinner-container {
+        position: absolute;
+        bottom: 1rem;
+        right: 1rem;
+
+        display: flex;
+        width: min-content;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.notifications-container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    border-radius: 16px;
+    overflow: hidden; 
+    scroll-behavior: smooth;
+}
+
+.new-notifications,
+.all-notifications {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    overflow-y: auto;
+    flex: 0 0 auto;
+
+    transition: opacity var(--animation-duration-long) ease-in-out;
+
+    &::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--border);
+    }
+}
+
+.new-notifications { 
+    opacity: 1;
+
+    &.unshow {
+        opacity: 0;
+    }
+}
+
+.all-notifications {
+    opacity: 0;
+
+    &.show {
+        opacity: 1;
+    }
+}
+
+.notification-action {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    background-color: light-dark(white, var(--color-neutral-900));
+    border-radius: var(--default-rounded);
+    padding: .8rem .5rem;
+
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+
+    .toggler {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: .5rem;
+
+        button {
+            user-select: none;
+
+            &:not(.active) {
+                opacity: .5; 
+            }
+
+            &.active {
+                pointer-events: none;
+            }
+        }
+    }
+
+    @media screen and (max-width: 768px) {
+        & {
+            gap: 0;
+
+            .toggler {
+                gap: 0;
+
+                button {
+                    padding: 0 .3rem;
+                }
+            }
+        }
+    }
+
+    .all-read {
+        opacity: 0;
+        pointer-events: none;
+
+        transition: 
+            opacity var(--animation-duration-default) ease-in-out, 
+            scale var(--animation-duration-default) ease-in-out,
+            background-color var(--animation-duration-default) ease-in-out
+        ;
+
+        &.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+    }
+}

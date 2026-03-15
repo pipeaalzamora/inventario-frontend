@@ -1,0 +1,38 @@
+<div class="dot-notification">
+    
+    <div class="dot-notification-content">
+        <div class="dot-notification-from">
+            <img src="default/default-avatar.webp" alt="" class="dot-notification-avatar">
+            <div class="dot-notification-autor">
+                <span class="dot-notification-name">
+                    Usuario
+                </span>
+                <span class="dot-notification-rol">
+                    rol del usuario
+                </span>
+            </div>
+        </div>
+
+        
+        <span class="dot-notification-payload">
+            {{ notification().payload.message }}
+        </span>
+    </div>
+
+    <div class="dot-notification-actions">
+        @if (!notification().readAt) {
+            <button class="dot-btn sm" (click)="markAsRead()" matTooltip="Marcar como leída">
+                <i class="fa-solid fa-check-double"></i>
+            </button> 
+        } @else {
+            <button class="dot-btn sm" (click)="markAsUnread()" matTooltip="Marcar como no leída">
+                <i class="fa-regular fa-eye"></i>
+            </button>
+        }
+        <span>
+            {{ notification().sendAt | humanDateShort }}
+        </span>
+    </div>
+
+    <span class="dot-notification-status" [class.is-new]="!notification().readAt"></span>
+</div>

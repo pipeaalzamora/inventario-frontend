@@ -1,0 +1,42 @@
+<div class="dashboard-container">
+  <!-- Welcome Section -->
+  <dot-welcome></dot-welcome>
+
+  <!-- KPI Cards Row -->
+  <div class="kpi-row">
+    <dot-total-requests-widget></dot-total-requests-widget>
+    <dot-open-requests-widget></dot-open-requests-widget>
+    <dot-pending-receipt-widget></dot-pending-receipt-widget>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="widgets-grid">
+    <!-- Row 1: Solicitudes Activas -->
+    <div class="grid-item full-width">
+      <dot-active-requests-widget></dot-active-requests-widget>
+    </div>
+
+    <!-- Row 2: Exactitud de Inventario & Proveedores -->
+    <div class="grid-item">
+      <dot-inventory-exactness-widget></dot-inventory-exactness-widget>
+    </div>
+    <div class="grid-item">
+      <dot-suppliers-ontime-widget></dot-suppliers-ontime-widget>
+    </div>
+
+    <!-- Row 3: Stock Lento -->
+    <div class="grid-item full-width">
+      <dot-slow-stock-widget></dot-slow-stock-widget>
+    </div>
+
+    <!-- Row 4: Top Productos -->
+    <div class="grid-item full-width">
+      <dot-top-products-widget></dot-top-products-widget>
+    </div>
+
+    <!-- Row 5: Timeline Solicitudes -->
+    <div class="grid-item full-width">
+      <dot-requests-timeline-widget></dot-requests-timeline-widget>
+    </div>
+  </div>
+</div>

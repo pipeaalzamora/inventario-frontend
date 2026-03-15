@@ -1,0 +1,205 @@
+<section>
+    <div class="section-header">
+        <div class="header-content">
+            <h1>Unidades de Medida</h1>
+            <p class="subtitle">Gestiona las unidades de medida para tu inventario</p>
+        </div>
+        @if(!isMobile()) {
+        <button class="dot-btn flashy" (click)="openAddUnitModal()">
+            <i class="fa-regular fa-plus"></i>
+            <span>Agregar unidad</span>
+        </button>
+        } @else {
+        <button class="dot-btn flashy" (click)="openAddUnitModal()">
+            <i class="fa-regular fa-plus"></i>
+        </button>
+        }
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="table-controls">
+            <div class="category-filters">
+                <button 
+                    class="category-filter-btn mass" 
+                    [class.active]="selectedCategory() === 'mass'"
+                    (click)="toggleCategory('mass')">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                    <span>Masa</span>
+                    <span class="count">{{getCategoryCount('mass')}}</span>
+                </button>
+                <button 
+                    class="category-filter-btn volume" 
+                    [class.active]="selectedCategory() === 'volume'"
+                    (click)="toggleCategory('volume')">
+                    <i class="fa-solid fa-droplet"></i>
+                    <span>Volumen</span>
+                    <span class="count">{{getCategoryCount('volume')}}</span>
+                </button>
+                <button 
+                    class="category-filter-btn package" 
+                    [class.active]="selectedCategory() === 'package'"
+                    (click)="toggleCategory('package')">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                    <span>Paquetes</span>
+                    <span class="count">{{getCategoryCount('package')}}</span>
+                </button>
+                <button 
+                    class="category-filter-btn unit" 
+                    [class.active]="selectedCategory() === 'unit'"
+                    (click)="toggleCategory('unit')">
+                    <i class="fa-solid fa-cube"></i>
+                    <span>Unidad</span>
+                    <span class="count">{{getCategoryCount('unit')}}</span>
+                </button>
+            </div>
+            <div class="search-wrapper">
+                <dot-search [controller]="controller" [noCollapse]="true"
+                placeholder="Buscar unidades..." />
+            </div>
+        </div>
+
+        <div class="dot-table">
+            <table>
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            <dot-table-caption [controller]="controller" />
+            <tbody>
+                @for (unit of controller.GetData().data; track unit.id) {
+                <tr>
+                    <td>
+                    <div class="unit-name-container">
+                        <div class="unit-icon-wrapper" [class]="getUnitCategoryClass(unit)">
+                            <i [class]="getUnitIcon(unit) + ' unit-icon'"></i>
+                        </div>
+                        <div class="unit-info">
+                            <div class="unit-name-row">
+                                <span class="unit-name">{{unit.name}}</span>
+                                @if (unit.isBasic) {
+                                <span class="basic-badge">Básico</span>
+                                }
+                            </div>
+                            <span class="category-badge" [class]="getUnitCategoryClass(unit)">{{getUnitCategoryLabel(unit)}}</span>
+                        </div>
+                    </div>
+                    </td>
+                    <td class="abbreviation-cell">
+                        <span class="abbreviation-badge">{{unit.abbreviation}}</span>
+                    </td>
+                    <td class="description-cell">{{getUnitDescription(unit)}}</td>
+                    <td class="conversion-cell">
+                        @if (unit.isBasic && getRelevantConversion(unit); as conversion) {
+                            <span class="conversion-info">
+                                <i class="fa-solid fa-arrow-right"></i>
+                                1 {{conversion.sourceAbbr}} = {{conversion.factor}} {{conversion.targetAbbr}}
+                            </span>
+                        } @else if (unit.isBasic) {
+                            <span class="basic-unit-text">
+                                Unidad base
+                            </span>
+                        }
+                    </td>
+                </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>
+<dot-modal #addUnitModal
+    tittleText="Agregar unidad de medida"
+    [longModal]="true"
+    okText="Crear"
+    modalType="success"
+    (onClose)="closeAddUnitModal()"
+    (callback)="onSubmit()"
+    [disabledIf]="unitForm().invalid()"
+>
+    <form>
+        <div class="dot-row gap-1 wrap">
+            <dot-input
+                [field]="unitForm.name"
+                label="Nombre"
+                icon="fa-solid fa-box"
+                placeholder="Nombre de la unidad"
+                minlength="3"
+                maxlength="50"
+            />
+            <dot-input
+                [field]="unitForm.abbreviation"
+                label="Abreviatura"
+                icon="fa-solid fa-tag"
+                placeholder="Abreviatura de la unidad"
+            />
+            <dot-select
+                [field]="unitForm.category"
+                [options]="[
+                    { value: 'mass', label: 'Masa' },
+                    { value: 'volume', label: 'Volumen' },
+                    { value: 'package', label: 'Paquetes' },
+                    { value: 'unit', label: 'Unidad' }
+                ]"
+                label="Categoría"
+                icon="fa-solid fa-layer-group"
+                placeholder="Selecciona una categoría"
+                [searchBy]="'label'"
+                [fullWidth]="isMobile()"
+            />
+        </div>
+
+        <dot-input
+            [field]="unitForm.description"
+            label="Descripción"
+            icon="fa-regular fa-pen-to-square"
+            placeholder="Descripción de la unidad"
+        />
+
+        <div class="dot-row gap-1 wrap">
+            <dot-select
+                [field]="unitForm.baseUnitId"
+                returnKey="id"
+                #countUnitSelect
+                [options]="baseUnits()"
+                [searchBy]="'name'"
+                icon="fa-solid fa-list"
+                label="Unidad Base"
+                [fullWidth]="isMobile()"
+            />
+
+            <dot-input
+                [field]="unitForm.conversionFactor"
+                label="Factor de conversión"
+                icon="fa-solid fa-scale-unbalanced"
+                placeholder="Factor de conversión"
+                type="number"
+            />
+        </div>
+    </form>
+
+    @if (unitFormModel().name !== '' && unitFormModel().conversionFactor > 0 && unitFormModel().baseUnitId && unitFormModel().baseUnitId !== 0) {
+        <div class="conversion-preview-card">
+            <div class="card-title">
+                <i class="fa-solid fa-calculator"></i>
+                <span>Vista previa de conversión</span>
+            </div>
+            
+            <div class="unit-convertion-example-container">
+                <div class="conversion-item">
+                    <span class="conversion-value">1</span>
+                    <span class="conversion-unit picked-unit">{{ unitFormModel().name }}</span>
+                </div>
+
+                <i class="fa-solid fa-equals"></i>
+
+                <div class="conversion-item">
+                    <span class="conversion-value">{{ unitFormModel().conversionFactor }}</span>
+                    <span class="conversion-unit">{{ selectedBaseUnitName() }}</span>
+                </div>
+            </div>
+            
+            <div class="conversion-reverse">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                1 {{ selectedBaseUnitName() }} = {{ 1 / unitFormModel().conversionFactor | number:'1.0-4' }} {{ unitFormModel().name }}
+            </div>
+        </div>
+    }
+</dot-modal>

@@ -1,0 +1,59 @@
+<div class="numeric-input-container" [class.compact]="compact()" [ngStyle]="{'justify-content': justify()}">
+    @switch (buttonsAlign()) {
+        @case ('left') {
+            <div *ngTemplateOutlet="decreaseButton"></div>
+            <div *ngTemplateOutlet="increaseButton"></div>
+            <div *ngTemplateOutlet="inputField"></div>
+        } @case ('right') {
+            <div *ngTemplateOutlet="inputField"></div>
+            <div *ngTemplateOutlet="decreaseButton"></div>
+            <div *ngTemplateOutlet="increaseButton"></div>
+        } @case ('center') {
+            <div *ngTemplateOutlet="decreaseButton"></div>
+            <div *ngTemplateOutlet="inputField"></div>
+            <div *ngTemplateOutlet="increaseButton"></div>
+        }
+    }
+</div>
+
+<ng-template #inputField>
+    <label>
+        <input
+            #inputEl
+            type="number"
+            [min]="min()"
+            [max]="max()"
+            [step]="step()"
+            [value]="initialValue()"
+            (input)="onInput($event)"
+            (blur)="onBlur($event)"
+            [disabled]="disabled()"
+            [readOnly]="readonly()"
+            [ngStyle]="{'background-color': 'var(--background-' + customBackground() + ')'}"
+        >
+    </label>
+</ng-template>
+
+<ng-template #decreaseButton>
+    <button 
+        class="dot-btn decrease secondary no-active"
+        type="button"
+        (click)="decrease()"
+        [disabled]="decreaseShouldBeDisabled()"
+        [class.compact]="compact()"
+    >
+        <i class="fa-solid fa-minus"></i>
+    </button>
+</ng-template>
+
+<ng-template #increaseButton>
+    <button
+        class="dot-btn increase secondary no-active"
+        type="button"
+        (click)="increase()"
+        [disabled]="increaseShouldBeDisabled()"
+        [class.compact]="compact()"
+    >
+        <i class="fa-solid fa-plus"></i>
+    </button>
+</ng-template>

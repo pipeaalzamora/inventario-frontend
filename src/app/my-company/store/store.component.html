@@ -1,0 +1,90 @@
+<section>
+    <div class="section-header">
+            <div class="dot-row gap-05 align-center">
+                <h1>Tiendas</h1>
+                <span class="dot-badge tertiary lg">{{ stores().length }}</span>
+
+                @if (STORE_CAN_CREATE) {
+                    <!-- <button class="dot-btn flashy ml-2" link="store-form-new" [replace]="true">
+                        <i class="fa-solid fa-plus"></i>
+                        @if (!isMobile()) {
+                            Nueva tienda
+                        }
+                    </button> -->
+                    <button class="dot-btn flashy ml-2" link="store-form-new">
+                        <i class="fa-solid fa-plus"></i>
+                        @if (!isMobile()) {
+                            Nueva tienda
+                        }
+                    </button>
+                }
+            </div>
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="toolbar">
+            @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                <dot-search [controller]="controller" placeholder="RUT, nombre, descripción..."/>
+                </div>
+            } @else {
+                <div class="col">
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, dirección, centro de costo... "/>
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                </div>
+            }
+        </div>
+        <!-- <div class="toolbar">
+            <div class="col">
+                <dot-filter [controller]="controller" [columns]="columns" />
+                <dot-search [controller]="controller" placeholder="Nombre, dirección, centro de costo... "/>
+            </div>
+        </div> -->
+        <div class="dot-table">
+            <table class="table-striped">
+            <dot-table-caption [controller]="controller" [center]="isMobile()" />
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            
+            <tbody>
+                @for (store of controller.GetData().data; track store.id) {
+                    <tr>
+                        <td>
+                            <dot-dropdown [dropdownTrigger]="storeNameTrigger" [fullWidth]="true">
+                                <ng-template #storeNameTrigger>
+                                    <a class="dot-anchor pointer">
+                                        {{ store.storeName }}
+                                    </a>
+                                </ng-template>
+                                <!-- <button class="dot-btn" link="store-form" [replace]="true" [params]="{ id: store.id }">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <span>Editar</span>
+                                </button> -->
+                                <button class="dot-btn" link="store-form" [params]="{ id: store.id }">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <span>Editar</span>
+                                </button>
+                            </dot-dropdown>
+                        </td>
+                        <td>{{ store.description || '-' }}</td>
+                        <td>{{ store.storeAddress || '-' }}</td>
+                        <td>{{ store.idCostCenter || '-' }}</td>
+                        <!--
+                        <td class="center">
+                            @if (getSupplierCount(store) > 0) {
+                                <span class="dot-badge primary">
+                                    {{ getAvailableSuppliers(store) }}/{{ getSupplierCount(store) }}
+                                </span>
+                            } @else {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        -->
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>

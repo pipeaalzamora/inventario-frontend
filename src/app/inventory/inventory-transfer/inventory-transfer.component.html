@@ -1,0 +1,645 @@
+<div class="transfer-container">
+  @if (insufficientWarehouses()) {
+    <div class="no-warehouses-watermark">
+      <i class="fa-solid fa-warehouse"></i>
+      <p>No hay suficientes bodegas disponibles para realizar transferencias</p>
+      <p class="hint">Se requieren al menos 2 bodegas en la tienda</p>
+      <button class="dot-btn" link="inventory">
+        <i class="fa-solid fa-arrow-left"></i>
+        Volver al Inventario
+      </button>
+    </div>
+  }
+
+  <ng-template #transferHeader>
+    <div class="cont">
+      <dot-go-back fallback="inventory" />
+      <div class="dot-col no-gap">
+        <h1>Transferencia @if (!tabMode()){de inventario}</h1>
+        <span class="dot-badge new not-bordered">Nueva</span>
+      </div>
+    </div>
+  </ng-template>
+
+  @if (!insufficientWarehouses()) {
+    <dot-section-wrapper
+      [headerRef]="transferHeader"
+      [withStickyToolbar]="true"
+      [columns]="tabMode() ? '1fr' : '1fr .3fr 1fr'"
+      [paddingBottom]="tabMode() ? 8 : 1"
+    >
+      @if (tabMode()) {
+        <dot-tabs 
+          [templates]="{
+            'origin': { label: originLabel, content: originColumn },
+            'destination': { label: destinationLabel, content: destinationColumn },
+          }"
+          [stretchLabels]="true"
+          [stickyTabHeader]="true"
+        />
+
+        <div class="mobile-totals" [class.sidebar-open]="isSidebarOpen()">
+          
+          @if (!selectedSourceOption() || !selectedTargetOption() || selectedProducts().length === 0) {
+            <div class="advice-container-mobile">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              @if (!selectedSourceOption()) {
+                <span>Selecciona una bodega origen</span>
+              } @else if (!selectedTargetOption()) {
+                <span>Selecciona una bodega destino</span>
+              } @else if (selectedProducts().length === 0) {
+                <span>Selecciona productos para transferir</span>
+              }
+            </div>
+          }
+          <div class="dot-row justify-between align-center mobile-warehouses">
+            <dot-select
+              class="mobile-select"
+              [options]="sourceWarehouseOptions()"
+              [selected]="selectedSourceOption()"
+              searchBy="warehouseName"
+              label="Seleccionar bodega"
+              icon="fa-solid fa-warehouse"
+              (changeOption)="onSourceWarehouseChange($event)"
+              [compact]="true"
+            />
+
+            <i class="fa-solid fa-angles-right"></i>
+
+            <dot-select
+              class="mobile-select"
+              [options]="targetWarehouseOptions()"
+              [selected]="selectedTargetOption()"
+              searchBy="warehouseName"
+              label="Seleccionar bodega"
+              icon="fa-solid fa-warehouse"
+              (changeOption)="onTargetWarehouseChange($event)"
+              [compact]="true"
+            />
+          </div>
+
+          <div class="dot-row justify-between gap-05">
+            <div class="dot-row gap-05 align-center">
+              <span>Productos:</span>
+              <strong>
+                {{ selectedProducts().length }}
+              </strong>
+            </div>
+
+            <div class="dot-row gap-05 align-center">
+              <span>Unidades:</span>
+              <strong>
+                {{ totalItemsToTransfer() }}
+              </strong>
+            </div>
+          </div>
+
+          <button class="dot-btn success lg" [disabled]="!isFormValid()" (click)="openConfirmModal()">
+            <i class="fa-solid fa-floppy-disk"></i>
+            Transferir
+          </button>
+        </div>
+      } @else {
+        <!-- Columna izquierda: ORIGEN -->
+        <ng-container *ngTemplateOutlet="originColumn"/>
+
+        <!-- Ícono central de transferencia -->
+        <ng-container *ngTemplateOutlet="transferResumeColumn"/>
+
+        <!-- Columna derecha: DESTINO -->
+        <ng-container *ngTemplateOutlet="destinationColumn"/>
+      }
+
+    </dot-section-wrapper>
+  }
+</div>
+
+<ng-template #originColumn>
+  <div class="section-col" [class.mt-1]="tabMode()">
+    <div class="dot-card shadow">
+      <div class="card-header">
+        <div class="cont">
+          <h3>Bodega Origen</h3>
+          @if (!tabMode()) {
+            <span class="dot-badge secondary" loading>{{ sourceController.GetData().totalItems }}</span>
+          }
+        </div>
+        @if (!tabMode()) {
+          <dot-select
+            [options]="sourceWarehouseOptions()"
+            [selected]="selectedSourceOption()"
+            searchBy="warehouseName"
+            label="Seleccionar bodega"
+            icon="fa-solid fa-warehouse"
+            (changeOption)="onSourceWarehouseChange($event)"
+          />
+        }
+      </div>
+
+      <dot-search [controller]="sourceController" [noCollapse]="true" [fullWidth]="true" />
+
+      @if (!selectedSourceOption()) {
+        <div class="list-empty">
+          <i class="fa-solid fa-warehouse"></i>
+          Selecciona una bodega de origen
+        </div>
+      } @else if (sourceProducts().length === 0) {
+        <div class="list-empty">
+          <i class="fa-solid fa-box-open"></i>
+          No hay productos en esta bodega
+        </div>
+      } @else {
+        <div class="list-body">
+          @for (product of sourceController.GetData().data; track product.id) {
+            <div class="list-item" [class.selected]="product.transferQuantity > 0">
+
+              <div class="item-info">
+
+                <div class="item-core">
+                  <div class="img-container">
+                    @if (product.image) {
+                      <img 
+                        [ngSrc]="product.image" 
+                        [alt]="product.productName" 
+                        [width]="40" 
+                        [height]="40"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <dot-no-image />
+                    }
+                  </div>
+
+                  <div class="item-names">
+                    <div class="title">
+                      <h4>{{ product.productName }}</h4>
+                      <span class="sku">{{ product.productTemplate.sku }}</span>
+                    </div>
+                  </div>
+
+                  @if (tabMode()) {
+                    <div class="badges-section">
+                      @if (getNewSourceStock(product) === 0) {
+                        <span class="dot-badge danger not-bordered">Agotado</span>
+                      } @else if (hasSourceWarning(product)) {
+                        <span class="dot-badge caution not-bordered contrast">Stock bajo</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="item-quantities">
+                  @if (product.transferQuantity > 0) {
+                    <div class="quantity-item comparison-item stock-item">
+                      <span>Stock</span>
+                      <div class="comparison-wrapper">
+                        <span class="value-old">{{ product.totals.currentStock }}</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span class="value-new">{{ getNewSourceStock(product) }}</span>
+                      </div>
+                    </div>
+                    @if (!tabMode()) {
+                      <div class="quantity-item cost-item cost-unit-item">
+                        <span>Costo unitario</span>
+                        <strong>{{ product.totals.avgCost | clpCurrency }}</strong>
+                      </div>
+                      <div class="quantity-item cost-item comparison-item cost-total-item">
+                        <span>Costo total</span>
+                        <div class="comparison-wrapper">
+                          <span class="value-old">{{ getProductSourceCurrentTotalCost(product) | clpCurrency }}</span>
+                          <i class="fa-solid fa-arrow-right"></i>
+                          <span class="value-new">{{ getNewSourceTotalCost(product) | clpCurrency }}</span>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <div class="quantity-item stock-item">
+                      <span>Stock actual</span>
+                      <strong>{{ product.totals.currentStock }}</strong>
+                    </div>
+                    @if (!tabMode()) {
+                      <div class="quantity-item cost-unit-item">
+                        <span>Costo unitario</span>
+                        <strong>{{ product.totals.avgCost | clpCurrency }}</strong>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+
+              <div class="item-action">
+                @if (!tabMode()) {
+                  <div class="item-action-badges">
+                    @if (getNewSourceStock(product) === 0) {
+                      <span class="dot-badge danger not-bordered">Agotado</span>
+                    } @else if (hasSourceWarning(product)) {
+                      <span class="dot-badge caution not-bordered contrast">Stock bajo</span>
+                    }
+                  </div>
+                }
+
+                @if (tabMode()) {
+                  <span class="item-cost">Costo: <strong>{{ product.totals.avgCost | clpCurrency }}</strong></span>
+                }
+                <dot-numeric-input
+                  [min]="0"
+                  [max]="product.totals.currentStock"
+                  [compact]="true"
+                  [disabled]="product.totals.currentStock <= 0 || !selectedTargetOption()"
+                  [buttonsAlign]="tabMode() ? 'right' : 'center'"
+                  [justify]="tabMode() ? 'end' : 'center'"
+                  (valueChange)="updateTransferQuantity(product, $event)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #transferResumeColumn>
+  <div class="section-col sticky transfer-icon-col">
+    <div class="dot-card shadow">
+      <div class="icon-container">
+        <i class="fa-solid fa-right-left"></i>
+      </div>
+      <div class="info-container">
+        <span>Resumen</span>
+
+        <span class="item">
+          <span> Productos:</span> 
+          <strong>
+            {{ selectedProducts().length }}
+          </strong>
+        </span>
+
+        <span class="item">
+          <span> Unidades:</span>
+          <strong>
+            {{ totalItemsToTransfer() }}
+          </strong>
+        </span>
+      </div>
+
+      @if (!selectedSourceOption() || !selectedTargetOption() || selectedProducts().length === 0) {
+        <div class="advice-container">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          @if (!selectedSourceOption()) {
+            <span>Selecciona una bodega origen</span>
+          } @else if (!selectedTargetOption()) {
+            <span>Selecciona una bodega destino</span>
+          } @else if (selectedProducts().length === 0) {
+            <span>Selecciona productos para transferir</span>
+          }
+        </div>
+      } @else {
+        <button class="dot-btn success md lg"
+          [disabled]="!isFormValid()"
+          (click)="openConfirmModal()"
+        >
+          Transferir
+        </button>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #destinationColumn>
+  <div class="section-col" [class.mt-1]="tabMode()">
+    <div class="dot-card shadow">
+      <div class="card-header">
+        <div class="cont">
+          <h3>Bodega Destino</h3>
+          @if (!tabMode()) {
+            <span class="dot-badge secondary" loading>
+              {{destinationController.GetData().totalItems}}
+            </span>
+          }
+        </div>
+
+        @if (!tabMode()) {
+          <dot-select
+            [options]="targetWarehouseOptions()"
+            [selected]="selectedTargetOption()"
+            searchBy="warehouseName"
+            label="Seleccionar bodega"
+            icon="fa-solid fa-warehouse"
+            [disabled]="!selectedSourceOption()"
+            [compact]="tabMode()"
+            (changeOption)="onTargetWarehouseChange($event)"
+          />
+        }
+      </div>
+
+      <dot-search [controller]="destinationController" [noCollapse]="true" [fullWidth]="true"/>
+
+      @if (selectedTargetOption()) {
+        <div class="toggle-container">
+          <dot-toggle
+            [checked]="showAllDestinationProducts()"
+            (checkedChange)="showAllDestinationProducts.set($event)"
+            label="Mostrar todos los productos"
+            size="sm"
+            labelPosition="left"
+          />
+        </div>
+      }
+
+      @if (!selectedTargetOption()) {
+        <div class="list-empty">
+          <i class="fa-solid fa-warehouse"></i>
+          Selecciona una bodega de destino
+        </div>
+      } @else {
+        <div class="list-body">
+          @for (product of destinationController.GetData().data; track product.id) {
+            <div class="list-item" [class.selected]="getTransferQuantity(product) > 0 && showAllDestinationProducts()">
+
+              <div class="item-info destiny">
+
+                <div class="item-core">
+
+                  <div class="img-container">
+                    @if (product.image) {
+                      <img 
+                        [ngSrc]="product.image" 
+                        [alt]="product.productName" 
+                        [width]="40" 
+                        [height]="40"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <dot-no-image />
+                    }
+                  </div>
+
+                  <div class="item-names">
+                    <div class="title">
+                      <h4>{{ product.productName }}</h4>
+                      <span class="sku">{{ product.productTemplate.sku }}</span>
+                    </div>
+                  </div>
+
+                  @if (tabMode()) {
+                    <div class="badges-section">
+                      @if (isNewInDestination(product)) {
+                        <span class="dot-badge new not-bordered">Nuevo</span>
+                      }
+                      @if (hasDestinationWarning(product)) {
+                        <span class="dot-badge caution not-bordered contrast">Stock bajo</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="item-quantities destiny">
+                  @if (getTransferQuantity(product) > 0) {
+                    @if (product.totals.currentStock > 0) {
+                      <div class="quantity-item comparison-item">
+                        <span>Stock</span>
+                        <div class="comparison-wrapper">
+                          <span class="value-old">{{ product.totals.currentStock }}</span>
+                          <i class="fa-solid fa-arrow-right"></i>
+                          <span class="value-new">{{ getNewDestinationStock(product) }}</span>
+                        </div>
+                      </div>
+                    } @else {
+                      <div class="quantity-item">
+                        <span>Stock final</span>
+                        <strong>
+                          {{ getNewDestinationStock(product)}}
+                        </strong>
+                      </div>
+                    }
+
+                    <div class="quantity-item">
+                      <span>Cantidad entrante</span>
+                      <strong>
+                        {{ getTransferQuantity(product)}}
+                      </strong>
+                    </div>
+
+                    <div class="quantity-item cost-item comparison-item">
+                      <span>Costo promedio</span>
+                      <div class="comparison-wrapper">
+                        <span class="value-old">{{ getDestinationOldAvgCost(product) | clpCurrency }}</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span class="value-new">{{ getNewDestinationAvgCost(product) | clpCurrency }}</span>
+                        @if (getCostChangeDirection(product) === 'up') {
+                          <i class="fa-solid fa-arrow-trend-up cost-change-indicator up"></i>
+                        } @else if (getCostChangeDirection(product) === 'down') {
+                          <i class="fa-solid fa-arrow-trend-down cost-change-indicator down"></i>
+                        }
+                      </div>
+                    </div>
+
+                    <div class="quantity-item cost-item comparison-item">
+                      <span>Costo total</span>
+                      <div class="comparison-wrapper">
+                        <span class="value-old">{{ (product.totals.currentStock * getDestinationOldAvgCost(product)) | clpCurrency }}</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span class="value-new">{{ getNewDestinationTotalCost(product) | clpCurrency }}</span>
+                      </div>
+                    </div>
+                  } @else {
+                    @if (product.totals.currentStock > 0) {
+                      <div class="quantity-item">
+                        <span>Stock actual</span>
+                        <strong>{{ product.totals.currentStock}}</strong>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #originLabel>
+  <div class="tab-label-content">
+    <i class="fa-solid fa-upload"></i>
+    <span>Origen</span>
+    <span class="dot-badge secondary">
+      {{ sourceController.GetData().totalItems }}
+    </span>
+  </div>
+</ng-template>
+
+<ng-template #destinationLabel>
+  <div class="tab-label-content">
+    <i class="fa-solid fa-download"></i>
+    <span>Destino</span>
+    <span class="dot-badge secondary">
+      {{ destinationController.GetData().totalItems }}
+    </span>
+  </div>
+</ng-template>
+
+<!-- Modal de confirmación -->
+<dot-modal
+  #confirmModal
+  tittleText="Confirmar Transferencia"
+  okText="Transferir"
+  [withCancel]="true"
+  modalType="success"
+  [longModal]="true"
+  (callback)="executeTransfer()"
+>
+  <div class="transfer-confirm-modal">
+    <!-- Información de tienda y bodegas -->
+    <div class="modal-section store-info">
+      <div class="info-row">
+        <i class="fa-solid fa-store"></i>
+        <div class="info-content">
+          <span class="label">Tienda:</span>
+          <strong>{{ selectedStore()?.storeName }}</strong>
+        </div>
+      </div>
+      
+      <div class="info-row transfer-flow">
+        <i class="fa-solid fa-right-left"></i>
+        <div class="info-content">
+          <span class="label">Transferencia:</span>
+          <div class="warehouses-flow">
+            <strong>{{ selectedSourceOption()?.warehouseName }}</strong>
+            <i class="fa-solid fa-arrow-right"></i>
+            <strong>{{ selectedTargetOption()?.warehouseName }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de productos -->
+    <div class="modal-section products-section">
+      <div class="modal-section-header">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <h4>Productos a transferir</h4>
+      </div>
+      <div class="products-list">
+        @for (product of selectedProducts(); track product.id) {
+          <div class="product-item">
+            <div class="img-container">
+              @if (product.image) {
+                <img 
+                  [ngSrc]="product.image"
+                  [alt]="product.productName"
+                  [width]="40"
+                  [height]="40"
+                  loading="lazy"
+                />
+              } @else {
+                <dot-no-image />
+              }
+            </div>
+            
+            <div class="product-info">
+              <h5>{{ product.productName }}</h5>
+              <span class="sku">{{ product.productTemplate.sku }}</span>
+            </div>
+
+            <div class="product-details">
+              <div class="product-detail-row">
+                <span class="quantity">
+                  Cantidad: <strong>{{ product.transferQuantity }}</strong>
+                </span>
+                @if (getDestinationProductForSource(product); as destProduct) {
+                  @if (isNewInDestination(destProduct)) {
+                    <span class="dot-badge new not-bordered">Nuevo</span>
+                  }
+                }
+              </div>
+              @if (getDestinationProductForSource(product); as destProduct) {
+                <div class="product-cost-info">
+                  <div class="cost-row">
+                    <span class="cost-label">Costo unitario origen:</span>
+                    <strong>{{ product.totals.avgCost | clpCurrency }}</strong>
+                  </div>
+                  <div class="cost-row">
+                    <span class="cost-label">Costo total origen:</span>
+                    <strong>{{ (product.transferQuantity * product.totals.avgCost) | clpCurrency }}</strong>
+                  </div>
+                  @if (getDestinationOldAvgCost(destProduct) > 0 || product.transferQuantity > 0) {
+                    <div class="cost-row">
+                      <span class="cost-label">Costo promedio destino:</span>
+                      <div class="cost-comparison-inline">
+                        <span>{{ getDestinationOldAvgCost(destProduct) | clpCurrency }}</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span>{{ getNewDestinationAvgCost(destProduct) | clpCurrency }}</span>
+                        @if (getCostChangeDirection(destProduct) === 'up') {
+                          <i class="fa-solid fa-arrow-trend-up cost-change-indicator up"></i>
+                        } @else if (getCostChangeDirection(destProduct) === 'down') {
+                          <i class="fa-solid fa-arrow-trend-down cost-change-indicator down"></i>
+                        }
+                      </div>
+                    </div>
+                    <div class="cost-row">
+                      <span class="cost-label">Costo total destino:</span>
+                      <strong>{{ getNewDestinationTotalCost(destProduct) | clpCurrency }}</strong>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Totales -->
+    <div class="modal-section total-section">
+      <div class="modal-section-header">
+        <i class="fa-solid fa-calculator"></i>
+        <h4>Resumen de transferencia</h4>
+      </div>
+
+      <div class="total-container">
+        <div class="total-item">
+          <i class="fa-solid fa-box"></i>
+          <div class="total-content">
+            <span class="total-label">
+              Productos
+            </span>
+            <strong class="total-value">{{ selectedProducts().length }}</strong>
+          </div>
+        </div>
+        
+        <div class="total-item">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          <div class="total-content">
+            <span class="total-label">
+              Unidades totales
+            </span>
+            <strong class="total-value">{{ totalItemsToTransfer() }}</strong>
+          </div>
+        </div>
+        
+        <div class="total-item highlight">
+          <i class="fa-solid fa-warehouse"></i>
+          <div class="total-content">
+            <span class="total-label">
+              Costo Total Bodega Origen
+            </span>
+            <strong class="total-value">{{ getSourceWarehouseTotalCost() | clpCurrency }}</strong>
+          </div>
+        </div>
+
+        <div class="total-item highlight">
+          <i class="fa-solid fa-warehouse"></i>
+          <div class="total-content">
+            <span class="total-label">
+              Costo Total Bodega Destino
+            </span>
+            <strong class="total-value">{{ getDestinationWarehouseTotalCost() | clpCurrency }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</dot-modal>

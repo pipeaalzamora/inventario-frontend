@@ -1,0 +1,689 @@
+<ng-template #header>
+    <div class="cont">
+        <dot-go-back fallback="inventory"/>
+        <div class="dot-col no-gap">
+            <h1>
+                @if (!isMobile()) {Registro} movimiento de inventario
+            </h1>
+            <span class="dot-badge new not-bordered">Nuevo</span>
+        </div>
+    </div>
+
+    <div class="cont">
+        <button class="dot-btn success"
+            [disabled]="selectedProducts().length < 1"
+            (click)="handleSubmit()"
+        >
+            <i class="fa-solid fa-floppy-disk"></i>
+            @if (!isMobile()) {
+                Guardar
+            }
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #inventoryInLabel>
+    <div class="inventory-tab-label">
+        <span>Entrada</span>
+        <i class="fa-solid fa-arrow-up"></i>
+    </div>
+</ng-template>
+
+<ng-template #inventoryOutLabel>
+    <div class="inventory-tab-label">
+        <span>Salida</span>
+        <i class="fa-solid fa-arrow-down"></i>
+    </div>
+</ng-template>
+
+<ng-template #inventoryOutTab>
+    <div class="dot-col gap-2 mt-2">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>
+                        Información de la salida
+                    </h3>
+                </div>
+            </div>
+    
+            <form>
+                <div class="form-row">
+                    <dot-select 
+                        [options]="warehouses()"
+                        [searchBy]="warehouseSearchBy" 
+                        [fullWidth]="true"
+                        label="Bodega"
+                        icon="fa-solid fa-warehouse"
+                        [selected]="selectedWarehouse()"
+                        (changeOption)="selectedWarehouse.set($event)"
+                    />
+    
+                    <dot-select 
+                        [options]="inventoryOutTypes"
+                        [selected]="inventoryOutTypes[0]"
+                        searchBy="label"
+                        [fullWidth]="true"
+                        label="Tipo de salida"
+                        (changeOption)="setWastedKind($event)"
+                    />
+                </div>
+    
+                @if (CAN_EDIT_DATE) {
+                    <div class="date-picker">
+                        <dot-datepicker 
+                            [minDate]="currentDate"
+                            [maxDate]="maxDate"
+                            (dateChange)="selectedDate.set($event)"
+                        />
+                        <small>Máx. 2 semanas</small>
+                    </div>
+                } @else {
+                    <time datetime="dd/MM/yyyy HH:mm">
+                        {{ currentDate | date: 'dd/MM/yyyy HH:mm' }}
+                    </time>
+                }
+    
+                <label class="dot-label textarea" 
+                    dot-input
+                    [withValueConfirmation]="true"
+                >
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-comment"></i>
+                    </div>
+                    <span class="dot-label-text">Observación general</span>
+                    <textarea
+                        placeholder="Escribe tu observación aquí para dejar un registro en la solicitud." 
+                        (input)="setObservationValue($event)"
+                    ></textarea>
+                        
+                </label>
+            </form>
+        </div>
+    
+        <div class="dot-card shadow">
+            @if (selectedProducts().length <= 0) {
+                <div class="empty-selected-products">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>No hay productos seleccionados</span>
+                </div>
+            } @else {
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>
+                            Productos seleccionados
+                        </h3>
+                        <span class="dot-badge secondary">
+                            {{ selectedProducts().length }}
+                        </span>
+                    </div>
+    
+                    <div class="cont">
+                        <button class="dot-btn" (click)="selectedProducts.set([])">
+                            Eliminar productos
+                        </button>
+                    </div>
+                </div>
+    
+                @for (selectedProduct of selectedProducts(); track selectedProduct.id) {
+                    <div class="selected-product-item">
+                        <div class="selected-product-header">
+                            <div class="selected-product-header-info">
+                                <div class="product-image-wrapper">
+                                    <div class="selected-product-img-container">
+                                        @if (selectedProduct.image) {
+                                            <img 
+                                                src="{{ selectedProduct.image }}" 
+                                                alt=""
+                                                [width]="80"
+                                                [height]="80"
+                                                loading="lazy"
+                                            >
+                                        } @else {
+                                            <dot-no-image [contrast]="true"/>
+                                        }
+                                    </div>
+                                </div>
+    
+                                <div class="selected-product-info-container">
+                                    <h4 class="selected-product-name">
+                                        {{ selectedProduct.productTemplate.sku }} - {{ selectedProduct.productName }}
+                                    </h4>
+        
+                                    <span class="selected-product-stock">
+                                        Stock: <strong>{{ selectedProduct.totals.currentStock }}</strong>
+                                    </span>
+    
+                                    <span class="selected-product-subtotal">
+                                        Subtotal: <strong>{{ (selectedProduct.totals.avgCost * selectedProduct.quantity) | clpCurrency }}</strong>
+                                    </span>
+
+                                    <div class="product-actions-row">
+                                        <div class="product-actions-group">
+                                            <button 
+                                                class="dot-btn sm"
+                                                [class.secondary]="!hasIncidence(selectedProduct)"
+                                                [class.success]="hasIncidence(selectedProduct)"
+                                                (click)="openIncidenceModal(selectedProduct); $event.stopPropagation()"
+                                                type="button"
+                                            >
+                                                <i class="fa-solid fa-camera"></i>
+                                                @if (hasIncidence(selectedProduct)) {
+                                                    Editar Incidencia
+                                                } @else {
+                                                    Registrar Incidencia
+                                                }
+                                            </button>
+                                            @if (hasIncidence(selectedProduct)) {
+                                                <span [class]="getIncidenceBadgeClass(selectedProduct)" class="incidence-badge-below">
+                                                    @if (hasIncidencePhotoForIcon(selectedProduct)) {
+                                                        <i class="fa-solid fa-check"></i>
+                                                    } @else {
+                                                        <i class="fa-solid fa-message"></i>
+                                                    }
+                                                    {{ getIncidenceBadgeText(selectedProduct) }}
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div class="selected-product-header-actions">
+                                <div class="selected-product-header-action-container desktop-trash">
+                                    <button class="dot-btn" (click)="removeProduct(selectedProduct.id)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="selected-product-header-action-container mobile-trash">
+                                    <button class="dot-btn" (click)="removeProduct(selectedProduct.id)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="quantity-wrapper">
+                                    <h5 class="text-center">Cantidad de salida</h5>
+                                    <dot-numeric-input
+                                        [min]="0"
+                                        [max]="selectedProduct.totals.currentStock"
+                                        [initialValue]="selectedProduct.quantity"
+                                        (valueChange)="onQuantityInputChange(selectedProduct, $event)"
+                                    />
+                                </div>
+                                <!-- <div class="product-quantity-group">
+                                    <label class="quantity-label">Cantidad de salida</label>
+                                    <div class="quantity-input-wrapper">
+                                        <input 
+                                            type="number"
+                                            class="quantity-input"
+                                            [min]="0"
+                                            [max]="selectedProduct.totals.currentStock"
+                                            [value]="selectedProduct.quantity"
+                                            (input)="onQuantityInputChange(selectedProduct, $event)"
+                                        />
+                                        <div class="quantity-buttons">
+                                            <button 
+                                                type="button"
+                                                class="dot-btn sm secondary quantity-btn"
+                                                (click)="decreaseQuantity(selectedProduct)"
+                                                [disabled]="selectedProduct.quantity <= 0"
+                                            >
+                                                <i class="fa-solid fa-minus"></i>
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                class="dot-btn sm secondary quantity-btn"
+                                                (click)="increaseQuantity(selectedProduct)"
+                                                [disabled]="selectedProduct.quantity >= selectedProduct.totals.currentStock"
+                                            >
+                                                <i class="fa-solid fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div> -->
+                            </div>
+                        </div>
+                    
+                    </div>
+                }
+    
+                <div class="card-footer">
+                    Costo total de salida: <strong>{{ totalDecreaseCost() | clpCurrency }}</strong>
+                </div>
+            }
+        </div>
+    
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>
+                        Evidencia
+                    </h3>
+                    @if (selectedFile()) {
+                        <span class="dot-badge secondary no-wrap">
+                            {{ selectedFile()!.size | bytesFormat }}
+                        </span>
+                    }
+                </div>
+    
+                @if (selectedFile()) {
+                    <button class="dot-btn" (click)="removeSelectedFile()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                }
+            </div>
+            @if (selectedFile()) {
+                <div class="file-info-container">
+                    <div class="img-container" (click)="previewEvidenceModal.openModal()">
+                        <img 
+                            [src]="selectedFileBlob" 
+                            alt="Preview of uploaded file" 
+                            class="uploaded-image-preview"
+                        />
+                    </div>
+    
+                    <div class="file-info">
+                        <div class="file-info-item">
+                            <div class="file-info-label">
+                                Nombre: 
+                            </div>
+                            <div class="file-info-value">
+                                {{ selectedFile()!.name }}
+                            </div>
+                        </div>
+    
+                        <div class="file-info-item">
+                            <div class="file-info-label">
+                                Tipo:
+                            </div>
+                            <div class="file-info-value">
+                                {{ selectedFile()!.type }}
+                            </div>
+                        </div>
+    
+                        <div class="file-info-item">
+                            <div class="file-info-label">
+                                Última modificación:
+                            </div>
+                            <div class="file-info-value">
+                                {{ selectedFile()!.lastModified | date: 'dd/MM/yyyy HH:mm' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            } @else {
+                <dot-drop-file 
+                    [multiple]="false"
+                    (uploadedFiles)="onFileUpload($event)"
+                    [acceptedFormats]="['png', 'jpg', 'jpeg', 'webp']"
+                />
+            }
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #inventoryInTab>
+    <div class="dot-col gap-2 mt-2">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>
+                        Información de la salida
+                    </h3>
+                </div>
+            </div>
+    
+            <form>
+                <div class="form-row">
+                    <dot-select 
+                        [options]="warehouses()"
+                        [searchBy]="warehouseSearchBy" 
+                        [fullWidth]="true"
+                        label="Bodega"
+                        icon="fa-solid fa-warehouse"
+                        [selected]="selectedWarehouse()"
+                        (changeOption)="selectedWarehouse.set($event)"
+                    />
+    
+                    <dot-select 
+                        [options]="inventoryInTypes"
+                        searchBy="label"
+                        [fullWidth]="true"
+                        label="Tipo de entrada"
+                        (changeOption)="setWastedKind($event)"
+                    />
+                </div>
+    
+                @if (CAN_EDIT_DATE) {
+                    <div class="date-picker">
+                        <dot-datepicker 
+                            [minDate]="currentDate"
+                            [maxDate]="maxDate"
+                            (dateChange)="selectedDate.set($event)"
+                        />
+                        <small>Máx. 2 semanas</small>
+                    </div>
+                } @else {
+                    <time datetime="dd/MM/yyyy HH:mm">
+                        {{ currentDate | date: 'dd/MM/yyyy HH:mm' }}
+                    </time>
+                }
+    
+                <label class="dot-label textarea" 
+                    dot-input
+                    [withValueConfirmation]="true"
+                >
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-comment"></i>
+                    </div>
+                    <span class="dot-label-text">Observación general</span>
+                    <textarea
+                        placeholder="Escribe tu observación aquí para dejar un registro en la solicitud." 
+                        (input)="setObservationValue($event)"
+                    ></textarea>
+                </label>
+            </form>
+        </div>
+    
+        <div class="dot-card shadow">
+            @if (selectedProducts().length <= 0) {
+                <div class="empty-selected-products">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>No hay productos seleccionados</span>
+                </div>
+            } @else {
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>
+                            Productos seleccionados
+                        </h3>
+                        <span class="dot-badge secondary">
+                            {{ selectedProducts().length }}
+                        </span>
+                    </div>
+    
+                    <div class="cont">
+                        <button class="dot-btn" (click)="selectedProducts.set([])">
+                            Eliminar productos
+                        </button>
+                    </div>
+                </div>
+    
+                @for (selectedProduct of selectedProducts(); track selectedProduct.id) {
+                    <div class="selected-product-item">
+                        <div class="selected-product-header">
+                            <div class="selected-product-header-info">
+                                <div class="selected-product-img-container">
+                                    @if (selectedProduct.image) {
+                                        <img 
+                                            src="{{ selectedProduct.image }}" 
+                                            alt=""
+                                            [width]="80"
+                                            [height]="80"
+                                            loading="lazy"
+                                        >
+                                    } @else {
+                                        <dot-no-image [contrast]="true"/>
+                                    }
+                                </div>
+    
+                                <div class="selected-product-info-container">
+                                    <h4 class="selected-product-name">
+                                        {{ selectedProduct.productTemplate.sku }} - {{ selectedProduct.productName }}
+                                    </h4>
+        
+                                    <span class="selected-product-stock">
+                                        Stock: <strong>{{ selectedProduct.totals.currentStock }}</strong>
+                                    </span>
+    
+                                    <span class="selected-product-subtotal">
+                                        Subtotal: <strong>{{ (selectedProduct.totals.avgCost * selectedProduct.quantity) | clpCurrency }}</strong>
+                                    </span>
+                                </div>
+                            </div>
+    
+                            <div class="selected-product-header-action-container">
+                                <button class="dot-btn" (click)="removeProduct(selectedProduct.id)">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+    
+                        <hr>
+    
+                        <div class="selected-product-more-info-container">
+                            <div class="selected-product-more-info-item">
+                                <h5 class="text-center">
+                                    Cantidad de salida
+                                </h5>
+    
+                                <div class="selected-product-more-info-item-content quantity">
+                                    <dot-numeric-input [min]="0" (valueChange)="onChangeProductQuantity(selectedProduct, $event)"/>
+                                </div>
+                            </div>
+                            @if (selectedWastedKind() && selectedWastedKind() === 'waste') {
+                                <div class="selected-product-more-info-item select">
+                                        <dot-select 
+                                        [options]="productDecreaseStates"
+                                        [selected]="productDecreaseStates[0]"
+                                        searchBy="label"
+                                        [fullWidth]="true"
+                                        [withoutInput]="true"
+                                        label="Selecciona un motivo"
+                                        (changeOption)="setDecreaseState($event, selectedProduct)"
+                                    />
+                                </div>
+                            }
+    
+                            <div class="selected-product-more-info-item">
+                                <label class="dot-label textarea product-optional-reason">
+                                    <div class="dot-label-icon">
+                                        <i class="fa-solid fa-comment"></i>
+                                    </div>
+                                    <span class="dot-label-text">Razón específica (opcional)</span>
+                                    <textarea
+                                        placeholder="Escribe una observación específica para este producto." 
+                                        (input)="setProductObservation($event, selectedProduct)"
+                                    ></textarea>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                }
+    
+                <div class="card-footer">
+                    Costo total de salida: <strong>{{ totalDecreaseCost() | clpCurrency }}</strong>
+                </div>
+            }
+        </div>
+    </div>
+</ng-template>
+
+<dot-section-wrapper
+    [headerRef]="header"
+    [withStickyToolbar]="true"
+    columns="1fr .8fr"
+>   
+    @if (isMobile()) {
+        <button 
+            class="dot-btn success responsive"
+            (click)="productsPickerModal.openModal()">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    }
+    <div class="section-col">
+        <dot-tabs 
+            [templates]="{
+                'Entrada': { label: inventoryInLabel, content: inventoryInTab },
+                'Salida': { label: inventoryOutLabel, content: inventoryOutTab },
+            }"
+            [stretchLabels]="true"
+            (tabChanged)="handleTabChange($event)"
+        />
+    </div>
+
+    <div class="section-col sticky">
+        @if (!isMobile()) {
+            <div class="dot-card shadow">
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>
+                            Productos
+                        </h3>
+                        <span class="dot-badge secondary">
+                            {{ controller.GetData().totalItems }}
+                        </span>
+                    </div>
+                </div>
+
+                <div *ngTemplateOutlet="productList"></div>
+            </div>
+        }
+    </div>
+</dot-section-wrapper>
+
+<ng-template #productList>
+    @if (!isMobile()) {
+        <div class="toolbar">
+            <div *ngTemplateOutlet="productListHeader"></div>
+        </div>
+    }
+
+    <div class="dot-table">
+        <table>
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            <dot-table-caption [controller]="controller" [center]="isMobile()"/>
+    
+            <tbody class="pick-products">
+                @for(product of controller.GetData().data; track product.id) {
+                    <tr (click)="selectProduct(product)" [class.selected]="isSelected(product.id)">
+                        <td align="center">
+                            <div class="img-container" loading>
+                                @if (product.image) {
+                                    <img 
+                                        src="{{ product.image }}" 
+                                        alt=""
+                                        [width]="30"
+                                        [height]="30"
+                                        loading="lazy"
+                                    >
+                                } @else {
+                                    <dot-no-image [contrast]="isSelected(product.id)"/>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            {{ product.productName }}
+                        </td>
+                        <td class="center">
+                            {{ product.totals.currentStock }}
+                        </td>
+                        <td class="center">
+                            <span class="dot-badge all-width unit-measure">
+                                {{ product.unitInventory.name }}
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!isMobile()) {
+        <dot-pagination [controller]="controller"/>
+    }
+</ng-template>
+
+<dot-modal #previewEvidenceModal
+    tittleText="Vista previa"
+    [noFooter]="true"
+>
+    <div class="preview-container-modal">
+        @if (!selectedFile()) {
+            <span>No hay archivo seleccionado.</span>
+        } @else {
+            <img [src]="selectedFileBlob!" [alt]="selectedFile()?.name"/>
+        }
+    </div>
+</dot-modal>
+
+<ng-template #mobilePagination>
+    <dot-pagination [controller]="controller"/>
+</ng-template>
+
+<ng-template #productListHeader>
+    @if (!isMobile()) {
+        <div class="col">
+            <dot-filter [controller]="controller" [columns]="columns"/>
+            <dot-search [controller]="controller"/>
+        </div>
+    } @else {
+        <dot-search [controller]="controller" [noCollapse]="true" [fullWidth]="true"/>
+    }
+</ng-template>
+
+<dot-modal #productsPickerModal
+    tittleText="Seleccionar productos"
+    [headerRef]="productListHeader"
+    [footerRef]="mobilePagination"
+    [longModal]="true"
+>
+    <div *ngTemplateOutlet="productList"></div>
+</dot-modal>
+
+<!-- Incidence Modal -->
+<dot-modal #incidenceModal
+    [isLateral]="true"
+    [withCancel]="true"
+    (callback)="saveProductIncidence()"
+    (cancelCallback)="closeIncidenceModal()"
+    (onClose)="closeIncidenceModal()"
+    okText="Guardar"
+    cancelText="Cancelar"
+    modalType="success"
+    [longModal]="true"
+    [tittleText]="selectedProductForIncidence()?.productName || 'Incidencia'"
+>
+    @if (selectedProductForIncidence(); as product) {
+        <div class="dot-col gap-2 incidence-modal-content">
+            <!-- Foto de evidencia -->
+            <div class="dot-col gap-1">
+                <div class="section-header-with-icon">
+                    <div class="section-icon">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <h4 class="section-title">Foto de evidencia</h4>
+                </div>
+                
+                @if (product.incidencePhotoPreview) {
+                    <div class="photo-preview-container">
+                        <img [src]="product.incidencePhotoPreview" [alt]="'Foto de evidencia - ' + product.productName" />
+                        <button 
+                            class="photo-remove-btn"
+                            type="button"
+                            (click)="clearProductIncidencePhoto(product)"
+                        >
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                } @else {
+                    <dot-drop-file 
+                        [multiple]="false"
+                        [acceptedFormats]="['.jpg', '.jpeg', '.png', '.webp']"
+                        [maxSizeInMB]="2"
+                        (uploadedFiles)="onProductIncidencePhotoSelected(product, $event)"
+                    />
+                }
+            </div>
+
+            <!-- Observación -->
+            <dot-input
+                [value]="incidenceObservation()"
+                (valueChange)="setIncidenceObservation($event)"
+                [standalone]="true"
+                label="Observación"
+                icon="fa-solid fa-message"
+                placeholder="Agregue una observación sobre la incidencia..."
+            />
+        </div>
+    }
+</dot-modal>

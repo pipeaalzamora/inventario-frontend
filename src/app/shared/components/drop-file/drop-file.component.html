@@ -1,0 +1,19 @@
+<label class="dot-input-file dropzone" (drop)="onDrop($event)" (dragover)="onDragOver($event)" (dragenter)="onDragEnter()" (dragleave)="onDragLeave()">
+    <input type="file" [accept]="acceptedFormats().join(', ')" (change)="onInputChange($event)" [multiple]="multiple()"/>
+    <div class="dot-input-file-dropzone">
+        <i class="fa-solid fa-cloud-arrow-up"></i>
+        <span class="title">
+            @if (!isMobile()) {
+                Haz clic o arrastra y suelta tus documentos aquí
+            } @else {
+                Haz clic para subir tus documentos
+            }
+            
+            <br>
+
+            <div class="limits">
+                Formatos permitidos:<div class="formats"> {{acceptedFormatsToShow().join(', ')}}</div> (máx. {{maxSizeInMB()}} MB)
+            </div>
+        </span>
+    </div>
+</label>

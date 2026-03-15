@@ -1,0 +1,57 @@
+<div class="status-container">
+    @for (item of predefined(); track $index) {
+        @if (!$first) {
+            <div class="line" [class.already]="itemAlready($index)">
+                @if (afterItemAlready($index)) {
+                    <span class="sub-line"></span>
+                }
+            </div>
+        }
+        <div class="status-item" 
+            [class.already]="itemAlready($index)"
+            [ngStyle]="{ 'background-color': customColor() }"
+        >
+            @if (item.link && !noRedirect()) {
+                <ng-template #dropdownTrigger>
+                    <button class="dot-btn sm dropdown-links" 
+                        [class.caution]="item.name === 'sunk'"
+                    >
+                        <i class="{{ item.icon }} link"></i>
+                        <i class="fa-solid fa-caret-down link"></i>
+                    </button>
+                </ng-template>
+
+                <dot-dropdown [dropdownTrigger]="dropdownTrigger">
+                    @for (option of redirectOptions()?.linkTo; track $index) {
+                        <button class="dot-btn" link="{{ redirectOptions()!.route }}" [params]="getRedirectParams(option)">
+                            {{ option['purchaseChildDisplayId'] }}
+                        </button>
+                    }
+                </dot-dropdown>
+            } @else {
+                <i class="{{ item.icon }}" 
+                    [class.failed]="item.failed" 
+                    [class.sunk]="item.name === 'sunk' || item.name === 'edited'"
+                >
+                </i>
+            }
+
+            <div class="info-container">
+                <span class="info-item-name">
+                    {{ item.translatedName }}
+                </span>
+
+                @if (getDateByItem(item)) {
+                    <span class="info-item-date">
+                        <time datetime="DD/MM/YYYY">
+                            {{ getDateByItem(item) | date: 'dd/MM/yyyy' }}
+                        </time>
+                        <time datetime="HH:mm">
+                            {{ getDateByItem(item) | date: 'HH:mm' }}
+                        </time>
+                    </span>
+                }
+            </div>
+        </div>
+    }
+</div>

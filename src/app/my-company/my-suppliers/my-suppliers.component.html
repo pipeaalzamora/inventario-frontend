@@ -1,0 +1,161 @@
+<section>
+    <div class="section-header">
+        <div class="section-header-item">
+            <h1>Mis Proveedores</h1>
+            <span class="dot-badge tertiary lg">{{ mySuppliers().length }}</span>
+            <button class="dot-btn flashy" (click)="openAddModal()">
+                <i class="fa-solid fa-plus"></i>
+                @if (!isMobile()) {
+                    Agregar proveedor
+                }
+            </button>
+        </div>
+
+        <div class="section-header-item">
+            <button 
+                class="dot-btn success" 
+                (click)="saveAllChanges()"
+                [disabled]="!pendingToSave()">
+                <i class="fa-solid fa-floppy-disk"></i>
+                @if (!isMobile()) {
+                    Guardar cambios
+                }
+            </button>
+        </div>
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="toolbar">
+            @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                <dot-search [controller]="controller" placeholder="RUT, nombre, descripción..."/>
+                </div>
+            } @else {
+                <div class="col">
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="RUT, nombre, descripción..."/>
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                </div>
+            }
+        </div>
+        <div class="dot-table">
+            <table class="table-striped">
+            <dot-table-caption [controller]="controller" [center]="isMobile()" />
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            
+            <tbody>
+                @for (supplier of controller.GetData().data; track supplier.id) {
+                    <tr>
+                        <td class="idFiscal-cell">
+                            <dot-dropdown [dropdownTrigger]="idFiscalTrigger">
+                                <ng-template #idFiscalTrigger>
+                                    <span class="idFiscal-trigger">
+                                        <a class="dot-anchor">{{ supplier.idFiscal }}</a>
+                                    </span>
+                                </ng-template>
+                                <button 
+                                    class="dot-btn lg"
+                                    (click)="removeSupplier(supplier.id)"
+                                    title="Eliminar proveedor">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                    Eliminar
+                                </button>
+                            </dot-dropdown>
+                        </td>
+                        <td>{{ supplier.supplierName }}</td>
+                        <td>{{ supplier.description }}</td>
+                        <td>{{ supplier.fiscalAddress }}</td>
+                        <td>{{ supplier.email}}</td>
+                        
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="6" class="center text-muted">
+                            No hay proveedores agregados
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>
+
+<ng-template #modalHeader>
+    <p class="stepper-instruction">
+        <i class="fa-solid fa-circle-info"></i>
+        Busca y selecciona proveedores en la tabla de abajo.
+    </p>
+    <div class="dot-row gap-05 align-center">
+        <dot-filter [controller]="controller" [columns]="columns" />
+        <dot-search [controller]="controller" [noCollapse]="true" [fullWidth]="true"/>
+    </div>
+</ng-template>
+<ng-template #modalPagination>
+    <dot-pagination [controller]="modalController" />
+</ng-template>
+<dot-modal 
+    #addModal
+    [headerRef]="modalHeader"
+    [isLateral]="true"
+    [footerRef]="modalPagination"
+    tittleText="Agregar Proveedores"
+    (onClose)="handleCloseAddModal()"
+    >
+
+    <div class="dot-table">
+        <table class="table-striped">
+            <dot-table-caption [controller]="modalController" [center]="isMobile()" />
+            <dot-sorter-header [controller]="modalController" [headers]="modalColumns" />
+            
+            <tbody>
+                @for (supplier of modalController.GetData().data; track supplier.id) {
+                    <tr 
+                        class="clickable"
+                        [class.selected]="isSelected(supplier.id)"
+                        (click)="toggleSupplier(supplier)">
+                        <td>{{ supplier.idFiscal }}</td>
+                        <td>{{ supplier.supplierName }}</td>
+                        <td>{{ supplier.description || '-' }}</td>
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="3" class="center text-muted text-suppliers">
+                            No hay proveedores disponibles
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (selectedSuppliers().length > 0) {
+        <div class="selected-info">
+            <span class="dot-badge primary">{{ selectedSuppliers().length }} agregado(s) a la lista</span>
+        </div>
+    }
+</dot-modal>
+
+<dot-modal 
+    #preventNavigationModal
+    tittleText="¿Salir sin guardar cambios?"
+    okText="Salir sin guardar"
+    cancelText="Cancelar"
+    [withCancel]="true"
+    modalType="caution"
+    (callback)="confirmExitWithoutSaving()"
+    (cancelCallback)="cancelNavigation()">
+    <p>Tienes cambios sin guardar. Si sales ahora, perderás todos los cambios realizados en la lista de proveedores.</p>
+</dot-modal>
+
+<dot-modal 
+    #confirmDeleteModal
+    tittleText="¿Eliminar proveedor?"
+    okText="Eliminar"
+    cancelText="Cancelar"
+    [withCancel]="true"
+    modalType="danger"
+    (callback)="confirmRemoveSupplier()"
+    (cancelCallback)="cancelRemoveSupplier()">
+    <p>¿Estás seguro de que deseas eliminar este proveedor de la empresa? Esta acción no se puede deshacer.</p>
+</dot-modal>

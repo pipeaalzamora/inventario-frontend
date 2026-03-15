@@ -1,0 +1,70 @@
+
+:host {
+  --badge-plato-bg: #7a4ed8;
+  --badge-plato-border: #6a3fcc;
+  --badge-plato-text: #ffffff;
+}
+
+.recipe-image {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-2);
+  border-radius: 4px;
+}
+
+.tiendas-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  
+  li {
+    margin: 0.25rem 0;
+  }
+}
+
+.header-top {
+  font-weight: 600;
+  th {
+    padding: 0.65rem 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid var(--border);
+  }
+}
+
+.header-receta {
+  background: linear-gradient(135deg, var(--background-2), var(--background-3));
+  color: var(--text-primary);
+  border-right: 2px solid var(--border);
+}
+
+.header-promedios {
+  background: linear-gradient(135deg, var(--background-1), var(--background-2));
+  color: var(--text-primary);
+}
+
+.centerCol {
+  text-align: center;
+}
+
+.name {
+  border-right: 1px solid var(--border);
+  padding-right: 0.75rem;
+  vertical-align: middle;
+}
+
+.name-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.badge-plato {
+  background-color: var(--badge-plato-bg);
+  border-color: var(--badge-plato-border);
+  color: var(--badge-plato-text);
+}

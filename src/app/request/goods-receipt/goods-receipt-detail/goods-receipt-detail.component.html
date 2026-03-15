@@ -1,0 +1,429 @@
+<ng-template #header>
+    <div class="cont">
+        <dot-go-back fallback="request" />
+        <div class="dot-col no-gap">
+            <h1>
+                @if(!isMobile()){Recepción} {{ actualReceipt()?.displayId}}
+            </h1>
+            
+            <span class="dot-badge contrast not-bordered"
+                [class.danger]="actualReceipt()?.status === 'cancelled'"
+                [class.success]="actualReceipt()?.status === 'completed'"
+                [class.warning]="actualReceipt()?.status === 'disputed'"
+            >
+                @switch(actualReceipt()?.status) {
+                    @case('pending') {
+                        Pendiente
+                    } @case ('cancelled') {
+                        Cancelada
+                    } @case ('completed') {
+                        Completada
+                    } @case ('disputed') {
+                        En disputa
+                    }
+                }
+            </span>
+        </div>
+    </div>
+    <div class="cont">
+        
+        <button class="dot-btn" 
+            (click)="fixDifferences()"
+            [disabled]="!someDiff() || actualReceipt()?.status === 'completed' || actualReceipt()?.status === 'cancelled'"
+        >
+            <i class="fa-solid fa-wrench"></i>
+            @if (!isMobile()){
+                Corregir diferencias
+            }
+        </button>
+
+        <button class="dot-btn success" 
+            (click)="completeReceipt()"
+            [disabled]="(documents().length <= 0 || (folioNumberInvoice() === '' && folioNumberGuide() === '')) || actualReceipt()?.status === 'completed'"
+        >
+            <i class="fa-solid fa-file-invoice"></i>
+            @if (!isMobile()){
+                Completar recepción
+            }
+        </button>
+    </div>
+</ng-template>
+
+<dot-section-wrapper [headerRef]="header" [withStickyToolbar]="true" columns="1fr .9fr">
+    <div class="section-col">
+        <div class="main-info">
+            <div class="dot-card shadow">
+                <div class="main-info-label">
+                    <i class="fa-solid fa-industry"></i>
+                    Proveedor
+                </div>
+                <div class="main-info-value">
+                    {{ actualReceipt()?.supplierName }}
+                </div>
+            </div>
+            <div class="dot-card shadow">
+                <div class="main-info-label">
+                    <i class="fa-solid fa-warehouse"></i>
+                    Destino
+                </div>
+                <div class="main-info-value">
+                    {{ actualReceipt()?.warehouseName }}
+                </div>
+            </div>
+
+            <div class="dot-card shadow">
+                <div class="main-info-label">
+                    <i class="fa-solid fa-store"></i>
+                    Tienda
+                </div>
+                <div class="main-info-value">
+                    {{ actualReceipt()?.storeName }}
+                </div>
+            </div>
+            <div class="dot-card shadow-lg">
+                <div class="main-info-label">
+                    Total
+                </div>
+                <div class="main-info-value">
+                    {{ totalAmount() | clpCurrency }}
+                </div>
+            </div>
+        </div>
+
+        <div class="sub-info">
+            <div class="dot-card shadow">
+                <div class="sub-info-label">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    Fecha de recepción
+                </div>
+                <div class="sub-info-value date">
+                    <time>{{ actualReceipt()?.createdAt | date:"longDate" }}</time>
+                    <time datetime="HH:mm">{{ actualReceipt()?.createdAt | date: 'HH:mm' }}</time>
+                </div>
+            </div>
+            <div class="dot-card shadow order-link-card">
+                <div class="sub-info-label">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    Orden de compra
+                </div>
+                @if (actualReceipt()) {
+                    <div class="sub-info-value">
+                        <a 
+                            class="dot-anchor order-link" 
+                            link="purchase-order-form" 
+                            [params]="{ orderId: actualReceipt()!.purchaseId }"
+                        >
+                            {{ actualReceipt()?.purchaseDisplayId }}
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>
+                        Números de folio
+                    </h3>
+                </div>
+            </div>
+
+            <div class="dot-row gap-2 responsive">
+                @if (actualReceipt()?.folioInvoice !== '') {
+                    <div class="folio-item-container">
+                        <div class="folio-item-label">
+                            <i class="fa-solid fa-file-invoice"></i>
+                            Factura
+                        </div>
+
+                        <div class="folio-item-value">
+                            <dot-copy-clipboard-button [value]="actualReceipt()?.folioInvoice" />
+                        </div>
+                    </div>
+                } @else {
+                    <label class="dot-label input" dot-input>
+                        <span class="dot-label-text">
+                            Folio factura
+                        </span>
+                        <span class="dot-label-icon">
+                            <i class="fa-solid fa-hashtag"></i>
+                        </span>
+                        <input type="text" (input)="setFolioNumber($event, 'invoice')">
+                    </label>
+                }
+
+                @if (actualReceipt()?.folioGuide !== '') {
+                    <div class="folio-item-container">
+                        <div class="folio-item-label">
+                            <div class="folio-item-label">
+                                <i class="fa-solid fa-truck-ramp-box"></i>
+                                Guia de despacho
+                            </div>
+                        </div>
+
+                        <div class="folio-item-value">
+                            <dot-copy-clipboard-button [value]="actualReceipt()?.folioGuide" />
+                        </div>
+                    </div>
+                } @else {
+                    <label class="dot-label input" dot-input>
+                        <span class="dot-label-text">
+                            Folio guia de despacho
+                        </span>
+                        <span class="dot-label-icon">
+                            <i class="fa-solid fa-hashtag"></i>
+                        </span>
+                        <input type="text" (input)="setFolioNumber($event, 'guide')">
+                    </label>
+                }
+            </div>
+        </div>
+
+        <div class="dot-card shadow table-products">
+            <div class="toolbar">
+                <div class="cont">
+                    <h3>Productos</h3>
+                    <span class="dot-badge secondary">{{ actualReceipt()?.items?.length }}</span>
+                </div>
+                <div class="cont search-row">
+                    <dot-filter
+                        [controller]="controller" 
+                        [columns]="columns"
+                    />
+
+                    <dot-search
+                        [controller]="controller" 
+                        placeholder="Nombre, Cantidad, Precio unitario..."
+                    />
+                </div>
+            </div>
+
+            <div class="dot-table">
+                <table>
+                    <dot-table-caption [controller]="controller"></dot-table-caption>
+                    <dot-sorter-header [controller]="controller" [headers]="columns"/>
+    
+                    <tbody>
+                        @for(item of controller.GetData().data; track item.id) {
+                            <tr>
+                                <td>{{ item.productName }}</td>
+                                <td>
+                                    <span class="dot-badge unit-measure all-width">
+                                        {{ item.purchaseUnit }}
+                                    </span>
+                                </td>
+                                <td class="center">
+                                    {{ item.quantity }}
+                                </td>
+                                <td>
+                                    <div class="diff-container">
+                                        @if (item.difference < 0) {
+                                            <span class="dot-badge danger contrast not-bordered">{{item.difference}}</span>
+                                        } @else if (item.difference > 0) {
+                                            <span class="dot-badge success contrast not-bordered">+{{item.difference}}</span>
+                                        } @else {
+                                            <span class="dot-badge secondary contrast not-bordered">{{item.difference}}</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="center">{{ item.unitPrice | clpCurrency }}</td>
+                                <td class="center">{{ item.subtotal | clpCurrency }}</td>
+                                <td class="center">{{ item.taxTotal | clpCurrency }}</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <div class="total-amounts-container">
+                <div class="total-amounts">
+                    <span>Subtotal</span>
+                    <span>{{subtotalAmount() | clpCurrency}}</span>
+                </div>
+                <div class="total-amounts">
+                    <span>IVA ({{TAX_AMOUNT}}%)</span>
+                    <span>{{taxAmount() | clpCurrency}}</span>
+                </div>
+                <br>
+                <div class="total-amounts">
+                    <span>Total</span>
+                    <span>{{totalAmount() | clpCurrency}}</span>
+                </div>
+            </div>
+        </div>
+
+        @if (actualReceipt()?.comment !== '') {
+            <div class="dot-card shadow comments-section">
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>
+                            Comentarios
+                        </h3>
+                    </div>
+                </div>
+                <div class="comments-content">
+                    {{ actualReceipt()?.comment }}
+                </div>
+            </div>
+        }
+    </div>
+    <div class="section-col sticky">
+        <div class="dot-card shadow documents">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>
+                        Documentos adjuntos
+                    </h3>
+                    <span class="dot-badge secondary">{{documents().length}}</span>
+                </div>
+            </div>
+
+            <!-- @if (hasInvoiceFileType() && hasGuideFileType()) { -->
+                <dot-drop-file 
+                    [acceptedFormats]="['.webp', '.png', '.jpeg', '.pdf']" 
+                    [maxSizeInMB]="2"
+                    (uploadedFiles)="onFilesUploaded($event)"
+                    [multiple]="false"
+                />
+            <!-- } @else {
+                <dot-radio-group-buttons 
+                    [options]="filesTypesToUpload"
+                    [selected]="filesTypesToUpload[0]"
+                    (onSelectOption)="onSelectFileType($event)"
+                />
+                <dot-file
+                    [acceptedFormats]="['.webp', '.png', '.jpeg', '.pdf']" 
+                    [maxSizeInMB]="2"
+                    (uploadedFiles)="onFilesUploaded($event)"
+                    [multiple]="false"
+                    [types]="filesTypesToUpload"
+                />
+            } -->
+
+            <div class="documents-container">
+                @for (doc of documents(); track doc.id) {
+                    <div class="document-item">
+                        <div class="img-container" 
+                            (click)="doc.fileUrl ? previewImage(doc) : null"
+                            [class.clickable]="doc.fileUrl"
+                        >
+                            @if (isImage(doc.fileType)) {
+                                @if (doc.fileUrl) {
+                                    <img [ngSrc]="doc.fileUrl" alt="" fill/>
+                                } @else {
+                                    <i class="fa-solid fa-image"></i>
+                                }
+                            } @else {
+                                <i class="fa-regular fa-file-pdf"></i>
+                            }
+                        </div>
+                        <div class="info-container">
+                            <h5>{{ doc.fileType }}</h5>
+                            <div class="data-container">
+                                <!-- <span>{{doc.extension}}</span> | <span>{{ doc.fileType }}</span> -->
+                            </div>
+
+                            <div class="actions-container">
+                                <button class="dot-btn md" (click)="downloadFile(doc)">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                                @if (doc.fileUrl) {
+                                    <button class="dot-btn md" (click)="previewImage(doc)">
+                                        <i class="fa-solid fa-expand"></i>
+                                    </button>
+                                }
+                                <button class="dot-btn md danger secondary ml-05"
+                                    (click)="deleteFile(doc)"
+                                >
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                <!-- @if (productFilesToArr().length > 0) {
+                    <button class="dot-btn secondary show-product-files" (click)="productFilesModal.openModal()">
+                        +{{ productFilesToArr().length }} evidencias de productos
+                    </button>
+                } -->
+            </div>
+        </div>
+    </div>
+</dot-section-wrapper>
+
+<dot-modal #filePreviewModal
+    tittleText="Vista previa"
+    (onClose)="eraseImagePreview()"
+    [noFooter]="true"
+>
+    @if (actualFilePreview) {
+        @if (isImage(actualFilePreview.fileType)) {
+            <img [src]="actualFilePreview.fileUrl" alt="" class="preview-image">
+        } @else {
+            <iframe [src]="safeResourceUrl(actualFilePreview.fileUrl)" class="preview-pdf"></iframe>
+        }
+    }
+</dot-modal>
+
+<!-- <dot-modal #productFilesModal
+    tittleText="Evidencias de productos"
+    [isLateral]="true"
+    [noFooter]="true"
+>
+    @for (product of productFilesToArr(); track $index) {
+        <div class="product-file-item">
+            @let filePreview = product[1];
+            @let productItem = getProductById(product[0]);
+
+            <div class="img-container clickable" 
+                (click)="previewImage(filePreview)"
+            >
+                <img [src]="filePreview.previewUrl" alt="">
+            </div>
+            <div class="info-container">
+                <div class="product-name-sku">
+                    <h5>{{ productItem?.productName }}</h5>
+                </div>
+
+                <span>{{filePreview.name}}</span>
+
+                <div class="data-container">
+                    <span>{{ filePreview.size }}</span> | <span>{{ filePreview.type }}</span>
+                </div>
+                
+                <div class="date-container">
+                    <time>{{ filePreview.createdAt | date:"mediumDate" }}</time>
+                    <time datetime="HH:mm">{{ filePreview.createdAt | date: 'HH:mm' }}</time>
+                </div>
+
+                <div class="actions-container">
+                    <button class="dot-btn md">
+                        <i class="fa-solid fa-download"></i>
+                    </button>
+                    <button class="dot-btn md" (click)="previewImage(filePreview)">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                    @if (productItem) {
+                        <button class="dot-btn md danger secondary ml-05"
+                            (click)="removeProductFile(productItem.id)"
+                        >
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    } @empty {
+        <div class="no-evidence-container">
+            <div class="info">
+                <i class="fa-regular fa-folder-open"></i>
+                <h4>No hay evidencias</h4>
+                <p>Las evidencias que subas a cada producto aparecerán aquí.</p>
+            </div>
+        </div>
+    }
+</dot-modal> -->

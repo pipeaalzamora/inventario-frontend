@@ -1,0 +1,45 @@
+<thead>
+    @if (headerTopTemplate()) {
+        <ng-container *ngTemplateOutlet="headerTopTemplate()" />
+    }
+    <tr [class.minimalist]="minimalist()">
+        @if (withBulkCheckbox()) {
+            <th class="center">
+                <label class="dot-checkbox pl-1" [matTooltip]="checkboxValue() ? 'Deseleccionar todos' : 'Seleccionar todos'" matTooltipPosition="above">
+                    <input type="checkbox" (change)="checkBoxChange($event)" [checked]="checkboxValue()">
+                    <div class="dot-checkbox-box"></div>
+                </label>
+            </th>
+        }
+        @for (head of headers(); track $index) {
+            @if ((typeof head.showOnly !== 'undefined' && head.showOnly === 'filter') || (typeof head.showIf !== 'undefined' && !head.showIf) ) {
+            } @else {
+                <th [class.center]="head.centerCol">
+                    @if (!head.noSort) {
+                        <span 
+                            loading
+                            [isSoft]="true"
+                            class="sorted"
+                            [class.minimalist]="minimalist()"
+                            [class.sortSelected]="sortColumnName() == head.columnName"
+                            [class.center]="head.centerCol"
+                            (click)="changeOrder( head.columnName!)"
+                        >   
+                            <div class="text" [class.center]="head.centerCol" [class.wrap]="head.wrapHeader">
+                                {{ head.nameToShow }}
+                            </div>
+                            <div class="carets">
+                                <i [class.selected]="ascMode()" class="fa-solid fa-caret-up"></i>
+                                <i [class.selected]="!ascMode()"class="fa-solid fa-caret-down"></i>
+                            </div>
+                        </span>
+                    } @else if (head.noSort) {
+                        <span loading [isSoft]="true">
+                            {{ head.nameToShow }}
+                        </span>
+                    }
+                </th>
+            }
+        }
+    </tr>
+</thead>

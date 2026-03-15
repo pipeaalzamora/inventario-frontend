@@ -1,0 +1,145 @@
+.filter-button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    margin-right: .5rem;
+    cursor: pointer;
+
+    .active-filters {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .dot-badge {
+        background-color: var(--color-slate-50);
+        color: var(--color-zinc-950);
+    }
+
+    .remove-filters {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0 8px 8px 0;
+        padding: 0 .5rem;
+        height: 40px;
+        cursor: pointer;
+    }
+}
+
+form {
+
+    .filter-list {
+        display: flex;
+        flex-direction: column;
+
+        .filter-item-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+
+            .logic-condition {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: flex-start;
+                width: 100%;
+
+                .logic {
+
+                    &.withItems {
+                        max-width: 42px;
+                        min-width: 42px;
+                    }
+    
+                    .toggle-group-logic {
+                        cursor: pointer;
+                        border: none;
+                    }
+                }
+            }
+
+        }
+    }
+
+    .main-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+
+        .add-group, .remove-all {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+    }
+}
+
+dot-filter-item {
+    width: 100% !important;
+}
+
+
+.badges-container {
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+
+    .badge {
+        display: flex;
+        flex-direction: column;
+        align-items: start;
+        justify-content: center;
+        position: relative;
+        
+        &:hover {
+            i {
+                opacity: 1;
+            }
+        }
+        
+        i {
+            position: absolute;
+            left: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+
+            @media screen and (max-width: 750px) {
+                & {
+                    left: 8px;
+                }
+            }
+        }
+
+        main {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+
+            strong {
+                overflow-y: revert;
+                overflow-x: clip;
+                text-overflow: ellipsis;
+                text-wrap: nowrap;
+            }
+        }
+    }
+}
+
+.filters-container {
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+    z-index: 1;
+    //margin-bottom: 2rem;
+}

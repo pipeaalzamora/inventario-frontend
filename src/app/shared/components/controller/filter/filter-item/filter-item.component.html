@@ -1,0 +1,210 @@
+
+<div class="filter-item">
+    @if (isGroup()) {
+        <div [formGroup]="itemForm()" class="filter-group">
+
+            <div formArrayName="filters" class="filters-container">
+                @for (filter of filters.controls; track $index) {
+                    <div class="filter-row">
+                        <div class="logic-condition">
+                            <div class="logic" [class.withItems]="filters.length > 1">
+
+                            @if ( $first && filters.length > 1) {
+                                <span class="bold">Dónde</span>
+                            } @else if (filters.length > 1 && $index === 1) {
+                                <button 
+                                    class="dot-btn brand bold"
+                                    (click)="toggleLogic()"
+                                >
+                                    {{itemForm().get('logic')?.value === 'and' ? 'Y' : 'O'}}
+                                </button>
+                            } @else if (filters.length > 1 && $index > 1) {
+                                <span class="only-logic">{{itemForm().get('logic')?.value === 'and' ? 'Y' : 'O'}}</span>
+                            }
+                            </div>
+
+                            <dot-filter-item 
+                                [itemForm]="transformToGroup(filter)" 
+                                [columns]="columns()" 
+                                [isGroup]="filter.get('logic') ? true : false"
+                            />
+                        </div>
+
+                        <button class="dot-btn danger" (click)="removeItem($index)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+
+            <div class="group-actions">
+                <button (click)="addFilter()" class="dot-btn xs">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Agregar filtro anidado</span>
+                </button>
+                <button class="remove-group dot-btn danger xs" (click)="removeGroup.emit()">
+                    Borrar grupo
+                </button>
+            </div>
+        </div>
+    } @else {
+        <div [formGroup]="itemForm()" class="filter-condition">       
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" id="first-field">
+                <mat-label>Campo</mat-label>
+                <mat-select formControlName="field" (selectionChange)="onFieldChange()">
+                    @for (col of columns(); track col) {
+                    <mat-option [value]="col.columnName">{{ col.nameToShow }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            @switch (currentType()) {
+                @case ('string') {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Operador</mat-label>
+                        <mat-select formControlName="operator">
+                            @for (op of operators; track op) {
+                                <mat-option [value]="op.value">{{ op.label }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Valor</mat-label>
+                        <input matInput formControlName="value" placeholder="Valor">
+                    </mat-form-field>
+
+                    <mat-checkbox
+                        formControlName="caseSensitive"
+                        color="primary"
+                        aria-label="Case sensitive"
+                    >
+                        Estricto
+                    </mat-checkbox>
+                }
+                @case ('number') {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Operador</mat-label>
+                        <mat-select formControlName="operator">
+                            @for (op of operators; track op) {
+                                <mat-option [value]="op.value">{{ op.label }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Valor</mat-label>
+                        <input matInput formControlName="value" type="number" placeholder="Valor">
+                    </mat-form-field>
+                }
+                @case ('boolean') {
+                    @for ( col of columns(); track col ) {
+                        @if ( this.itemForm().get('field')?.value === col.columnName ) {
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="boolean">
+                                <mat-label>Operador</mat-label>
+                                <mat-select formControlName="operator">
+                                    @for (op of operators; track op) {
+                                        @if ( col.posibleSelections && col.posibleSelections[$index] ) {
+                                            <mat-option [value]="op.value">{{ col.posibleSelections[$index] }}</mat-option>
+                                        } @else {
+                                            <mat-option [value]="op.value">{{ op.label }}</mat-option>
+                                        }
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        }
+                    }
+                }
+                @case ('date') {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Operador</mat-label>
+                        <mat-select formControlName="operator">
+                            @for (op of operators; track op) {
+                                <mat-option [value]="op.value">{{ op.label }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    @if ( this.itemForm().get('operator')?.value !== '$eq' || this.itemForm().get('operator')?.value !== '$neq' ) {
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-picker">
+                            <mat-label>Fecha</mat-label>
+                            <input matInput [matDatepicker]="picker" formControlName="value">
+                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-datepicker #picker></mat-datepicker>
+                        </mat-form-field>
+                    }
+                }
+                @case ('array') {
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <mat-label>Operador</mat-label>
+                        <mat-select formControlName="operator">
+                            @for (op of operators; track op) {
+                                <mat-option [value]="op.value">{{ op.label }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    @for ( col of columns(); track col ) {
+                        @if ( checkPosibleSelections(col) ) {
+                            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                                <mat-label>Valor</mat-label>
+                                <mat-select 
+                                    formControlName="value"
+                                    [multiple]="col.multipleSelection"
+                                >
+                                    @for ( sel of col.posibleSelections; track sel ) {
+                                        <mat-option [value]="sel">
+                                            {{ sel.charAt(0).toUpperCase() + sel.slice(1) }}
+                                        </mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        }
+                    }
+                }
+                @case ('entity') {
+                    @for ( col of columns(); track col ) {
+                        @if ( this.itemForm().get('field')?.value === col.columnName ) {
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="boolean">
+                            <mat-label>Operador</mat-label>
+                            <mat-select formControlName="operator">
+                                @for (op of operators; track op) {
+                                    @if ( col.posibleSelections && col.posibleSelections[$index] ) {
+                                        <mat-option [value]="op.value">{{ col.posibleSelections[$index] }}</mat-option>
+                                    } @else {
+                                        <mat-option [value]="op.value">{{ op.label }}</mat-option>
+                                    }
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                        }
+                    }
+                }
+                @default {
+                    @if ( itemForm().get('field')?.value ) {
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                            <mat-label>Operador</mat-label>
+                            <mat-select formControlName="operator">
+                                @for (op of operators; track op) {
+                                <mat-option [value]="op.value">{{ op.label }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+
+                        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                            <mat-label>Valor</mat-label>
+                            <input matInput formControlName="value" placeholder="Valor">
+                        </mat-form-field>
+
+                        <mat-checkbox
+                            formControlName="caseSensitive"
+                            color="primary"
+                        >
+                            Estricto
+                        </mat-checkbox>
+                    }
+                }
+            }
+        </div>
+    }
+</div>

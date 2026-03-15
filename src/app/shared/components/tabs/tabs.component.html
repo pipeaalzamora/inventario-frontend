@@ -1,0 +1,24 @@
+<mat-tab-group 
+    [selectedIndex]="selectedIndexTab()"
+    [mat-align-tabs]="align()" 
+    dynamicHeight 
+    [mat-stretch-tabs]="stretchLabels()"
+    [headerPosition]="headerPosition()"
+    [disableRipple]="true"
+    (selectedIndexChange)="switchTab($event)"
+>
+    @for (label of labels(); track $index) {
+        @if (templates()[label].label) {
+            <mat-tab [labelClass]="evaluateActualIndex($index)">
+                <ng-template mat-tab-label>
+                    <ng-template [ngTemplateOutlet]="templates()[label].label"></ng-template>
+                </ng-template>
+                <ng-template [ngTemplateOutlet]="templates()[label].content"></ng-template>
+            </mat-tab>
+        } @else {
+            <mat-tab label="{{label}}" [labelClass]="evaluateActualIndex($index)">
+                <ng-template [ngTemplateOutlet]="templates()[label].content"></ng-template>
+            </mat-tab>
+        }
+    }
+</mat-tab-group>

@@ -1,0 +1,111 @@
+<ng-template #headerRef>
+    <div class="cont">
+        <dot-go-back fallback="request"/>
+        <div class="dot-col no-gap">
+            <h1 class="title">@if (!isMobile()) {Ordenes de }{{actualRequest()?.displayId}}</h1>
+             <span class="dot-badge not-bordered"
+                [class.caution]="actualRequest()?.status === 'conflicted'" 
+                [class.danger]="actualRequest()?.status === 'rejected'" 
+                [class.success]="actualRequest()?.status === 'approved' || actualRequest()?.status === 'completed'"
+                [class.contrast]="actualRequest()?.status === 'completed'"
+            >
+                @switch (actualRequest()?.status) {
+                    @case ('conflicted') {
+                        Conflictos
+                    } @case ('approved') {
+                        Aprobada
+                    } @case ('rejected') {
+                        Rechazada
+                    } @case ('cancelled') {
+                        Cancelada
+                    } @case ('completed') {
+                        Completada
+                    } @default {
+                        Pendiente
+                    }
+                }
+            </span>
+        </div>
+    </div>
+</ng-template>
+
+<dot-section-wrapper [withStickyToolbar]="true" [headerRef]="headerRef" columns=".5fr 1fr">
+    <div class="section-col">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <h3>Información de la solicitud</h3>
+            </div>
+
+            <div class="info-container">
+                <div class="info-item-core">
+                    <div class="core-item no-gap">
+                        <span class="core-item-label">N° de solicitud</span>
+                        <span class="core-item-value">
+                            <dot-copy-clipboard-button [value]="actualRequest()?.displayId" />
+                        </span>
+                    </div>
+                    <div class="core-item">
+                        <span class="core-item-label">Fecha de creación</span>
+                        <span class="core-item-value">
+                            <i class="fa-regular fa-calendar"></i>
+                            <time datetime="DD/MM/YYYY">
+                                {{ actualRequest()?.createdAt | date: 'dd/MM/yyyy' }}
+                            </time>
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Tienda</span>
+                    <span class="info-item-value">{{ actualRequest()?.storeName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Destino</span>
+                    <span class="info-item-value">{{ actualRequest()?.warehouseName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Responsable</span>
+                    <span class="info-item-value">{{ actualRequest()?.requesterName }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dot-card shadow more-info">
+            <div class="card-header">
+                <h3>Más información</h3>
+            </div>
+
+            @if (purchases().length > 0) {
+                <div class="info-container">
+                    <div class="info-item-core">
+                        <div class="core-item">
+                            <span class="core-item-label">
+                                Dirección destino
+                            </span>
+                            <span class="core-item-value">
+                                <i class="fa-solid fa-location-dot"></i>
+                                {{ purchases()[0].warehouseAddress }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-item-label">Teléfono bodega</span>
+                        <span class="info-item-value">{{ purchases()[0].warehousePhone }}</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="section-col">
+        @for (oc of sortedPurchases(); track oc.id) {
+            <dot-request-purchase-item 
+                [order]="oc" 
+                [predefinedTimeline]="predefinedTimeline" 
+                [isMobile]="isMobile()"
+                [branchColor]="branchColor($index)"
+                [noChildren]="noChildren()"
+            />
+        }
+            
+    </div>
+</dot-section-wrapper>

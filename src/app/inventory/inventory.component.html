@@ -1,0 +1,575 @@
+<section>
+
+    <div class="section-header" >
+        <div class="section-header-item">
+
+            <div class="section-header-row">
+                <h1>
+                    @switch(mode()) {
+                        @case ('inventory') {
+                            Inventario
+                        } @case ('count') {
+                            Conteo
+                        }
+                    }
+                </h1>
+    
+                <span class="dot-badge tertiary lg">
+                    @switch(mode()) {
+                        @case('count') {
+                            {{ countController.GetData().totalItems }}
+                        } @case('inventory') {
+                            {{ inventoryController.GetData().totalItems }}
+                        }
+                    }
+                </span>
+            </div>
+        
+            <div class="mode-toggler shadow-inset">
+                <div class="active-item shadow"></div>
+        
+                <div 
+                    role="tab" 
+                    class="mode-toggler-item inventory"
+                    [class.active]="mode() === 'inventory'"
+                    (click)="mode.set('inventory')"
+                >
+                    Inventario
+                </div>
+
+                <div 
+                    role="tab" 
+                    class="mode-toggler-item count"
+                    [class.active]="mode() === 'count'"
+                    (click)="mode.set('count')"
+                >
+                    Conteo de inventario
+                </div>
+            </div>
+        </div>
+
+        @if (isMobile()) {
+            <dot-mobile-create [options]="mobileCreateOptions" />
+        } @else {
+            @if (CAN_CREATE_COUNT) {
+                <button class="dot-btn flashy" link="new-inventory-count-form">
+                    <i class="fa-solid fa-plus"></i>
+                    Nuevo conteo
+                </button>
+            }
+
+            @if (CAN_CREATE_OUT) {
+                <button class="dot-btn flashy" link="new-inventory-decrease-form">
+                    <i class="fa-solid fa-plus"></i>
+                    Registrar Movimiento
+                </button>
+            }
+
+            @if (CAN_CREATE_TRANSFER) {
+                <button class="dot-btn flashy" link="inventory-transfer">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    Nueva Transferencia
+                </button>
+            }
+        }
+    </div>
+
+    <div class="dot-card shadow">
+        @switch (mode()) {
+            @case ('inventory') {
+                <ng-container *ngTemplateOutlet="inventoryTable"></ng-container>
+            } @case ('count') {
+                <ng-container *ngTemplateOutlet="countTable"></ng-container>
+            }
+        }
+        
+    </div>
+
+    <ng-template #countTable>
+        <div class="toolbar">
+            <div class="col nowrap">
+                <dot-filter [controller]="countController" [columns]="countColumns" />
+                <dot-search [controller]="countController" placeholder="Nombre, id, descr." />
+            </div>
+        </div>
+
+       <div class="dot-table inventory">
+         <table class="table-striped count-table">
+            <dot-table-caption [controller]="countController" [center]="isMobile()"/>
+            <dot-sorter-header [controller]="countController" [headers]="countColumns" />
+            <tbody >
+                @for (count of countController.GetData().data; track count.id) {
+                    <tr>
+                        
+                        <td>
+                            <ng-template #dropTrigger>
+                                <a class="dot-anchor no-wrap">
+                                    {{ count.displayId }}
+                                </a>
+                            </ng-template>
+
+                            <dot-dropdown [dropdownTrigger]="dropTrigger" [fullWidth]="true">
+                                <button class="dot-btn lg" link="complete-count" [params]="{ countId: count.id }"
+                                    [disabled]="!isNowBefore(count.scheduledAt) || (count.assignedTo && count.assignedTo !== currentUser?.id) || !count.assignedTo">
+                                    <i class="fa-regular fa-clipboard"></i>
+                                    @if (count.status === 'in_progress' && count.assignedTo === currentUser?.id) {
+                                        Continuar
+                                    } @else {
+                                        Ver
+                                    }
+                                    conteo
+                                </button>
+
+                                @if (CAN_EDIT_COUNT && count.status !== 'completed' && count.status !== 'cancelled' && count.status !== 'in_progress') {
+                                    <button 
+                                        class="dot-btn lg"
+                                        link="inventory-count-form"
+                                        [params]="{ countId: count.id }"
+                                    >
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                        Editar conteo
+                                    </button>
+                                }
+
+                                @if (CAN_CREATE_COUNT) {
+                                    <button 
+                                        class="dot-btn lg danger"
+                                        (click)="cancelCount(count.id)"
+                                        [disabled]="count.status !== 'pending' && count.status !== 'un_assigned'">
+                                        <i class="fa-solid fa-ban"></i>
+                                        Cancelar conteo
+                                    </button>
+                                    <button 
+                                        class="dot-btn lg danger secondary"
+                                        (click)="rejectCount(count.id)"
+                                        [disabled]="count.status !== 'completed'">
+                                        <i class="fa-solid fa-xmark"></i>
+                                        Rechazar conteo
+                                    </button>
+                                }
+                            </dot-dropdown>
+                        </td>
+                        <!-- <td class="no-wrap">
+                            @if (CAN_EDIT_COUNT && count.status !== 'in_progress' && count.status !== 'completed' && count.status !== 'cancelled') {
+                                <a class="dot-anchor no-wrap" link="inventory-count-form" [params]="{ countId: count.id }">
+                                    {{ count.displayId }}
+                                </a>
+                            } @else {
+                                <a class="dot-anchor no-wrap" link="complete-count" [params]="{ countId: count.id }">
+                                    {{ count.displayId }}
+                                </a>
+                            }
+                        </td> -->
+
+                        <td>
+                            <span class="dot-badge not-bordered all-width no-wrap"
+                                [class.success]="count.status === 'completed'"
+                                [class.contrast]="count.status === 'completed' || count.status === 'cancelled'"
+                                [class.tertiary]="count.status === 'in_progress'"
+                                [class.danger]="count.status === 'cancelled' || count.status === 'rejected'"
+                                [class.caution]="count.status === 'un_assigned'"
+                            >
+                                @switch(count.status) {
+                                    @case('pending') {
+                                        Pendiente
+                                    } @case('in_progress') {
+                                        En progreso
+                                    } @case('completed') {
+                                        Completado
+                                    } @case('cancelled') {
+                                        Cancelado
+                                    } @case('un_assigned') {
+                                        No asignado
+                                    } @case('rejected') {
+                                        Rechazado
+                                    }
+                                }
+                            </span>
+                        </td>
+
+                        <td>
+                            <dot-percentage-bar 
+                                mode="linear"
+                                [currentValue]="countItemsMethod(count)"
+                                [maxValue]="count.metaData.length"
+                                [disabled]="count.status !== 'in_progress' && count.status !== 'completed'"
+                            />
+                        </td>
+
+                        <td>
+                            {{ count.storeName }}
+                        </td>
+
+                        <td>
+                            {{ count.warehouseName }}
+                        </td>
+
+                        <td class="capitalize center">
+                            {{ count.createdByName }}
+                        </td>
+                        
+                        <!-- //TODO: quizas esto sea un permiso compuesto por otro como de admin o algo asi
+                          -->
+                        @if (CAN_ASSIGN_COUNT) {
+                            <td [class.center]="!CAN_ASSIGN_COUNT || count.status === 'completed' || count.status === 'cancelled' || count.status === 'in_progress'">
+                                @if (
+                                    CAN_ASSIGN_COUNT && 
+                                    count.status !== 'completed' && 
+                                    count.status !== 'cancelled' &&
+                                    count.status !== 'in_progress'
+                                ) {
+                                    <dot-select
+                                        [options]="users()"
+                                        [selected]="count.assignedToName ?? null"
+                                        [searchBy]="userSearchBy"
+                                        label=""
+                                        icon="fa-solid fa-user"
+                                        (changeOption)="onUserSelectChange(count, $event)"
+                                        [compact]="true"
+                                        [confirmSwitch]="true"
+                                        [withNullOption]="true"
+                                        confirmSwitchText="¿Estás seguro que deseas cambiar el usuario asignado para este conteo?"
+                                    />    
+                                } @else {
+                                    <span class="capitalize">
+                                        {{ count.assignedToName ?? 'No asignado' }}
+                                    </span>
+                                }
+                            </td>
+                        }
+
+                        <td [class.center]="!CAN_CHANGE_COUNT_DATE || count.status === 'completed' || count.status === 'cancelled' || count.status === 'in_progress'">
+                            @if (
+                                CAN_CHANGE_COUNT_DATE && 
+                                count.status !== 'completed' && 
+                                count.status !== 'cancelled' &&
+                                count.status !== 'in_progress'
+                            ) {
+                                <dot-datepicker
+                                    [selectedDate]="count.scheduledAt"
+                                    [compact]="true"
+                                    label=""
+                                    [minDate]="now"
+                                    (dateChange)="changeCountScheduledDate(count.id, $event)"
+                                />
+                            } @else {
+                                <div class="date-time">
+                                    <time datetime="dd/MM/yy">
+                                        {{ count.scheduledAt | date: 'dd/MM/yyyy' }}
+                                    </time>
+                                </div>
+                            }
+                        </td>
+
+                        <td class="center">
+                            @if (!count.completedAt) {
+                                <span class="uncompleted-count">
+                                    N/A
+                                </span>
+                            } @else {
+                                <div class="date-time">
+                                    <time datetime="dd/MM/yy">
+                                        {{ count.completedAt | date: 'dd/MM/yy' }}
+                                    </time>
+
+                                    <time datetime="hh:mm">
+                                        {{ count.completedAt| date: 'hh:mm' }}
+                                    </time>
+                                </div>
+                            }
+                        </td>
+
+                        <td class="center">
+                            <div class="date-time">
+                                <time datetime="dd/MM/yy">
+                                    {{ count.createdAt | date: 'dd/MM/yy' }}
+                                </time>
+
+                                <time datetime="hh:mm">
+                                    {{ count.createdAt| date: 'hh:mm' }}
+                                </time>
+                            </div>
+                        </td>
+
+                        <td class="center" [matTooltip]="count.updatedAt | date: 'dd/MM/yy hh:mm'">
+                            {{ count.updatedAt | humanDate }}
+                        </td>
+                        <!-- <td>
+                            <ng-template #dropTrigger>
+                                <button class="dot-btn lg">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                            </ng-template>
+
+                            <dot-dropdown [dropdownTrigger]="dropTrigger" [fullWidth]="true">
+                                <button class="dot-btn lg" link="complete-count" [params]="{ countId: count.id }"
+                                    [disabled]="!isNowBefore(count.scheduledAt)"
+                                >
+                                    <i class="fa-regular fa-clipboard"></i>
+                                    @if (count.status === 'in_progress' && count.assignedTo === currentUser?.id) {
+                                        Continuar
+                                    } @else {
+                                    Ver} 
+                                    conteo
+                                </button>
+
+                                @if (CAN_EDIT_COUNT && count.status !== 'completed' && count.status !== 'cancelled' && count.status !== 'in_progress') {
+                                    <button 
+                                        class="dot-btn lg"
+                                        link="inventory-count-form"
+                                        [params]="{ countId: count.id }"
+                                    >
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                        Editar conteo
+                                    </button>
+                                }
+
+                                @if (CAN_CREATE_COUNT) {
+                                    <button 
+                                        class="dot-btn lg danger"
+                                        (click)="cancelCount(count.id)"
+                                        [disabled]="count.status !== 'pending' && count.status !== 'un_assigned'"
+                                    >
+                                        <i class="fa-solid fa-ban"></i>
+                                        Cancelar conteo
+                                    </button>
+
+                                    <button 
+                                        class="dot-btn lg danger secondary"
+                                        (click)="rejectCount(count.id)"
+                                        [disabled]="count.status !== 'completed'"
+                                    >
+                                        <i class="fa-solid fa-xmark"></i>
+                                        Rechazar conteo
+                                    </button>
+                                }
+                            </dot-dropdown>
+                        </td> -->
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+       </div>
+
+        <dot-pagination
+            [controller]="countController"
+        />
+    </ng-template>
+
+    <ng-template #inventoryTable>
+        <div class="toolbar">
+            <div class="dot-row inventory-toolbar">
+                <dot-select 
+                    [options]="warehouseOptions()"
+                    [selected]="selectedWarehouse()"
+                    searchBy="warehouseName"
+                    label=""
+                    [fullWidth]="isMobile()"
+                    (changeOption)="onWarehouseChange($event?.warehouseName ?? 'Todas')"
+                />
+                <!-- <dot-search [controller]="inventoryController" [noCollapse]="true" placeholder="SKU, producto, bodega..." /> -->
+                 <dot-search 
+                    #searchBar 
+                    placeholder="Producto..." 
+                    [noCollapse]="true"
+                    (searchValue)="filtrarDatos($event)"
+                />
+
+                <label class="dot-slide-toggle sm label-left">
+                    <input 
+                        type="checkbox" 
+                        [checked]="showZeroStock()"
+                        (change)="toggleShowZeroStock()"
+                    />
+                    <span class="dot-slide-track"></span>
+                    <span class="dot-slide-label">Mostrar stock cero</span>
+                </label>
+                
+            </div>
+        </div>
+        <ng-container *ngTemplateOutlet="inventoryByWarehouse"></ng-container>
+
+        <dot-pagination 
+            [controller]="inventoryController"
+        />
+    </ng-template>
+</section>
+
+<ng-template #inventoryByWarehouse>
+    <div class="dot-table">
+        <table class="inventory-by-warehouse-table">
+        <dot-table-caption [controller]="inventoryByWarehouseController" [center]="isMobile()"/>
+        <!-- <dot-sorter-header [controller]="inventoryByWarehouseController" [headers]="inventoryByWarehouseColumns" /> -->
+            <dot-sorter-header 
+            [headers]="inventoryByWarehouseColumns" 
+            (sortChange)="onSortChange($event)" 
+            />
+        <tbody>
+            @for (item of inventoryByWarehouseController.GetData().data; track item.warehouseId) {
+                <tr>
+                    <td [colSpan]="inventoryByWarehouseColumns.length">
+                        <div class="warehouse-tr">
+                            {{ item.warehouseName }}
+                        </div>
+                    </td>
+                </tr>
+                @for (product of item.products; track product.id) {
+                    <tr>
+                    <td></td>
+                        <td class="sku-cell">
+                            <dot-dropdown [dropdownTrigger]="skuTrigger">
+                                <ng-template #skuTrigger>
+                                    <span class="sku-trigger">{{ product.productTemplate.sku }}</span>
+                                </ng-template>
+
+                                <button 
+                                    class="dot-btn lg"
+                                    link="product-movements"
+                                    [params]="{ warehouseId: item.warehouseId, productId: product.id }"
+                                >
+                                    <i class="fa-solid fa-eye"></i>
+                                    Ver movimientos
+                                </button>
+                                @if (CAN_CREATE_OUT) {
+                                    <button class="dot-btn lg">
+                                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                                        Crear movimiento
+                                    </button>
+                                }
+                            </dot-dropdown>
+                        </td>
+
+                        <td>
+                            <div class="composite-cell">
+                                <div class="product-info">
+                                    <!--<div class="warehouse-name">{{ item.warehouseName }}</div>-->
+                                    <div class="product-name">{{ product.productName }}</div>                                    
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="center">
+                            <div class="composite-cell stock">
+                                <div class="stock-main supplier-stock">
+                                    {{ product.totals.currentStock }}                                
+                                </div>
+                                
+                                <!-- @if ( product.totals.currentStock > product.quantities.maximalStock) {
+                                    <div class="stock-alert success sm">&gt; Stock Máximo {{ product.quantities.maximalStock }}</div>
+                                } @else if ( product.totals.currentStock < product.quantities.minimalStock) {
+                                    <div class="stock-alert danger sm"> &lt; Stock mínimo {{ product.quantities.minimalStock }}</div>
+                                } @else if ( product.totals.currentStock == product.quantities.minimalStock) {
+                                    <div class="stock-alert caution sm">En mínimo {{ product.quantities.minimalStock }}</div>
+                                } -->
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="dot-col stock-level-cell">
+                                @if ( product.totals.currentStock === 0) {
+                                    <div class="dot-badge danger not-bordered all-width">Sin stock</div>
+                                } @else if ( product.totals.currentStock > product.quantities.maximalStock) {
+                                    <div class="dot-badge info contrast not-bordered all-width">Sobre stock</div>
+                                } @else if ( product.totals.currentStock < product.quantities.minimalStock) {
+                                    <div class="dot-badge contrast caution not-bordered all-width">Stock bajo</div>
+                                } @else {
+                                    <div class="dot-badge success contrast not-bordered all-width">Stock óptimo</div>
+                                }
+
+                                <div class="limits-container">
+                                    <div class="limit-item">
+                                        Mín:
+                                        @if (product.quantities.minimalStock === 0) {
+                                            N/A
+                                        } @else {
+                                            {{ product.quantities.minimalStock }}
+                                        }
+                                    </div>
+                                    |
+                                    <div class="limit-item">
+                                        Máx:
+                                        @if (product.quantities.maximalStock === 0) {
+                                            N/A
+                                        } @else {
+                                            {{ product.quantities.maximalStock }}
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="center">
+                            <div class="composite-cell stock">
+                                @if (product.totals.stockIn == 0 && product.totals.stockOut == 0) {
+                                    <span class="empty">N/A</span>
+                                }
+                            
+                            @if (product.totals.stockIn > 0) {
+                                <div class="stock-details">
+                                        {{ product.totals.stockIn }}
+                                    <span class="movement success sm">
+                                        <i class="fa-solid fa-angles-left"></i>
+                                        IN
+                                    </span>                                    
+                                </div>
+                            }
+                            @if (product.totals.stockOut > 0) {
+                                <div class="stock-details"> 
+                                    {{ product.totals.stockOut }}                                   
+                                    <span class="movement caution sm">
+                                        OUT
+                                        <i class="fa-solid fa-angles-right"></i>                                        
+                                    </span>
+                                </div>
+                            }
+                            </div>
+                        </td>
+                        <!--
+                        <td>
+                            {{ item.warehouseName }}
+                        </td>
+                        -->
+
+                        <td class="center">
+                            <div class="composite-cell cost">
+                                <div class="cost-value">{{ product.totals.avgCost | clpCurrency }}</div>
+                                <div class="cost-trend">
+                                    @if (product.totals.avgCost > product.costs.costEstimated) {
+                                        <i class="fa-solid fa-arrow-trend-up danger"></i>
+                                    } @else if (product.totals.avgCost < product.costs.costEstimated) {
+                                        <i class="fa-solid fa-arrow-trend-down success"></i>
+                                    }
+                                </div>
+                                <div class="cost-avg">{{ product.costs.costEstimated | clpCurrency }}</div>
+                                <!--
+                                <div class="cost-value">{{ item.avgCost | clpCurrency }}</div>                                
+                                <div class="cost-trend">
+                                    @if (item.avgCost > item.cost) {
+                                        <i class="fa-solid fa-arrow-trend-up danger"></i>
+                                    } @else if (item.avgCost < item.cost) {
+                                        <i class="fa-solid fa-arrow-trend-down success"></i>
+                                    }
+                                </div>
+                                <div class="cost-avg">{{ item.cost | clpCurrency }}</div>
+                                -->
+                            </div>
+                        </td>
+                        <!--
+                        <td>
+                            <span 
+                                [matTooltip]="(item.updatedAt | date: 'fullDate') + ' ' + (item.updatedAt | date: 'shortTime')"
+                                matTooltipShowDelay="200"
+                                matTooltipHideDelay="0"
+                            >
+                                {{ item.updatedAt | humanDate }}
+                            </span>
+                        </td>
+                        -->
+                    </tr>
+                }
+            }
+        </tbody>
+        </table>
+    </div>
+</ng-template>

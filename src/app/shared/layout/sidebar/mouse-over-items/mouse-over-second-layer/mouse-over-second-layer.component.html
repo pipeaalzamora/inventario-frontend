@@ -1,0 +1,49 @@
+<div [class.show]="item() && item()?.isMenuVisible" class="sidenav-second-layer">
+    <section class="sidenav-menuList-second-layer" (mouseenter)="handleMouseEnter()" (mouseleave)="handleMouseLeave($event)">
+        <div class="wrapper-second-layer">
+            <header>
+                <div>
+                    @if (item()?.loadComponent) {
+                        <!-- <a link="{{item()?.name}}"
+                            [replace]="true"
+                            [class.active]="item() && actualRoute().includes(item()!.name)"
+                        > -->
+                        <a link="{{item()?.name}}"
+                            [class.active]="item() && actualRoute().includes(item()!.name)"
+                        >
+                            <i class="{{ item()?.icon }}"></i>
+                            <span class="matText">
+                                {{ item()?.text }}
+                            </span>
+                        </a>
+                    } @else {
+                        <h3 class="pl-1">{{ item()?.text }}</h3>
+                    }
+                </div>
+            </header>
+            <main>
+                @if (item()?.menuList?.length) {
+                    <ul>
+                        @for ( subItem of item()?.menuList; track $index) {
+                            @if (subItem?.isMenuVisible) {
+                                <!-- <a link="{{subItem?.name}}"
+                                    [replace]="true"
+                                    (click)="handleClickOut()" 
+                                    class="subItemLink"
+                                    [class.active]="actualRoute().includes(subItem.name)"
+                                > -->
+                                <a link="{{subItem?.name}}"
+                                    (click)="handleClickOut()" 
+                                    class="subItemLink"
+                                    [class.active]="actualRoute().includes(subItem.name)"
+                                >
+                                    <li>{{subItem.name}}</li>
+                                </a>
+                            }
+                        }
+                    </ul>
+                }
+            </main>
+        </div>
+    </section>
+</div>

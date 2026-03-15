@@ -1,0 +1,17 @@
+
+<div class="floating-action-container">
+    @for (option of options(); track $index) {
+        <div class="option-action-item" (click)="toggleActionMenu(false); option.action()">
+            <div class="label">{{ option.label }}</div>
+            @if (option.icon) {
+                <i class="{{ option.icon }}"></i>
+            }
+        </div>
+    }
+</div>
+
+<button class="dot-btn create" (click)="toggleActionMenu(!isActive())">
+    <i class="fa-solid fa-plus"></i>
+</button>
+
+<div class="floating-action-backdrop"></div>

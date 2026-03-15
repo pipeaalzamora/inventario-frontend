@@ -1,0 +1,30 @@
+:host {
+    display: flex;
+    position: relative;
+    z-index: 1;
+
+    &:has(.errors-container:hover) {
+        z-index: 100;
+    }
+
+    .required-mark {
+        color: var(--danger-dark);
+        margin-left: 0.2rem;
+    }
+
+    &:has(.dot-label-prefix) {
+        .dot-label-text {
+            left: auto;
+        }
+    }
+
+    .errors-container {
+        z-index: 10;
+
+        i {
+            .errors-list {
+                z-index: 9999;
+            }
+        }
+    }
+}

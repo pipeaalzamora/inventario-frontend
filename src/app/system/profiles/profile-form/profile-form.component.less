@@ -1,0 +1,222 @@
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    h1 {
+        margin: 0;
+    }
+}
+
+.cont {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+}
+
+section {
+    height: 100%;
+    position: relative;
+}
+
+.section-content {
+    display: grid;
+    grid-template-columns: 1fr .7fr;
+    gap: 2rem;
+    padding-top: 2rem;
+    // height: 100%;
+    position: relative;
+
+    h3 {
+        margin: 0;
+    }
+
+    form {
+        gap: 2rem;
+        padding-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
+
+    .section-col {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        height: min-content;
+
+        @media (max-width: 1160px) {
+            align-items: center;
+        }
+    }
+}
+
+.subtitle {
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+.description {
+    .subtitle;
+    font-size: .9rem;
+}
+
+.title {
+    @media (max-width: 768px) {
+        overflow-x: hidden;
+        max-width: 200px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.title-cat {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: .5rem;
+    font-weight: 500;
+}
+
+.toolbar-powers {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .powers-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .power-item {
+            display: flex;
+            flex-direction: column;
+            gap: .3rem;
+            position: relative;
+            border-radius: var(--default-rounded);
+            cursor: pointer;
+            padding: .5rem 1rem;
+
+            transition: background-color var(--animation-duration-default) ease-in-out;
+
+            p {
+                margin: 0;
+            }
+
+            h4, p.description {
+                max-width: calc(100% - 60px);
+            }
+
+            label {
+                position: absolute;
+                top: 50%;
+                right: 1.5rem;
+                transform: translateY(-50%);
+            }
+
+            &:hover {
+                background-color: var(--background-4);
+            }
+
+            @media (max-width: 768px) {
+                padding: 1rem;
+            }
+        }
+    }
+}
+
+.powers-summary {
+    height: min-content;
+    max-height: 570px;
+    min-height: 20rem;
+    position: sticky;
+    top: calc(var(--nav-height) + 72px + 1rem);
+
+    .card-header-info,
+    .actions {
+        flex: 0;
+    }
+
+    .selected-powers {
+        flex: 1;
+        overflow-y: auto;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+
+        &.empty {
+            justify-content: center;
+            align-items: center;
+        }
+
+        .selected-power-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .5rem 1rem;
+            border-radius: 10px;
+            background-color: var(--background-4);
+
+            .selected-power-name{
+                color: var(--text);
+                font-weight: 600;
+            }
+
+            .selected-power-actions {
+                display: flex;
+                flex-direction: row;
+                gap: .3rem;
+                
+                button {
+                    color: var(--text-light);
+    
+                    &:hover {
+                        color: light-dark(black, white);
+                    }
+                }
+            }
+            
+
+        }
+
+        .empty-selected-powers {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+
+            & > * {
+                color: var(--text-light);
+            }
+
+            i {
+                font-size: 4rem;
+            }
+
+            span {
+                font-size: 1.2rem;
+                text-align: center;
+            }
+        }
+    }
+}
+
+mat-expansion-panel {
+    background-color: light-dark(var(--default-light, var(--color-zinc-900))) !important;
+    box-shadow: none !important;
+
+    mat-expansion-panel-header {
+        height: 3.5rem;
+
+        mat-panel-description {
+            justify-content: flex-end;
+            gap: .5rem;
+        }
+    }
+}

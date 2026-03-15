@@ -1,0 +1,104 @@
+:host {
+    display: contents
+}
+
+tr.minimalist {
+    background-color: color-mix(in oklch, var(--background-3) 80%, light-dark(var(--color-slate-400), var(--color-gray-950)) 20%);
+}
+
+th {
+    padding: 0;
+    padding-block: .5rem;
+    white-space: nowrap;
+    &.center {
+        text-align: center;
+    }
+}
+
+
+
+.sorted {
+    display: flex;
+    cursor: pointer;
+    font-weight: 600;
+    align-items: center;
+    user-select: none;
+    justify-content: flex-start;
+    border-radius: 6px;
+    padding: 1rem;
+
+    transition: background-color var(--animation-duration-default) ease-in-out;
+
+    &.minimalist {
+        background-color: transparent;
+        padding: 0 2rem 0 1rem;
+        border-radius: 0;
+
+        .text {
+            border-bottom: 1px solid transparent;
+            padding: 0;
+
+            transition: border-color var(--animation-duration-short) ease-in-out;
+        }
+
+        &:hover {
+            background-color: transparent;
+
+            .text {
+                border-color: var(--border-active);
+
+
+            }
+        }
+    }
+
+    &.center {
+        justify-content: center;
+    }
+
+    &:hover {
+        background-color: color-mix(in oklch, var(--background-3) 90%, light-dark(black, white) 10%);
+    }
+
+    .text{
+        font-weight: 500;
+        padding-right: 1rem;
+        flex: 0 0 auto;
+
+        &.wrap {
+            white-space: normal;
+            text-align: center;
+        }
+    }
+
+    &.sortSelected{
+        .text{
+            font-weight: 700;
+        }
+        .carets{
+            i {
+                color: var(--text-very-light);
+
+                &.selected{
+                    color: var(--text);
+                }
+            }
+        }
+    }
+
+    .carets{
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 auto;
+
+        
+        
+
+        i {
+            color: var(--text-very-light);
+            line-height: 0.5rem;
+
+            transition: color var(--animation-duration-default) ease-in-out;
+        }
+    }
+}

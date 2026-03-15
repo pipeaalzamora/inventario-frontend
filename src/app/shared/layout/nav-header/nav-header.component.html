@@ -1,0 +1,30 @@
+<div id="nav-header" class="nav-header-container" [class.sidebar-open]="isSidebarOpen()" [class.mobile]="isMobile()">
+    <nav class="nav-header-content" [class.show-background]="scrolled()">
+        <button class="dot-btn md" (click)="toggleSidebar()">
+            <svg viewBox="0 0 24 24" fill="none" [class.open]="isSidebarOpen()"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="6" height="18" rx="0" ry="0" fill="currentColor"></rect>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <path d="M9 3v18"></path>
+            </svg>
+        </button>
+
+        <div class="nav-header-items" [class.hideOnMobile]="isMobile() && isSidebarOpen()">
+
+            <dot-notification-container/>
+
+            <dot-select 
+                [options]="stores()"
+                [searchBy]="storeSearchKey"
+                [selected]="selectedStore()!" 
+                (changeOption)="storeChange($event)"
+                label="Tienda"
+                [compact]="true"
+                [disabled]="cantSelectStore()"
+                [labelBackgroundColor]="scrolled() ? 'var(--background-3)' : 'var(--background-2)'"
+                icon="fa-solid fa-store"
+            />
+        </div>
+
+    </nav>
+</div>

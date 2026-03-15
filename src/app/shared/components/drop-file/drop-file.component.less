@@ -1,0 +1,83 @@
+:host {
+    width: 100%;
+}
+
+.dropzone {
+    .dot-input-file-dropzone {
+        width: 100%;
+        border-radius: var(--default-rounded);
+
+        i {
+            font-size: 3rem;
+        }
+
+        .title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            text-align: center;
+
+            .limits {
+                margin-top: .5rem;
+                font-weight: 400;
+                font-size: .9rem;
+                color: var(--text-light);
+
+                .formats {
+                    display: inline;
+                    text-transform: uppercase;
+                    font-weight: 500;
+                    font-size: .9rem;
+                    color: var(--text-light);
+                }
+            }
+        }
+
+        @media (max-width: 768px) {
+            i {
+                font-size: 2.5rem;
+            }
+
+            .title {
+                font-size: 1rem;
+
+                .limits {
+                    font-size: .8rem;
+
+                    .formats {
+                        font-size: .8rem;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.actions-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: hidden;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+    padding-top: 1rem;
+
+    label {
+        width: 100%;
+        height: 100%;
+        font-weight: 1.2rem;
+        border: 1px solid var(--border-very-light);
+        padding-block: 1.5rem;
+        color: var(--text-light);
+        
+        i {
+            font-size: 2rem;
+            color: var(--text-light);
+        }
+
+        input[type="file"] {
+            display: none !important;
+        }
+    }
+}

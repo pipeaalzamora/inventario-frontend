@@ -1,0 +1,30 @@
+@switch (mode()) {
+    @case ('linear') {
+        <div class="percentage-bar-linear-container">
+            <div class="percentage-bar-linear" [class.disabled]="disabled()">
+                <div class="percentage-bar-success" [ngStyle]="{ 'width.%' : linearCalculatedWidthPercentage() }"></div>
+            </div>
+            
+            @if (showValueLabel()) {
+                <span class="pecentage-number" [class.disabled]="disabled()">
+                    {{linearCalculatedWidthPercentage()}}%
+                </span>
+            }
+        </div>
+    } @case ('circle') {
+        <div class="percentage-container">
+            <div class="percent-bar-cricle">
+                <svg>
+                    <circle cx="40" cy="40" r="40" [class.disabled]="disabled()"></circle>
+                    <circle cx="40" cy="40" r="40" [ngStyle]="{ 'stroke-dashoffset': circleCalculatedWidthPercentage() }"></circle>
+                </svg>
+                @if (showValueLabel()) {
+                    <div class="pecentage-number">
+                        {{currentValue()}}
+                        <span>%</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}

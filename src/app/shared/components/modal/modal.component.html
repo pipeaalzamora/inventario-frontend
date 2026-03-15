@@ -1,0 +1,80 @@
+<div class="dot-backdrop-modal" 
+    (pointerdown)="handleDown($event)" 
+    (pointerup)="handleUp($event)" 
+    [class.lateral]="isLateral() && !isMobile()"
+    #modalBackdrop
+>
+    <div class="dot-modal" 
+        #modal
+        [class.long-modal]="longModal()"
+        [class.has-steps]="steps().length > 0"
+    >
+        <div class="modal-header">
+            <h2>{{ tittleText() }}</h2>
+            <button class="dot-btn " (click)="closeModal()">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        @if (headerRef()) {
+            <div class="modal-header-actions">
+                <ng-container *ngTemplateOutlet="headerRef()"></ng-container>
+            </div>
+        }
+        @if (steps().length > 0) {
+            <div class="modal-steps-indicator">
+                <button class="step-button" 
+                    [class.active]="currentStep() === 0"
+                    [disabled]="!canNavigateToStep(0)"
+                    (click)="goToStep(0)"
+                    type="button"
+                >
+                    1
+                </button>
+                @for (step of steps(); track $index) {
+                    <span class="step-separator">→</span>
+                    <button class="step-button" 
+                        [class.active]="currentStep() === $index + 1"
+                        [disabled]="!canNavigateToStep($index + 1)"
+                        (click)="goToStep($index + 1)"
+                        type="button"
+                    >
+                        {{ $index + 2 }}
+                    </button>
+                }
+            </div>
+        }
+        <div class="modal-body" (scroll)="onScroll($event)" #modalBody [class.has-scroll]="bodyWithScroll()" #modalPrimaryBody>
+            <ng-content/>
+        </div>
+        @for (step of steps(); track $index) {
+            <div class="step-body" #stepBody>
+                <ng-container *ngTemplateOutlet="step"></ng-container>
+            </div>
+        }
+        @if (!noFooter()) {
+            <div class="modal-footer">
+                @if (footerRef()) {
+                    <ng-container *ngTemplateOutlet="footerRef()"></ng-container>
+                } @else {
+                    @if (shouldShowCancel()) {
+                        <button class="dot-btn" 
+                            (click)="handleCancel()"
+                            [disabled]="disabledCancelButton()"
+                        > 
+                            {{ cancelText() }} 
+                        </button>
+                    }
+                    <button class="dot-btn" 
+                        (click)="successModal()"
+                        [class.success]="modalType() === 'success'"
+                        [class.caution]="modalType() === 'caution'"
+                        [class.danger]="modalType() === 'danger'"
+                        [disabled]="shouldDisableOk()"
+                    > 
+                        {{ okTextComputed() }} 
+                    </button>
+                }
+            </div>
+        }
+    </div>
+</div>

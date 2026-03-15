@@ -1,0 +1,304 @@
+<ng-template #headerRef>
+    <div class="cont">
+        <dot-go-back fallback="request"/>
+        <div class="dot-col no-gap">
+            <h1>Orden</h1>
+            <span class="dot-badge new not-bordered">Nueva</span>
+        </div>
+    </div>
+
+    <div class="cont">
+        <button 
+            class="dot-btn success"
+            (click)="createPurchase()"
+            [disabled]="selectedProducts().length === 0"
+        >
+            <i class="fa-solid fa-floppy-disk"></i>
+            @if (!isMobile()) {
+                Crear orden de compra
+            }
+        </button>
+    </div>
+</ng-template>
+
+@if (isMobile()) {
+    <button 
+        class="dot-btn success responsive"
+        (click)="mobilePicker.openModal()"
+    >
+        <i class="fa-solid fa-plus"></i>
+    </button>
+}
+
+<dot-section-wrapper [headerRef]="headerRef" [withStickyToolbar]="true" columns="1fr .9fr">
+    <div class="section-col">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>Información</h3>
+                </div>
+            </div>
+
+            <form>
+                <div class="form-row">
+                    <dot-select 
+                        [options]="suppliers()" 
+                        [searchBy]="supplierSearchBy" 
+                        [selected]="suppliers()[0]"
+                        label="Proveedor"
+                        icon="fa-solid fa-industry"
+                        (changeOption)="selectedSupplier.set($event)"
+                        [fullWidth]="true"
+                        [confirmSwitch]="selectedProducts().length > 0"
+                        [confirmSwitchCallback]="clearProducts.bind(this)"
+                        confirmSwitchText="Estás a punto de cambiar de proveedor, esto eliminará todos los productos seleccionados. ¿Deseas continuar?"
+                    />
+
+                    <dot-select 
+                        [options]="warehouses()" 
+                        [searchBy]="warehouseSearchBy"
+                        [selected]="warehouses()[0]"
+                        label="Destino"
+                        (changeOption)="selectedWarehouse.set($event)"
+                        icon="fa-solid fa-warehouse"
+                        [fullWidth]="true"
+                    />
+                </div>
+
+                <label 
+                    class="dot-label textarea"
+                    dot-input
+                >
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-comment"></i>
+                    </div>
+                    <span 
+                        class="dot-label-text"
+                    >
+                        Descripción
+                    </span>
+
+                    <textarea (input)="updateObservation($event)"></textarea>
+                </label>
+            </form>
+        </div>
+
+        <div class="dot-card shadow selected-products">
+            @if (selectedProducts().length === 0) {
+                <div class="empty-state">
+                    <i class="fa-solid fa-box-open"></i>
+                    <p>No hay productos seleccionados</p>
+                </div>
+            } @else {
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>Productos seleccionados</h3>
+                        <span class="dot-badge secondary">
+                            {{ selectedProducts().length }}
+                        </span>
+                    </div>
+
+                    <div class="cont">
+                        <button class="dot-btn" (click)="clearProducts()">
+                            Eliminar todos
+                        </button>
+                    </div>
+                </div>
+
+                @for (product of selectedProducts(); track product.productId) {
+                    <div class="selected-product-item">
+                        <div class="selected-product-item-core">
+                            <div class="selected-product-img-container">
+                                @if (product.productImage) {
+                                    <img
+                                        ngSrc="{{ product.productImage }}"
+                                        alt=""
+                                        [width]="80"
+                                        [height]="80"
+                                        loading="lazy"
+                                    >
+                                } @else {
+                                    <dot-no-image />
+                                }
+                            </div>
+                            <div class="selected-product-item-info">
+                                <div>
+                                    <h5 class="selected-product-name">{{ product.productName }}</h5>
+                                    <span class="selected-product-sku">{{ product.productCompanySku }}</span>
+                                </div>
+                                <div class="dot-row gap-1 align-center">
+                                    <span class="unit-measure dot-badge dark">
+                                        {{ product.unitPurchase | unitMeasures }}
+                                    </span>
+
+                                    <span class="selected-product-price">
+                                        {{ product.supplierProductPrice | clpCurrency }}
+                                    </span>
+
+                                    <div class="badges-container">
+                                        @if (product.supplierProductMinQuantity && product.quantity < product.supplierProductMinQuantity) {
+                                            <span class="require-check">Conflicto</span> 
+                                        }
+                                    </div>
+                                </div>
+                                <p> {{  product.productDescription }}</p>
+                            </div>
+                        </div>
+                        <div class="second-col">
+                            <div class="actions-container">
+                                <div class="min-max" [class.require-approval]="product.supplierProductMinQuantity && product.quantity > product.supplierProductMinQuantity">
+                                    <div class="quantity">
+                                        <button class="dot-btn" (click)="decrement(product)">
+                                            <i class="fa-solid fa-minus"></i>
+                                        </button>
+    
+                                        <label>
+                                            <input 
+                                                type="number" 
+                                                min="1" 
+                                                [value]="product.quantity"
+                                                (input)="handleInput($event, product)"
+                                                (blur)="handleBlur($event, product)"
+                                            >
+                                        </label>
+    
+                                        <button class="dot-btn" (click)="increment(product)">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </button>
+    
+                                        @if (product.supplierProductMinQuantity && product.supplierProductMinQuantity > 1) {
+                                            <span class="max-quantity">Min: {{ product.supplierProductMinQuantity }}</span>
+                                        }
+                                    </div>
+                                </div>
+    
+                                <div>
+                                    <button class="dot-btn md" (click)="deleteProduct(product)">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="subtotal-container">
+                                <span class="subtotal-label">Subtotal:</span>
+                                <span class="subtotal-value">{{ (product.supplierProductPrice * product.quantity) | clpCurrency }}</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                <div class="total-container">
+                    <span class="total-label">Total:</span>
+                    <span class="total-value">{{ productsTotal() | clpCurrency }}</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <ng-template #productListHeader>
+        <span class="product-advice-container mb-05">
+            <i class="fa-solid fa-info"></i>
+
+            <div class="dot-col no-gap">
+                <div class="title">¿No encuentras el producto que buscas?</div>
+                <div class="advice">Contacta a la persona responsable para que agregue proveedores al producto de esta tienda.</div>
+            </div>
+        </span>
+
+        @if (!isMobile()) {
+            <div class="dot-row gap-1 align-center justify-between">
+                <dot-filter [controller]="controller" [columns]="columns"/>
+                <dot-search [controller]="controller" />
+            </div>
+        } @else {
+            <dot-search [controller]="controller" [noCollapse]="true" [fullWidth]="true"/>
+        }
+
+        <dot-table-caption [controller]="controller" [noTable]="true" [center]="isMobile()" />
+    </ng-template>
+
+    <ng-template #productList>
+        <table class="pick-products-table">
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+
+            <tbody class="pick-products">
+                @for (product of controller.GetData().data; track product.productId) {
+                    <tr (click)="selectProduct(product)" [class.selected]="isSelected(product)">
+                        <td align="center">
+                            <div class="img-container" loading>
+                                @if (product.productImage) {
+                                    <img 
+                                        ngSrc="{{ product.productImage }}" 
+                                        alt=""
+                                        [width]="30"
+                                        [height]="30"
+                                        loading="lazy"
+                                    >
+                                } @else {
+                                    <dot-no-image [contrast]="isSelected(product)"/>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <span>
+                                {{ product.productName }}
+                            </span>
+                        </td>
+                        <td class="center">
+                            <span>
+                                {{ product.supplierProductPrice | clpCurrency }}
+                            </span>
+                        </td>
+                        <td class="center">
+                            <span class="product-limit" [class.limitless]="!product.supplierProductMinQuantity || product.supplierProductMinQuantity <= 1">
+                                {{ product.supplierProductMinQuantity && product.supplierProductMinQuantity > 1 ? product.supplierProductMinQuantity : 'N/A' }}
+                            </span>
+                        </td>
+
+                        <td class="center">
+                            <span class="dot-badge all-width unit-measure">
+                                {{ product.unitPurchase | unitMeasures }}
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+
+        @if (!isMobile()) {
+            <dot-pagination [controller]="controller" />
+        }
+    </ng-template>
+
+    @if (!isMobile()) {
+        <div class="section-col">
+            <div class="dot-card shadow sticky">
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>Productos</h3>
+                        <span class="dot-badge secondary">
+                            {{ products().length }}
+                        </span>
+                    </div>
+                </div>
+
+                <div *ngTemplateOutlet="productListHeader"></div>
+                <div *ngTemplateOutlet="productList"></div>
+            </div>
+        </div>
+    }
+</dot-section-wrapper>
+
+<ng-template #paginationMobile>
+    <dot-pagination [controller]="controller" />
+</ng-template>
+
+<dot-modal #mobilePicker
+    tittleText="Productos"
+    (callback)="mobilePicker.closeModal()"
+    [headerRef]="productListHeader"
+    [longModal]="true"
+    [footerRef]="paginationMobile"
+>
+    <div class="dot-card product-list mobile">
+        <div *ngTemplateOutlet="productList"></div>
+    </div>
+</dot-modal>

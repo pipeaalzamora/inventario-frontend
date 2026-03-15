@@ -1,0 +1,134 @@
+.widget-description {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--background-3);
+  border-left: 4px solid var(--brand);
+  border-radius: 0.5rem;
+
+  p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.suppliers-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  thead {
+    background: var(--background-3);
+    border-bottom: 2px solid var(--border-light);
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-dark);
+
+      &.ranking-col,
+      &.percentage-col,
+      &.deliveries-col {
+        text-align: center;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-very-light);
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: var(--background-4);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 1rem;
+      color: var(--text);
+
+      &.ranking-col,
+      &.percentage-col,
+      &.deliveries-col {
+        text-align: center;
+      }
+    }
+  }
+}
+
+.ranking-number {
+  display: inline-block;
+  width: 2.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  text-align: center;
+  background-color: var(--background-2);
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.supplier-name {
+  font-weight: 500;
+  max-width: 280px;
+}
+
+.ontime-badge {
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.ontime-excellent {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.ontime-good {
+  background-color: var(--color-emerald-200);
+  color: var(--color-emerald-800);
+}
+
+.ontime-acceptable {
+  background: var(--caution-light);
+  color: var(--caution);
+}
+
+.ontime-poor {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.deliveries-col {
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+@media (min-width: 1024px) {
+  .suppliers-table {
+    font-size: 1rem;
+
+    thead th,
+    tbody td {
+      padding: 1.25rem;
+    }
+  }
+
+  .supplier-name {
+    max-width: 340px;
+  }
+}

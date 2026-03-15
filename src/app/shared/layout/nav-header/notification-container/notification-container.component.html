@@ -1,0 +1,100 @@
+<button class="dot-btn" (click)="notificationModal.openModal()">
+    <i class="fa-regular fa-bell"></i>
+    @if (totalNewNotifications()) {
+        <span class="dot-badge sm brand contrast">{{ totalNewNotifications() }}</span>
+    }
+</button>
+
+<ng-template #notificationHeader>
+    <div class="notification-action">
+        <div class="toggler">
+            <button 
+                class="dot-btn sm" 
+                (click)="toggleMode('unread')" 
+                [class.active]="mode() === 'unread'" 
+                #allButton
+            >
+                No leidas
+                @if (totalNewNotifications()) {
+                    <span class="dot-badge sm brand contrast">{{ totalNewNotifications() }}</span>
+                }
+            </button>
+
+            <button 
+                class="dot-btn sm" 
+                (click)="toggleMode('all')" 
+                [class.active]="mode() === 'all'"
+                #notReadButton
+            >
+                Todas
+            </button>
+        </div>
+        
+        <button class="dot-btn sm all-read" [class.show]="totalNewNotifications()" (click)="markAllAsRead()">
+            <i class="fa-solid fa-check-double"></i>
+            <span>Marcar todas leidas</span>
+        </button>
+    </div>
+</ng-template>
+
+<dot-modal
+    #notificationModal
+    [isLateral]="true"
+    [noFooter]="true"
+    [bodyWithScroll]="true"
+    [headerRef]="notificationHeader"
+    (onOpen)="fetchNotifications()"
+    (onClose)="toggleMode('unread')"
+    tittleText="Notificaciones"
+>
+    <div class="notifications-container">
+        <div class="new-notifications" (scroll)="loadMore($event)">
+            @for (notification of newNotifications(); track notification.id) {
+                @defer (on viewport) {
+                    <dot-notification 
+                        [notification]="notification"
+                    />
+                } @placeholder {
+                    <div class="dot-notification-skeleton"></div>
+                }
+            } @empty {
+                <div class="empty-container">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g stroke-width="0"/><g stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15V5.5A1.5 1.5 0 0 0 18.5 4h-13A1.5 1.5 0 0 0 4 5.5V15h5.5a.5.5 0 0 1 .5.5 1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5.5.5 0 0 1 .5-.5zm0 1h-5.05a2.5 2.5 0 0 1-2.45 2h-1a2.5 2.5 0 0 1-2.45-2H4v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5zM5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-13A2.5 2.5 0 0 1 5.5 3"/></svg>
+                    <span class="empty">No hay notificaciones</span>
+                </div>
+            }
+
+            @if (isLoadingMore()) {
+                <div class="spinner-container">
+                    <span class="dot-spinner"></span>
+                </div>
+            }
+        </div>
+
+        <div class="all-notifications" (scroll)="loadMore($event)">
+
+            @for (notification of notifications(); track notification.id) {
+                @defer (on viewport) {
+                    <dot-notification 
+                        [notification]="notification"
+                    />
+                } @placeholder {
+                    <div class="dot-notification-skeleton"></div>
+                }
+            } @empty {
+                <div class="empty-container">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g stroke-width="0"/><g stroke-linecap="round" stroke-linejoin="round"/><path d="M20 15V5.5A1.5 1.5 0 0 0 18.5 4h-13A1.5 1.5 0 0 0 4 5.5V15h5.5a.5.5 0 0 1 .5.5 1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5.5.5 0 0 1 .5-.5zm0 1h-5.05a2.5 2.5 0 0 1-2.45 2h-1a2.5 2.5 0 0 1-2.45-2H4v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5zM5.5 3h13A2.5 2.5 0 0 1 21 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5v-13A2.5 2.5 0 0 1 5.5 3"/></svg>
+                    <span class="empty">No hay notificaciones</span>
+                </div>
+            }
+        
+            @if (isLoadingMore()) {
+                <div class="spinner-container">
+                    <span class="dot-spinner"></span>
+                </div>
+            }
+
+        </div>
+    </div>
+
+</dot-modal>

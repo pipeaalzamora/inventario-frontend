@@ -1,0 +1,129 @@
+.dot-picker-label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    padding: 1rem;
+
+    border: 2px solid var(--border-light);
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: none;
+
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+
+    transition: box-shadow var(--animation-duration-default) ease-in-out,
+        scale var(--animation-duration-default) ease-in-out;
+
+    &:hover {
+        box-shadow: var(--shadow-lg);
+
+        .dot-label-icon svg {
+            scale: 1.1;
+            stroke: var(--text);
+        }
+    }
+
+    &:active {
+        box-shadow: none;
+        scale: 0.99;
+    }
+
+    .dot-label-text {
+        position: absolute;
+        top: 50%;
+        left: 3rem;
+        transform: translateY(-50%);
+        transition: transform var(--animation-duration-default) ease-in-out,
+            padding-inline var(--animation-duration-default) ease-in-out,
+            font-size var(--animation-duration-default) ease-in-out
+        ;
+
+        &.floating {
+            padding-inline: 1rem;
+            transform: translate( -1.5rem , -2.3rem);
+            font-size: .85rem;
+            background-color: var(--background-3);
+        }
+    }
+
+    .dot-label-icon {
+        position: absolute;
+        left: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        
+        svg {
+            stroke: var(--text-light);
+            aspect-ratio: 1 / 1;
+            width: 20px;
+            height: auto;
+
+            transition: scale var(--animation-duration-short) ease-in-out,
+                stroke var(--animation-duration-short) ease-in-out
+            ;
+        }
+    }
+
+    input[type="button"] {
+        padding-left: 2.5rem;
+        position: static;
+        background-color: transparent;
+        width: 100%;
+        cursor: pointer;
+        text-align: start;
+
+        &.end-date {
+            padding-left: 0;
+        }
+    }
+    &.compact {
+        padding: .75rem;
+
+        .dot-label-text {
+            left: 2.5rem;
+            font-size: .8rem;
+
+            &.floating {
+                transform: translate( -1.2rem , -1.9rem);
+            }
+        }
+
+        .dot-label-icon {
+            left: .8rem;
+
+            svg {
+                width: 13px;
+            }
+        }
+
+        input[type="button"] {
+            padding-left: 2rem;
+            font-size: .875rem;
+
+            &.end-date {
+                padding-left: 0;
+            }
+        }
+    }
+}
+
+::ng-deep .mat-date-range-input {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 1.5rem;
+
+    .mat-date-range-input-wrapper {
+        height: 1.5rem;
+        width: min-content !important;
+    }
+
+    .mat-date-range-input-separator {
+        margin-inline: 1rem;
+        font-weight: 600;
+        color: var(--text-light);
+    }
+}

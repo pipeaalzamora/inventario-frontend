@@ -1,0 +1,27 @@
+<label 
+    class="dot-label input" 
+    [class.mobile]="isMobile() && !noCollapse()" 
+    dot-input
+    [ngStyle]="{'align-self': align()}"
+    #labelElement
+>
+    <div class="dot-label-icon">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+    <span class="dot-label-text" [ngStyle]="{'background-color': `var(--${customLabelColor()}) !important`}">Buscar</span>
+    <input 
+        type="text" 
+        name="search-bar-input" 
+        placeholder="{{placeholder()}}"
+        autocomplete="off"
+        (input)="search($event)"
+        #inputElement
+    >
+    <button 
+        class="dot-label-btn" 
+        (click)="eraseValue()"
+        [class.show]="hasValue()"
+    >
+        <i class="fa-solid fa-xmark"></i>
+    </button>
+</label>

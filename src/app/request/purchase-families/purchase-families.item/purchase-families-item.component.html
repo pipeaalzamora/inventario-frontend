@@ -1,0 +1,170 @@
+<div class="dot-card shadow order-status"
+    [class.no-children]="noChildren()"
+    [class.unable]="order().status === 'sunk' || order().status === 'cancelled' || order().status === 'edited'"
+    [class.success]="order().status === 'completed'"
+>
+    <div class="info-wrapper">
+        <div class="card-header">
+            <div class="order-status-header">
+                @if (order().level > 0) {
+                    <i class="fa-solid fa-code-branch"></i>
+                }
+                <a class="dot-anchor" link="purchase-order-form" [params]="{ orderId: order().id }">
+                    {{order().displayId}}
+                </a>
+                @if (!isMobile()) {
+                    <span class="separator"></span>
+                    <span class="dot-badge not-bordered"
+                        [class.danger]="order().status === 'rejected' || order().status === 'cancelled'"
+                        [class.contrast]="order().status === 'cancelled' || order().status === 'completed' || order().status === 'sunk'"
+                        [class.success]="order().status === 'on_delivery' || order().status === 'completed' || order().status === 'arrived'"
+                        [class.caution]="order().status === 'sunk'"
+                    >
+                        @switch (order().status) {
+                            @case ('pending') {
+                                Pendiente
+                            } @case ('rejected') {
+                                Rechazada
+                            } @case ('completed') {
+                                Completada
+                            } @case ('sunk') {
+                                No concretada
+                            } @case ('on_delivery') {
+                                En camino
+                            } @case ('arrived') {
+                                Recibido
+                            } @case ('edited') {
+                                Editada
+                            } @case ('cancelled') {
+                                Cancelada
+                            }
+                        }
+                    </span>
+
+                    @if (order().level === 0) {
+                        <span class="dot-badge not-bordered">
+                            Inicial
+                        </span>
+                    } 
+
+                    @if (order().children && order().children.length > 0) {
+                        <span class="dot-badge not-bordered secondary">
+                            Ramificación
+                        </span>
+                    }
+                }
+            </div>
+
+            <div class="order-status-header">
+                @if (!isMobile()) {
+                    @if (order().status === 'arrived') {
+                        <a class="dot-btn secondary md" link="receipt-detail" [params]="{ receiptId: order().deliveryPurchaseNoteId! }">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Completar solicitud
+                        </a>
+                    } @else if (order().status === 'on_delivery') {
+                        <!-- <a class="dot-btn secondary md" link="goods-receipt" [params]="{ purchaseId: order().id }" [replace]="true">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            Recibir pedido
+                        </a> -->
+                        <a class="dot-btn secondary md" link="goods-receipt" [params]="{ purchaseId: order().id }" >
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            Recibir pedido
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="shipment-info">
+            @if (isMobile()) {
+                <div class="shipment-info-item">
+                    <span class="dot-badge not-bordered"
+                        [class.danger]="order().status === 'rejected' || order().status === 'cancelled'"
+                        [class.contrast]="order().status === 'cancelled' || order().status === 'completed' || order().status === 'sunk'"
+                        [class.success]="order().status === 'on_delivery' || order().status === 'completed' || order().status === 'arrived'"
+                        [class.caution]="order().status === 'sunk'"
+                    >
+                        @switch (order().status) {
+                            @case ('pending') {
+                                Pendiente
+                            } @case ('rejected') {
+                                Rechazada
+                            } @case ('completed') {
+                                Completada
+                            } @case ('sunk') {
+                                No concretada
+                            } @case ('on_delivery') {
+                                En camino
+                            } @case ('arrived') {
+                                Recibido
+                            } @case ('cancelled') {
+                                Cancelada
+                            }
+                        }
+                    </span>
+                    @if (order().level === 0) {
+                        <span class="dot-badge not-bordered">
+                            Inicial
+                        </span>
+                    } 
+
+                    @if (order().children && order().children.length > 0) {
+                        <span class="dot-badge not-bordered secondary">
+                            Ramificación
+                        </span>
+                    }
+                </div>
+            }
+            <div class="shipment-info-item">
+                <span class="shipment-info-item-value">Última actualización: </span>
+                <span class="shipment-info-item-value">{{ order().updatedAt | date: 'dd/MM/yyyy' }} {{ order().updatedAt | date: 'HH:mm' }}</span>
+            </div>
+            <div class="shipment-info-item">
+                <span class="shipment-info-item-value">Proveedor: </span>
+                <span class="shipment-info-item-value">{{ order().supplierName }}</span>
+            </div>
+            @if (isMobile()) {
+                @if (order().status === 'arrived') {
+                    <a class="dot-btn secondary md" link="receipt-detail" [params]="{ receiptId: order().deliveryPurchaseNoteId! }">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Completar solicitud
+                    </a>
+                } @else if (order().status === 'on_delivery') {
+                    <a class="dot-btn secondary md" link="goods-receipt" [params]="{ purchaseId: order().id }">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        Recibir pedido
+                    </a>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="timeline-container">
+        <dot-timeline 
+            [actualStatus]="order().status"
+            [predefined]="predefinedTimeline()"
+            [statusHistory]="order().purchaseHistory!"
+            [customColor]="order().status === 'completed' ? 'light-dark(var(--color-green-200),var(--color-green-900))' : 'var(--background-4)'"
+            [noRedirect]="true"
+        />
+    </div>
+</div>
+
+@if (order().children && order().children.length > 0) {
+    <div class="children-order-container">
+
+        @if (!isMobile()) {
+            <span class="tree-line"></span>
+        }
+
+        @for (child of order().children; track child.id) {
+            <dot-request-purchase-item 
+                [order]="child" 
+                [predefinedTimeline]="predefinedTimeline()" 
+                [isMobile]="isMobile()"
+                [branchColor]="branchColor()"
+            />
+        }
+    </div>
+}

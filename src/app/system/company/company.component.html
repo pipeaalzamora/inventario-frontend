@@ -1,0 +1,78 @@
+<section>
+    <div class="section-header">
+        <div class="section-header-item">
+            <div class="section-header-row">
+                <h1>Compañías</h1>
+                <span class="dot-badge tertiary lg">{{ companies().length }}</span>
+                @if (COMPANY_CAN_CREATE) {
+                    <button class="dot-btn flashy ml-2" link="company-form-new">
+                        <i class="fa-solid fa-plus"></i>
+                        @if (!isMobile()) {
+                            Nueva compañía
+                        }
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- @if (COMPANY_CAN_CREATE) {
+            <div class="section-header-item">
+                <button class="dot-btn flashy ml-2" link="company-form-new">
+                    <i class="fa-solid fa-plus"></i>
+                    @if (!isMobile()) {
+                        Nueva compañía
+                    }
+                </button>
+            </div>
+        } -->
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="toolbar">
+            <!-- <div class="col nowrap">
+                <dot-filter [controller]="controller" [columns]="columns" />
+                <dot-search [controller]="controller" placeholder="Nombre, IdFiscal, email... "/>
+            </div> -->
+
+            @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                    <dot-search [controller]="controller" placeholder="Nombre, IdFiscal, email... "/>
+                </div>
+            } @else {
+                <div class="col">
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, IdFiscal, email... "/>
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                </div>
+            }
+        </div>
+        <div class="dot-table">
+            <table class="table-striped">
+            <dot-table-caption [controller]="controller" [center]="isMobile()" />
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            
+            <tbody>
+                @for (company of controller.GetData().data; track company.id) {
+                    <tr>
+                        <td>
+                            @if (company.imageLogo) {
+                                <img [src]="company.imageLogo" alt="Logo" class="company-logo" />
+                            } @else {
+                                <span class="no-logo">Sin logo</span>
+                            }
+                        </td>
+                        <td>{{ company.idFiscal|| '-' }}</td>
+                        <td>
+                            <a class="dot-anchor" link="company-form" [params]="{ id: company.id }">
+                                {{ company.companyName }}
+                            </a>
+                        </td>
+                        <td>{{ company.description || '-' }}</td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>

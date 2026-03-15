@@ -1,0 +1,118 @@
+<div class="filters-container">
+    <button (click)="openModal()" class="filter-button dot-btn" [class.active]="filtersActive > 0" loading>
+        @if (filtersActive > 0) {
+            <i class="fa-solid fa-filter"></i>
+            <span class="dot-badge sm">{{filtersActive}}</span>
+        }
+        Filtros
+
+        @if (filtersActive > 0) {
+            <div class="remove-filters" (click)="$event.stopPropagation(); removeAll()">
+                <i class="fa-solid fa-xmark"></i>
+            </div>
+        }
+    </button>
+
+    @if ( filtersActive > 0 && !noBadges() ) {
+        <div class="badges-container">
+            @for ( badge of filterBadges; track badge.filterId ) {
+                <span class="badge" [class.case-sensitive]="badge.caseSensitive" loading>
+                    <header>
+                        {{ badge.nameToShow }}
+                    </header>
+                
+                    <main>
+                        {{ parseBadgeOperator(badge) }}
+                         <strong>
+                            {{ parseBadgeValue(badge.value) }}
+                        </strong>
+                    </main>
+                    <!--
+                    <main>
+                        @if ( badge.operator != '$null') {
+                            {{ parseOperator(badge.operator) }} 
+                        }
+                        @if ( badge.value === "" && (badge.operator === "$eq" || badge.operator === "$neq") ) {
+                            <strong>
+                                Verdadero
+                            </strong>
+                        } @else if (badge.operator === "$null") {
+                            <strong>
+                                Existe
+                            </strong>
+                        } @else {
+                            <strong>
+                                {{ parseBadgeValue(badge.value) }}
+                            </strong>
+                        }
+                    </main>
+                    -->
+                    <i class="fa-solid fa-xmark" (click)="removeBadge(badge.filterId)"></i>
+                </span>
+            }
+        </div>
+    }
+</div>
+
+
+<dot-modal 
+    okText="Aplicar" 
+    tittleText="Filtros" 
+    (callback)="applyFilters()"
+>
+
+    <form [formGroup]="filterForm" (keydown.enter)="$event.preventDefault()">
+
+        <div formArrayName="filters" class="filter-list">
+            @for (filter of filters.controls; track $index) {
+
+                <div class="filter-item-container" [class.gap]="filters.controls.length > 1">
+                    @if (filter.get('logic')) {
+                        <div class="logic-condition" [class.gap]="filters.controls.length > 1">
+                            <div class="logic" [class.withItems]="filters.controls.length > 1">
+                            @if ( $first && filters.controls.length > 1) {
+                                <span>Dónde</span>
+                            } @else if (filters.controls.length > 1 && $index === 1) {
+                                <button class="toggle-group-logic dot-btn brand" (click)="toggleMainLogic()">
+                                    {{filterForm.get('logic')?.value === 'and' ? 'Y' : 'O'}}
+                                </button>
+                            } @else if (filters.controls.length > 1 && $index > 1) {
+                                <span class="only-logic">{{filterForm.get('logic')?.value === 'and' ? 'Y' : 'O'}}</span>
+                            }
+                            </div>
+
+                            <dot-filter-item 
+                                [itemForm]="transformToFormGroup(filter)" 
+                                [columns]="realColumns()" 
+                                [isGroup]="true"
+                                [isNestedGroup]="true"
+                                (removeGroup)="filters.removeAt($index)"
+                            />
+                        </div>
+                    } @else {
+                        <dot-filter-item 
+                            [itemForm]="transformToFormGroup(filter)" 
+                            [columns]="realColumns()" 
+                            [isGroup]="false"
+                        />
+                    }
+                    
+                </div>
+            }
+        </div>
+
+        <div class="main-actions">
+            <button (click)="addGroup()" class="add-group dot-btn sm">
+                <i class="fa-solid fa-plus"></i>
+                <span>Agregar filtro</span>
+            </button>
+
+            @if ( filtersActive > 0 ) {
+                <button (click)="removeAll()" class="remove-all dot-btn danger sm">
+                    <i class="fa-solid fa-filter-circle-xmark"></i>
+                    <span>Limpiar filtros</span>
+                </button>
+            }
+        </div>
+    </form>
+</dot-modal>

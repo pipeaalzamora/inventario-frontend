@@ -1,0 +1,26 @@
+@if (!noTable()) {
+    <caption [class.center]="center()">Mostrando del 
+        <b>{{from()}}</b>
+        al 
+        <b>
+        {{ to() }}
+        </b>
+        de 
+        <b>
+        {{ total() }}
+        </b>
+    </caption>
+} @else {
+    <span [class.center]="center()">
+        Mostrando del 
+        <b>{{from()}}</b>
+        al 
+        <b>
+        {{ to() }}
+        </b>
+        de 
+        <b>
+        {{ total() }}
+        </b>
+    </span>
+}

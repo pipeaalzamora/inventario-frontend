@@ -1,0 +1,15 @@
+<div class="radio-group-container" [class.detailed-view]="detailedView()">
+    @for(option of options(); track $index) {
+        <label class="dot-btn shadow" [class.disabled]="option.disabled" tabindex="0" (click)="handleOptionClick(option, $event)" (keydown.enter)="handleOptionClick(option, $event)">
+            <input type="radio" name="radioGroup" [checked]="option === selected()">
+            <span class="radio-circle"></span>
+            <i class="{{ option.icon }}"></i>
+            <div class="option-content">
+                <span class="option-name">{{ option.label }}</span>
+                @if (detailedView() && option.description) {
+                    <span class="option-description">{{ option.description }}</span>
+                }
+            </div>
+        </label>
+    }
+</div>

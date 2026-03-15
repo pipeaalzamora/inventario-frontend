@@ -1,0 +1,77 @@
+.logra-indicator {
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  
+  &.logra {
+    background-color: var(--success);
+  }
+  
+  &.logra-medio {
+    background-color: var(--caution);
+  }
+  
+  &.no-logra {
+    background-color: var(--danger);
+  }
+}
+
+.widgets-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.widget-card {
+  .widget-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .widget-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .logra-indicator {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+    }
+  }
+
+  .widget-info {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .widget-value {
+      margin: 0;
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--text-primary);
+    }
+  }
+
+  &.logra-widget {
+    background: color-mix(in oklch, var(--background-3) 85%, var(--success) 15%);
+  }
+
+  &.logra-medio-widget {
+    background: color-mix(in oklch, var(--background-3) 85%, var(--caution) 15%);
+  }
+
+  &.no-logra-widget {
+    background: color-mix(in oklch, var(--background-3) 85%, var(--danger) 15%);
+  }
+}

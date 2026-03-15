@@ -1,0 +1,54 @@
+:host {
+    display: contents
+}
+
+.dot-label-text {
+    background-color: light-dark(var(--color-slate-50), var(--color-zinc-800)) !important;
+}
+
+.login-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.login-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.dot-card {
+    max-width: 30rem;
+    padding: 2rem 3rem;
+    gap: 3rem;
+
+    @media (max-width: 768px) {
+        padding: 2rem 2rem;
+    }
+
+    .login-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+
+    .copy {
+        padding-top: 1rem;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        .powered-by-svg {
+            width: 12rem;
+            height: auto;
+        }
+    }
+}

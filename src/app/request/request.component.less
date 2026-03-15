@@ -1,0 +1,111 @@
+section {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 6rem;
+    gap: 2rem;
+
+    .section-header {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: flex-start;
+        gap: 2rem;
+
+        @media (max-width: 740px) {
+            justify-content: space-between;
+        }
+
+        @media (max-width: 500px) {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .section-header-item {
+        flex-direction: column;
+        gap: .5rem;
+        align-items: flex-start;
+        width: fit-content;
+
+        .section-header-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+    }
+}
+
+.mode-toggler {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 6px;
+    padding: .5rem;
+    background-color: var(--background-1);
+    z-index: 50;
+    width: fit-content;
+
+    .mode-toggler-item {
+        cursor: pointer;
+        padding: .5rem 1rem;
+        z-index: 60;
+        color: var(--text-light);
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+
+        transition: color var(--animation-duration-default) ease-in-out, font-weight var(--animation-duration-default) ease-in-out;
+
+        &:hover {
+            color: var(--text);
+        }
+
+        &.active {
+            color: var(--text);
+            font-weight: 600;
+        }
+    }
+
+    .active-item {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: .5rem;
+        height: 80%;
+        border-radius: 6px;
+        background-color: var(--background-2);
+
+        transition: left var(--animation-duration-long) ease-in-out, width var(--animation-duration-long) ease-in-out;
+    }
+}
+
+.button-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 1rem;
+
+    button {
+        flex: 1;
+        padding-block: 2rem;
+        box-shadow: var(--shadow);
+    }
+}
+
+.folios {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+
+    span {
+        font-weight: 500;
+        font-size: .8rem;
+        color: var(--text);
+        white-space: nowrap;
+    }
+}

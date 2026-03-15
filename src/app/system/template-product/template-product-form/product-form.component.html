@@ -1,0 +1,403 @@
+<ng-template #templateRef>
+    <div class="cont">
+        <dot-go-back fallback="product" />
+        <div class="dot-col no-gap">
+            <h1 class="title">
+                @if (actualProduct()) {
+                @if (!isMobile()) {
+                Plantilla de producto
+                }
+                {{ actualProduct()?.name }}
+                } @else {
+                Nueva plantilla
+                }
+            </h1>
+        </div>
+    </div>
+    <div class="cont">
+        <button class="dot-btn success" (click)="saveProduct()" [disabled]="productForm.invalid">
+            <i class="fa-regular fa-floppy-disk"></i>
+            @if (!isMobile()) {
+            Guardar
+            }
+        </button>
+    </div>
+</ng-template>
+
+<dot-section-wrapper [headerRef]="templateRef" [withStickyToolbar]="true" class="cards-container">
+    <!-- Card Información de la plantilla -->
+    <div class="dot-card shadow" data-card="1">
+        <div class="card-header-info">
+            <h3>Información de la plantilla</h3>
+        </div>
+        <p class="stepper-instruction">
+            <i class="fa-solid fa-circle-info"></i>
+            Completa la información básica para poder gestionar tu producto.
+        </p>
+        <form [formGroup]="productForm">
+
+            <div class="form-row">
+                <label class="dot-label input" tabindex="1" dot-input>
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                    <span class="dot-label-text">Nombre</span>
+                    <input formControlName="name" type="text" placeholder="Nombre del producto">
+                    @if(productForm.get('name')?.touched && productForm.get('name')?.invalid) {
+                        <div class="error">
+                            {{productForm.get('name')?.getError('invalid')}}
+                        </div>
+                    }
+                </label>
+
+                <label class="dot-label input" tabindex="1" dot-input>
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-barcode"></i>
+                    </div>
+                    <span class="dot-label-text">SKU</span>
+                    <input formControlName="sku" type="text" placeholder="SKU del producto">
+                    @if(productForm.get('sku')?.touched && productForm.get('sku')?.invalid) {
+                        <div class="error">
+                            {{productForm.get('sku')?.getError('invalid')}}
+                        </div>
+                    }
+                </label>
+
+                <label class="dot-label input mini" tabindex="1" dot-input>
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-dollar-sign"></i>
+                    </div>
+                    <span class="dot-label-text">Costo estimado</span>
+                    <input formControlName="estimatedCost" type="number" min="0" step="0.01" placeholder="Costo estimado">
+                    @if(productForm.get('estimatedCost')?.touched && productForm.get('estimatedCost')?.invalid) {
+                        <div class="error">
+                            {{productForm.get('estimatedCost')?.getError('invalid')}}
+                        </div>
+                    }
+                </label>
+            </div>
+
+            <div class="form-row">
+                <label class="dot-label input" tabindex="1" dot-input>
+                    <div class="dot-label-icon">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </div>
+                    <span class="dot-label-text">Descripción</span>
+                    <input formControlName="description" type="text" placeholder="Descripción">
+                    @if(productForm.get('description')?.touched && productForm.get('description')?.invalid) {
+                        <div class="error">
+                            {{productForm.get('description')?.getError('invalid')}}
+                        </div>
+                    }
+                </label>
+            </div>
+        </form>
+    </div>
+
+    <!-- Card Imagen de plantilla -->
+    <div class="dot-card shadow">
+    <div class="card-header">
+        <div class="cont">
+            <h3>Imagen del Producto</h3>
+            <!-- Muestra el tamaño del archivo si hay un archivo subido -->
+            @if (uploadedFile()) {
+                <span class="dot-badge secondary no-wrap">
+                    {{ uploadedFile()!.size | bytesFormat }}
+                </span>
+            }
+        </div>
+
+        <!-- Botón para eliminar la imagen si hay una seleccionada -->
+        @if (previewImageObjectUrl) { <!-- Usamos la propiedad previewImageObjectUrl para verificar si hay imagen -->
+            <button class="dot-btn" (click)="removeImage()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        }
+    </div>
+
+    <!-- Contenido cuando hay una imagen seleccionada -->
+    @if (previewImageObjectUrl) {
+        <div class="file-info-container">
+            <div class="img-container" (click)="previewImageModal.openModal()">
+                <img 
+                    [src]="previewImageObjectUrl" 
+                    alt="Previsualización de imagen" 
+                    class="uploaded-image-preview"
+                />
+            </div>
+        @if (displayedImageName()) {
+            <div class="file-info">
+                @if (actualProduct()) {
+                <div class="file-info-item">
+                    <div class="file-info-label">
+                    Estado:
+                    </div>
+                    <div class="file-info-value">
+                    @if (imageStatus === 'actual') {
+                        <span class="dot-badge success">Imagen actual</span>
+                    } @else if (imageStatus === 'pendiente') {
+                        <span class="dot-badge pending">Imagen nueva</span>
+                    }
+                    </div>
+                </div>
+                }
+                <div class="file-info-item">
+                    <div class="file-info-label">
+                        Nombre: 
+                    </div>
+                    <div class="file-info-value">
+                        {{ shortFileName(displayedImageName()) }}
+                    </div>
+                </div>
+                
+                @if (uploadedFile(); as file) {
+                <div class="file-info-item">
+                    <div class="file-info-label">
+                        Tipo:
+                    </div>
+                    <div class="file-info-value">
+                        {{ file.type }}
+                    </div>
+                </div>
+
+                <div class="file-info-item">
+                    <div class="file-info-label">
+                        Última modificación:
+                    </div>
+                    <div class="file-info-value">
+                        {{ file.lastModified | date: 'dd/MM/yyyy HH:mm' }}
+                    </div>
+                </div>
+            }
+            </div>
+        }
+        </div>
+    } @else {
+        <!-- Componente para subir archivos cuando no hay imagen seleccionada -->
+        <dot-drop-file 
+            [multiple]="false"
+            (uploadedFiles)="onFileDropped($event)"
+            [acceptedFormats]="['png', 'jpg', 'jpeg']"
+        />
+        @if(productForm.get('image')?.touched && productForm.get('image')?.invalid) {
+            <div class="error">
+                <!-- {{productForm.get('image')?.getError('invalid')}} -->
+                La imagen es obligatoria.
+            </div>
+        }
+    }
+    </div>
+
+    <!-- Card Códigos e identificadores -->
+    <div class="dot-card shadow" data-card="3">
+    <div class="card-header-info">
+        <h3>Códigos e identificadores</h3>
+    </div>
+
+    <div class="codes-section" [formGroup]="productForm">
+        <div class="codes-headers">
+            <div>Tipo</div>
+            <div>Valor</div>
+        </div>
+        @if(productForm.get('codes')?.touched && productForm.get('codes')?.invalid) {
+            <div class="error">
+                {{productForm.get('codes')?.getError('invalid')}}
+            </div>
+        }
+        <div class="codes-list" formArrayName="codes">
+            @for (code of codes.controls; track code; let i = $index) {
+            <div class="code-item" [formGroupName]="i">
+                <div class="code-type">
+                    <select formControlName="name" class="dot-select" [id]="'code-name-' + i" [name]="'code-name-' + i">
+                        <option value="" disabled [selected]="!code.get('name')?.value">Selecciona un tipo</option>
+                        @for (type of getAvailableCodeTypes(code); track type.id) {
+                            <option [value]="type.name">{{ type.name }}</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="code-value">
+                    
+                    <label class="dot-label input" tabindex="1" dot-input>
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                    <input type="text" formControlName="value" placeholder="Código" [id]="'code-value-' + i" [name]="'code-value-' + i" />
+                    @if(productForm.get('value')?.touched && productForm.get('value')?.invalid) {
+                        <div class="error">
+                            {{productForm.get('value')?.getError('invalid')}}
+                        </div>
+                    }
+                </label>
+                </div>
+
+                <div class="code-action">
+                    <button class="dot-btn danger" type="button" aria-label="Eliminar código"
+                        (click)="removeCode($index)">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            }
+        </div>
+
+        <div class="add-code">
+            <button (click)="addCode()" class="dot-btn" [disabled]="!areCodeTypesLoaded()">
+                <i class="fa-regular fa-plus"></i>
+                <span>
+                    @if (areCodeTypesLoaded()) {
+                        Agregar otro código
+                    } @else {
+                        Cargando tipos...
+                    }
+                </span>
+            </button>
+        </div>
+    </div>
+    </div>
+
+    <!-- Card Categorización -->
+    <div class="dot-card shadow" data-card="4">
+        <div class="card-header-info">
+            <h3>Categorización</h3>
+        </div>
+        
+        <div class="categories-section">
+           
+                <div class="categories-list">
+                    @for (category of displayedCategories(); track category.id) {
+                        <div class="category-badge" [style.--category-color]="getCategoryColor(category.name)">
+                            <i [class]="getCategoryIcon(category.name)"></i>
+                            <span>{{ category.name }}</span>
+                            <button type="button" class="remove-category-btn" 
+                                    (click)="removeCategory(category.id)"
+                                    aria-label="Remover categoría">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    }@empty {
+                        <p class="no-categories-text">No hay categorías seleccionadas</p>
+                    }
+                </div>
+                @if(productForm.get('categoryIds')?.touched && productForm.get('categoryIds')?.invalid) {
+                    <div class="error">
+                        <!-- {{productForm.get('categoryIds')?.getError('invalid')}} -->
+                        Debes seleccionar al menos una categoría.
+                    </div>
+                }
+        </div>
+
+        <button (click)="modalRef.openModal()" class="dot-btn">
+            <i class="fa-regular fa-plus"></i>
+            <span>Gestionar Categorías</span>
+        </button>
+    </div>
+</dot-section-wrapper>
+<dot-modal #previewImageModal
+    tittleText="Vista previa"
+    [noFooter]="true"
+>
+    <div class="preview-container-modal">
+        <!-- La condición ahora se basa en si tenemos una URL para mostrar -->
+        @if (previewImageObjectUrl) {
+            <!-- Usamos el 'displayedImageName' que ya creamos para el alt text -->
+            <img [src]="previewImageObjectUrl" [alt]="displayedImageName()"/>
+        } @else {
+            <!-- Este caso solo ocurriría si algo sale muy mal -->
+            <span>No hay imagen para mostrar.</span>
+        }
+    </div>
+</dot-modal>
+<dot-modal #modalRef
+    [isLateral]="true"
+    tittleText="Seleccionar categorías"
+    [noFooter]="true"
+    >
+    
+    <div class="toolbar">
+        <div class="col">
+            <dot-search [controller]="controller" [noCollapse]="true" [fullWidth]="true" placeholder="Buscar categorías..." />
+        </div>
+    </div>
+
+    <!-- Grid de categorías -->
+    @if (controller.GetData().data.length > 0) {
+        <div class="categories-grid">
+            @for (category of controller.GetData().data; track category.id) {
+                <div class="category-card" 
+                     [class.selected]="isSelectedCategory(category.id)"
+                     [style.--category-color]="getCategoryColor(category.name)"
+                     (click)="toggleSelectCategory(category)"
+                     role="button"
+                     tabindex="0">
+                    <div class="category-icon">
+                        <i [class]="getCategoryIcon(category.name)"></i>
+                    </div>
+                    <div class="category-info">
+                        <span class="category-name">{{ category.name }}</span>
+                        @if (category.description) {
+                            <span class="category-description">{{ category.description }}</span>
+                        }
+                    </div>
+                    @if (isSelectedCategory(category.id)) {
+                        <i class="fa-solid fa-circle-check selected-icon"></i>
+                    }
+                </div>
+            }
+        </div>
+    } @else {
+        <!-- Mostrar mensaje cuando no hay resultados -->
+        <div class="no-results">
+            <button class="dot-btn" (click)="createCategoryModal.openModal()">
+                <i class="fa-regular fa-plus"></i>
+                <span>Agregar categoría</span>
+            </button>
+            <p>No encontramos resultados que coincidan</p>
+            
+        </div>
+    }
+</dot-modal>
+<dot-modal #createCategoryModal
+    tittleText="Nueva categoría"
+    modalType="success"
+    okText="Crear"
+    [withCancel]="true"
+    (callback)="createCategory()"
+    (cancelCallback)="createCategoryModal.closeModal()"
+    [disabledIf]="categoryForm().invalid()"
+    (onClose)="resetCategoryForm()">
+    
+    <p class="stepper-instruction">
+        <i class="fa-solid fa-circle-info"></i>
+        Las categorías te ayudan a agrupar productos similares.
+    </p>
+
+    <form class="category-form">
+        <dot-input
+            [field]="categoryForm.name"
+            label="Nombre"
+            icon="fa-solid fa-tag"
+            placeholder="Ej: Lácteos"
+        />
+
+        <dot-input
+            [field]="categoryForm.description"
+            label="Descripción"
+            icon="fa-regular fa-pen-to-square"
+            placeholder="Descripción de la categoría"
+        />
+
+        <div class="available-section">
+            <div class="available-header">
+                <span class="available-label">Disponible</span>
+                <label class="dot-checkbox success">
+                    <input type="checkbox" [field]="categoryForm.available">
+                    <div class="dot-checkbox-box"></div>
+                </label>
+            </div>
+            <p class="available-description">
+                Esta categoría estará visible en Plantillas de producto.
+            </p>
+        </div>
+    </form>
+</dot-modal>

@@ -1,0 +1,82 @@
+<section>
+    <div class="section-header">
+        <h1>Proveedores</h1>
+        <span class="dot-badge tertiary lg">{{controller.GetData().data.length}}</span>
+
+        @if (POWER_CAN_CREATE) {
+            @if (isMobile()) {
+                <button class="dot-btn create" link="new-supplier-form">
+                    <i class="fa-regular fa-plus"></i>
+                </button>
+            } @else {
+                <button class="dot-btn flashy ml-2" link="new-supplier-form">
+                    <i class="fa-regular fa-plus"></i>
+                    <span>Crear proveedor</span>
+                </button>
+            }
+        }
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="toolbar">
+            @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                    <dot-search [controller]="controller" placeholder="Nombre, email, descr."/>
+                </div>
+            } @else {
+                <div class="col">
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, email, descr."/>
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                </div>
+            }
+        </div>
+
+        
+        <div class="dot-table">
+            <table class="table-striped">
+            <dot-table-caption [controller]="controller" />
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            <tbody>
+                @for (supplier of controller.GetData().data; track supplier.id) {
+                    <tr [class.unavailable]="!supplier.available">
+                        <td>
+                            @if (POWER_CAN_EDIT) {
+                                <ng-template #supplierIdTrigger>
+                                    <span class="supplier-id pointer">
+                                        <a class="dot-anchor">{{ supplier.rawFiscalId | clRut }}</a>
+                                    </span>
+                                </ng-template>
+
+                                <dot-dropdown [dropdownTrigger]="supplierIdTrigger" [fullWidth]="true">
+                                    
+                                    <button class="dot-btn" link="supplier-form" [params]="{id: supplier.id}">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </button>
+                                </dot-dropdown>
+                            } @else {
+                                {{ supplier.rawFiscalId | clRut }}
+                            }
+                        </td>
+
+                        <td>
+                            <div class="dot-row gap-1" [class.dot-col]="isMobile()">
+                                {{ supplier.supplierName }}
+
+                                @if (!supplier.available) {
+                                    <span class="dot-badge secondary" [class.sm]="isMobile()">No disponible</span>
+                                }
+                            </div>
+                        </td>
+
+                        <td>{{ supplier.description }}</td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>

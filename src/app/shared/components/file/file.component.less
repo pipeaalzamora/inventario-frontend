@@ -1,0 +1,15 @@
+.dot-input-file-name {
+    transition: border-color var(--animation-duration-long) ease-in-out;
+
+    &:has( > span.slide-down) {
+        border-color: var(--success);
+    }
+
+    span {
+        transition: transform var(--animation-duration-long) ease-in-out;
+
+        &.slide-down {
+            transform: translateY(-31px);
+        }
+    }
+}

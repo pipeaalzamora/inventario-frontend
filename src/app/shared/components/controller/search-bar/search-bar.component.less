@@ -1,0 +1,64 @@
+:host {
+    display: contents;
+}
+
+button.dot-label-btn {
+    opacity: 0;
+    pointer-events: none;
+
+    &:hover {
+        opacity: 0 !important;
+    }
+
+    &.show {
+        opacity: 1;
+        pointer-events: all;
+
+        &:hover {
+            opacity: 1 !important;
+        }
+    }
+}
+
+label {
+    width: 100%;
+    max-width: 300px;
+
+    &.full-width {
+        max-width: 100% !important;
+    }
+}
+
+label.dot-label.input.mobile {
+    min-width: unset;
+    max-width: 50px !important;
+
+    transition: max-width var(--animation-duration-long) ease-in-out;
+
+    input[type="text"] {
+        width: 0;
+        padding-inline: 1rem;
+        transition: width var(--animation-duration-long) ease-in-out;
+    }
+
+    .dot-label-text {
+        width: 0;
+        opacity: 0;
+        transition: opacity var(--animation-duration-default) ease-in-out,
+            width var(--animation-duration-long) ease-in-out;
+    }
+
+    &:focus-within, &.has-value {
+        max-width: 100% !important;
+
+        input[type="text"] {
+            width: 100%;
+            padding-left: 2rem;
+        }
+
+        .dot-label-text {
+            opacity: 1;
+            width: fit-content;
+        }
+    }
+}

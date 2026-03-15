@@ -1,0 +1,156 @@
+@if (isMobile()) {
+    <div (click)="switchIsOpen()" class="sidebar-backdrop" [class.show]="isSidebarOpen()"></div>
+}
+<div id="sidebar" class="sidebar-wrapper" [class.open]="isSidebarOpen()" [class.mobile]="isMobile()">
+    <div class="sidebar-content">
+        <div class="sidebar-header">
+            <a link="/">
+                <dot-logo [forSidebar]="true"/>
+            </a>
+
+            <ng-template #companyTrigger>
+                <button class="selected-company"
+                    [matTooltip]="!isSidebarOpen() ? selectedCompany()?.companyName : ''"
+                    matTooltipPosition="right"
+                >
+                    <div class="img-container">
+                            @if ( selectedCompany() && selectedCompany()?.imageLogo ) {
+                            <img [ngSrc]="selectedCompany()!.imageLogo" [alt]="'imagen empresa' + selectedCompany()!.companyName" [width]="40" [height]="40" loading="lazy">
+                        } @else {
+                            <dot-no-image></dot-no-image>
+                        } 
+                    </div>
+
+                    
+                    <div class="info-container" [class.show]="(isSidebarOpen() && !isMobile()) || isMobile()">
+                        <span class="company-name">
+                            {{ selectedCompany()?.companyName }}
+                        </span>
+                    </div>
+
+                    <div class="carets">
+                        <i class="fa-solid fa-chevron-up"></i>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </div>
+                </button>
+            </ng-template>
+
+            <dot-dropdown
+                [dropdownTrigger]="companyTrigger"
+                [fullWidth]="true"
+            >
+                <div class="available-companies">
+                    @for (company of companies(); track company.id) {
+                        <button 
+                            class="dot-btn company-button" 
+                            (click)="companyConfirmationModal.openModal(company)"
+                            [class.selected]="company.id === selectedCompany()?.id"
+                        >
+                            <img class="image-company" src="{{ company.imageLogo }}" alt="" loading="lazy">
+                            <span>{{ company.companyName }}</span>
+                        </button>
+                    }
+                </div>
+            </dot-dropdown>
+        </div>
+
+        <div class="sidebar-body">
+            <div class="routes-items" 
+                (mouseenter)="handleMouseOver($event)" 
+                (mouseleave)="handleMouseLeave($event)"
+            >
+                <!-- <div class="accordionActions" (mouseenter)="showActions()" (mouseleave)="hideActions()" [class.open]="isOpen()">
+                    <button (click)="accordion.openAll()" matTooltip="Abrir todo" tabindex="-1"> <i class="fa-solid fa-angles-down"></i> </button>
+                    <button (click)="accordion.closeAll()" matTooltip="Cerrar todo" tabindex="-1"> <i class="fa-solid fa-angles-up"></i> </button>
+                    <i class="fa-solid fa-braille"></i>
+                </div> -->
+                @if (!isMobile() && !isSidebarOpen()) {
+                    <div id="helper-mouse-over"></div>
+                }
+                <mat-accordion multi>
+                    @if (isMobile()) {
+                        @for (item of items(); track $index) {
+                            <dot-sidebar-items-mobile 
+                                [item]="item"
+                            />
+                        }
+                    } @else {
+                        @for (item of items(); track $index) {
+                            <dot-sidebar-items  
+                                [item]="item" 
+                                [isOpened]="isSidebarOpen()"
+                                (itemId)="showItem($event)"
+                                (click)="handleClick(item)"
+                            />
+                        }
+                    }
+                </mat-accordion>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+
+            <ng-template #dropdownTrigger>
+                <button class="user-menu-trigger" [class.show]="isSidebarOpen()">
+                    <div class="core-info" [class.show]="isSidebarOpen()">
+                        <img src="default/default-avatar.webp" alt="" class="dot-avatar">
+    
+                        <div class="user-info">
+                            <strong>{{ userAccount()?.userName }}</strong>
+                            <span>{{ userAccount()?.userEmail }}</span>
+                        </div>
+                    </div>
+
+                    <i class="fa-solid fa-caret-up"></i>
+                </button>
+            </ng-template>
+
+            <dot-dropdown
+                [dropdownTrigger]="dropdownTrigger"
+                [fullWidth]="true"
+            >
+                <span class="user-email">{{ userAccount()?.userEmail }}</span>
+                <hr>
+                <button class="dot-btn lg start" link="profile">
+                    <i class="fa-regular fa-user"></i>
+                    <span>Ver perfil</span>
+                </button>
+                <button class="dot-btn lg start">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Configuración</span>
+                </button>
+                <dot-toggle-theme [sidebar]="true"/>
+                <hr>
+                <button class="dot-btn lg start">
+                    <i class="fa-regular fa-life-ring"></i>
+                    <span>Soporte</span>
+                </button>
+                <hr>
+                <button class="dot-btn lg start" (click)="logout()">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span>Cerrar sesión</span>
+                </button>
+            </dot-dropdown>
+        </div>
+    </div>
+</div>
+
+@if (!isMobile()) {
+    <dot-mouse-over-items 
+        [item]="clickedItem ?? mouseOverItem!" 
+        (itemId)="showItem($event)" 
+        (clickedOut)="deleteItem()"
+        (hoverOut)="mouseOverItem = undefined"
+        (selectFirstItem)="handleClick($event)"
+    />
+}
+
+<dot-modal #companyConfirmationModal
+    okText="Continuar"
+    (callback)="changeCompany($event)"
+    (cancelCallback)="companyConfirmationModal.closeModal()"
+    [withCancel]="true"
+>
+    <p>¿Estás seguro quieres cambiar la compañia?</p>
+    <p>Se recargará la página y perderás el progreso actual</p>
+</dot-modal>

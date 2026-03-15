@@ -1,0 +1,15 @@
+<button class="dot-btn lg" [class.start]="sidebar()" (click)="switchTheme($event)">
+    @if (storage.getTheme()) {
+        <i class="fa-solid fa-moon"></i>
+    } @else {
+        <i class="fa-solid fa-sun"></i>
+    }
+
+    @if (sidebar()) {
+        @if (storage.getTheme()) {
+            <span>Tema oscuro</span>
+        } @else {
+            <span>Tema claro</span>
+        }
+    }
+</button>

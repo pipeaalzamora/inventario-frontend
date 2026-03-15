@@ -1,0 +1,14 @@
+<label 
+  class="dot-slide-toggle"
+  [class.sm]="size() === 'sm'"
+  [class.label-left]="labelPosition() === 'left'"
+>
+  <input 
+    type="checkbox" 
+    [checked]="checked()"
+    [disabled]="disabled()"
+    (change)="handleChange($event)"
+  />
+  <span class="dot-slide-track"></span>
+  <span class="dot-slide-label">{{ label() }}</span>
+</label>

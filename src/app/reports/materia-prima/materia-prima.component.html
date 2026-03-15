@@ -1,0 +1,111 @@
+<section>
+  <div class="section-header">
+    <div class="section-header-item">
+      <div class="section-header-row">
+        <h1>Informe Materia Prima</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="widgets-container">
+    <div class="dot-card shadow widget-card logra-widget">
+      <div class="widget-content">
+        <div class="widget-icon">
+          <span class="logra-indicator logra"></span>
+        </div>
+        <div class="widget-info">
+          <h3>Logra</h3>
+          <p class="widget-value">{{ lograCount() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dot-card shadow widget-card logra-medio-widget">
+      <div class="widget-content">
+        <div class="widget-icon">
+          <span class="logra-indicator logra-medio"></span>
+        </div>
+        <div class="widget-info">
+          <h3>Logra Medio</h3>
+          <p class="widget-value">{{ lograMedioCount() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dot-card shadow widget-card no-logra-widget">
+      <div class="widget-content">
+        <div class="widget-icon">
+          <span class="logra-indicator no-logra"></span>
+        </div>
+        <div class="widget-info">
+          <h3>No Logra</h3>
+          <p class="widget-value">{{ noLograCount() }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dot-card shadow">
+    <div class="toolbar">
+      <div class="col nowrap">
+        <dot-filter [controller]="reportController" [columns]="reportColumns" />
+        <dot-search [controller]="reportController" placeholder="Buscar tienda..." />
+        <ng-template #exportTrigger>
+            <button class="dot-btn secondary lg">
+            <i class="fa-solid fa-download"></i>
+            Exportar
+            </button>
+        </ng-template>
+
+        <dot-dropdown [dropdownTrigger]="exportTrigger" [fullWidth]="false">
+            <button class="dot-btn lg" (click)="exportToExcel()">
+            <i class="fa-solid fa-file-excel"></i>
+            Excel
+            </button>
+            <button class="dot-btn lg" (click)="exportToPDF()">
+            <i class="fa-solid fa-file-pdf"></i>
+            PDF
+            </button>
+        </dot-dropdown>
+      </div>
+
+      
+    </div>
+
+    <div class="dot-table">
+      <table class="table-striped">
+        <dot-table-caption [controller]="reportController" />
+        <dot-sorter-header [controller]="reportController" [headers]="reportColumns" />
+        <tbody>
+          @for (item of reportController.GetData().data; track item.storeName) {
+            <tr>
+              <td class="center">
+                <span 
+                  class="logra-indicator"
+                  [class.logra]="item.logra === 'logra'"
+                  [class.logra-medio]="item.logra === 'logra_medio'"
+                  [class.no-logra]="item.logra === 'no_logra'"
+                ></span>
+              </td>
+              <td>{{ item.storeName }}</td>
+              <td class="center">{{ item.inventarioValorizado | clpCurrency }}</td>
+              <td class="center">{{ item.ventas | clpCurrency }}</td>
+              <td class="center">{{ item.costoReal | clpCurrency }}</td>
+              <td class="center">{{ item.costoRealPorcentaje | number: '1.2-2' }}%</td>
+              <td class="center">{{ item.costoIdeal | clpCurrency }}</td>
+              <td class="center">{{ item.costoIdealPorcentaje | number: '1.2-2' }}%</td>
+              <td class="center">{{ item.diferencia | clpCurrency }}</td>
+              <td class="center">{{ item.realIdealRatio | number: '1.2-2' }}</td>
+              <td class="center">{{ item.faltanteMateriaPrima | clpCurrency }}</td>
+              <td class="center">{{ item.sobrantesMateriaPrima | clpCurrency }}</td>
+              <td class="center">{{ item.faltantesCostoIdealPorcentaje | number: '1.2-2' }}%</td>
+              <td class="center">{{ item.sobrantesCostoIdealPorcentaje | number: '1.2-2' }}%</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <dot-pagination [controller]="reportController" />
+  </div>
+</section>

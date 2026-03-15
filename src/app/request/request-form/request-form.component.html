@@ -1,0 +1,636 @@
+<ng-template #templateRef>
+    <div class="cont">
+        <dot-go-back fallback="request"/>
+        <div class="dot-col no-gap">
+            <h1 class="title">
+                @if (!isMobile() && actualRequest() || !actualRequest()){Solicitud}
+                @if (actualRequest()) {
+                    {{ actualRequest()?.displayId }}
+                }
+            </h1>
+            
+            <span class="dot-badge contrast not-bordered"
+                [class.sm]="isMobile()"
+                [class.success]="actualRequest()?.status === 'approved'"
+                [class.danger]="actualRequest()?.status === 'rejected'"
+                [class.caution]="actualRequest()?.status === 'conflicted'"
+                [class.new]="!actualRequest()"
+            >
+                @switch (actualRequest()?.status) {
+                    @case ('conflicted') {
+                        Conflictos
+                    } @case ('approved') {
+                        Aprobada
+                    } @case ('rejected') {
+                        Rechazada
+                    } @case ('cancelled') {
+                        Cancelada
+                    } @default {
+                        Nueva
+                    }
+                }
+            </span>
+        </div>
+    </div>
+    <div class="cont">
+        @if (actualRequest()) {
+            @if (actualRequest()?.status !== 'cancelled') {
+                @if (actualRequest()!.status === 'approved') {
+                    <button class="dot-btn" link="solicitud-orders" [params]="{ id: actualRequest()!.id }">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        @if (!isMobile()) {
+                            Ver ordenes de compra
+                        }
+                    </button>
+                } @else {
+                    @if (CAN_RESOLVE) {
+                        <button class="dot-btn" (click)="responseRequestModal.openModal()">
+                            <i class="fa-solid fa-gear"></i>
+                            @if (!isMobile()) {Gestionar solicitud}
+                        </button>
+                    
+                    
+                        <button class="dot-btn success" (click)="confirmationModal.openModal()" [class.wrap]="isMobile()">
+                            <i class="fa-solid fa-thumbs-up"></i>
+                            @if (userEdited()) {
+                                Enviar cambios
+                            } @else {
+                                Aprobar @if (!isMobile()) { solicitud}
+                            }
+                        </button>
+                    } @else if (!CAN_RESOLVE && actualRequest()!.status !== 'conflicted') {
+                        <button 
+                            class="dot-btn success" 
+                            (click)="confirmationModal.openModal()"
+                            [disabled]="!userEdited()"
+                        >
+                            Enviar solicitud editada
+                        </button>
+                    }
+                }
+            }
+        } @else {
+            <button 
+                class="dot-btn success" 
+                loading
+                (click)="confirmationModal.openModal()"
+                [disabled]="selectedProducts().length === 0"
+            >
+                <i class="fa-solid fa-paper-plane"></i>
+                Enviar @if (!isMobile()) { solicitud}
+            </button>
+        }
+    </div>
+</ng-template>
+
+<dot-section-wrapper 
+    [withStickyToolbar]="true" 
+    [headerRef]="templateRef"
+    columns="1fr .9fr"
+>
+
+    @if (isMobile()) {
+        <button class="dot-btn success add-product-mobile" (click)="controller.GetData().totalItems === 0 ? noProvidersMobileModal.openModal() : mobilePicker.openModal()">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    }
+    <div class="section-col">
+        <div class="dot-card shadow request-info">
+            <div class="card-header">
+                <h3>
+                    Información de la solicitud
+                </h3>
+                
+                @if (actualRequest()) {
+                    <div class="createdAt">
+                        <i class="fa-regular fa-calendar"></i>
+                        <time datetime="DD/MM/YYYY">
+                            {{ actualRequest()!.createdAt | date: 'dd/MM/yyyy' }}
+                        </time>
+                        <time datetime="HH:mm">
+                            {{ actualRequest()!.createdAt | date: 'HH:mm' }}
+                        </time>
+                    </div>
+                }
+            </div>
+
+            <div class="info-container">
+                <div class="info-item-core">
+                    <div class="core-item no-gap">
+                        <span class="core-item-label">N° de solicitud</span>
+                        <span class="core-item-value">
+                            @if (actualRequest()) {
+                                <dot-copy-clipboard-button [value]="actualRequest()?.displayId" />
+                            } @else {
+                                <i class="fa-solid fa-file-invoice"></i>
+                                Nueva solicitud
+                            }
+                        </span>
+                    </div>
+                    <div class="core-item">
+                        @if (actualRequest()) {
+                            <span class="core-item-label">Destino</span>
+                            <span class="core-item-value">
+                                <i class="fa-solid fa-warehouse"></i>
+                                {{ actualRequest()?.warehouseName }}
+                            </span>
+                        } @else {
+                            <dot-select
+                                [selected]="selectedWarehouse()"
+                                [options]="warehouses()"
+                                [searchBy]="warehouseSeachKey"
+                                (changeOption)="warehouseChange($event)"
+                                label="Destino"
+                                [compact]="true"
+                                icon="fa-solid fa-warehouse"
+                                [disabled]="!CAN_EDIT()"
+                            />
+                        }
+                    </div>
+                </div>
+                <div class="info-item-core">
+                    <div class="core-item">
+                        <span class="core-item-label">Responsable</span>
+                        <span class="core-item-value responsable">
+                            <i class="fa-solid fa-user"></i>
+                            {{ actualRequest()?.requesterName || authService.userAccount()?.userName }}
+                        </span>
+                    </div>
+                    <div class="core-item">
+                        <span class="core-item-label">Tienda</span>
+                        <span class="core-item-value">
+                            <i class="fa-solid fa-shop"></i>
+                            {{ actualRequest()?.storeName || selectedStore()?.storeName }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (actualRequest()) {
+            @if (actualRequest()!.requestHistory && actualRequest()!.requestHistory.length > 0) {
+                <div class="dot-card shadow request-history">
+                    <mat-expansion-panel
+                        [disabled]="actualRequest()!.requestHistory.length === 1" 
+                        [expanded]="true" 
+                        (opened)="isExpansibleOpen.set(true)" 
+                        (closed)="isExpansibleOpen.set(false)"
+                    >
+                        <mat-expansion-panel-header>
+                            <div class="expansion-container">
+                                <div class="dot-row gap-1">
+                                    <h3>Observaciones y comentarios</h3>
+                                    <span class="dot-badge secondary">
+                                        {{actualRequest()!.requestHistory.length}}
+                                    </span>
+                                </div>
+
+                                <label class="dot-label textarea" 
+                                    dot-input 
+                                    (click)="$event.stopPropagation()" 
+                                    [withValueConfirmation]="true"
+                                    (keydown)="$event.stopPropagation()"
+                                >
+                                    <div class="dot-label-icon">
+                                        <i class="fa-solid fa-comment"></i>
+                                    </div>
+                                    <span class="dot-label-text">Observación</span>
+                                    <textarea
+                                        placeholder="Escribe tu observación aquí para dejar un registro en la solicitud." 
+                                        (input)="setObservationValue($event)"
+                                        [disabled]="!CAN_EDIT()"
+                                    ></textarea>
+                                </label>
+                            </div>
+                        </mat-expansion-panel-header>
+
+                        <dot-status-history [statusHistory]="actualRequest()!.requestHistory" [isMobile]="isMobile()"/>
+                    </mat-expansion-panel>
+                    @if (!isExpansibleOpen()) {
+                        <dot-status-history [statusHistory]="actualRequest()!.requestHistory" [showOnlyLast]="true" [isMobile]="isMobile()"/>
+                    }
+                </div>
+            }
+        } @else {
+            <div class="dot-card shadow">
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>Observaciones y comentarios</h3>
+                        <span class="dot-badge secondary">
+                            0
+                        </span>
+                    </div>
+                </div>
+                <label class="dot-label textarea" dot-input [withValueConfirmation]="true">
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-comment"></i>
+                    </div>
+                    <span class="dot-label-text">Observación</span>
+                    <textarea
+                        placeholder="Escribe tu observación aqui para dejar un registro en la solicitud." 
+                        (input)="setObservationValue($event)"
+                        [disabled]="!CAN_EDIT()"
+                    ></textarea>
+                </label>
+            </div>
+        }
+        <div class="dot-card shadow product-summary">
+            @if (selectedProducts().length > 0) {
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <h3>Products seleccionados</h3>
+                        <div class="dot-badge secondary">{{ selectedProducts().length }}</div>
+                    </div>
+
+                    <button class="dot-btn" (click)="eraseAll()">Eliminar todos</button>
+                </div>
+            }
+
+            <dot-product-list 
+                [products]="selectedProducts()" 
+                [readonly]="!CAN_EDIT()"
+                [isMobile]="isMobile()"
+                [actualRequest]="actualRequest()"
+                (deleteProduct)="unselectProduct($event)"
+                (updatedProducts)="updateProducts($event)"
+            />
+        </div>
+    </div>
+        
+    <div class="section-col">
+        @if (actualRequest() && actualRequest()!.conflicts && actualRequest()!.conflicts.length > 0) {
+            <div class="dot-card shadow request-conflicts">
+                <span style="display: flex; gap: 1rem; align-items: center;">
+                    <div class="header-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h3>Conflictos de solicitud</h3>
+                    <span class="dot-badge caution contrast">
+                        {{ actualRequest()!.conflicts.length }}
+                    </span>
+                </span>
+                <table class="conflict-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                Producto
+                            </th>
+                            <th>
+                                Cantidades
+                            </th>
+                            <th>
+                                Exceso
+                            </th>
+                            <th>
+                                Recomendado
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (conflict of actualRequest()!.conflicts; track conflict.itemId) {
+                            @let product = getProductFromId(conflict.itemId);
+                            
+                            @if (product) {
+                                <tr [class.solvented]="isConflictSolved(conflict)">
+                                    <td>    
+                                        {{ product.productName }}
+                                    </td>
+                                    <td>
+                                        <div class="conflict-quantity-container">
+                                            <span class="conflict-badge request">
+                                                {{ conflict.detail.currQuantity }} solicitado
+                                            </span>
+                                            <span>vs</span>
+                                            <span class="conflict-badge max">
+                                                {{ conflict.detail.maxQuantity }} máximo
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        +{{ conflict.detail.currQuantity - conflict.detail.maxQuantity }} unidades
+                                    </td>
+                                    <td>
+                                        <button class="dot-btn secondary" (click)="setMaxQuantity(conflict.itemId)">Corregir al máx.</button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        @if (!isMobile()) {
+            <div class="dot-card shadow product-list">
+                @if (controller.GetData().totalItems === 0) {
+                    <div *ngTemplateOutlet="noProducts"></div>
+                } @else {
+                    <div class="card-header">
+                        <div class="cont">
+                            <h3>Productos</h3>
+                            <span class="dot-badge secondary">
+                                {{ controller.GetData().totalItems }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div *ngTemplateOutlet="productListHeader"></div>
+                    <div *ngTemplateOutlet="productList"></div>
+                }
+            </div>
+        }
+    </div>
+</dot-section-wrapper>
+<!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE -->
+<!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE -->
+<!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE --><!-- LOS MODALES HACEN AL HOMBRE -->
+<ng-template #productAdvice>
+    <span class="product-advice-container">
+        <i class="fa-solid fa-info"></i>
+
+        <div class="dot-col no-gap">
+            <div class="title">¿No encuentras el producto que buscas?</div>
+            <div class="advice">Contacta a la persona responsable para que agregue proveedores al producto de esta tienda.</div>
+        </div>
+    </span>
+</ng-template>
+
+<ng-template #noProducts>
+    <div class="empty-container">
+        <i class="fa-solid fa-box-open"></i>
+        <div class="dot-col gap-05 align-center">
+            <span class="empty-title">Esta tienda no tiene proveedores asignados</span>
+            <p>Los productos de la tienda <strong>{{selectedStore()?.storeName}}</strong> en <strong>{{selectedCompany()?.companyName}}</strong> no tienen proveedores asociados.</p>
+            <p>Para continuar, debes asignar proveedores a sus productos.</p>
+        </div>
+        <button class="dot-btn success" link="store">
+            <i class="fa-regular fa-plus"></i>
+            Asignar proveedores
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #productListHeader>
+    @if (isMobile()) {
+        <div *ngTemplateOutlet="productAdvice"></div>
+    }
+    <div class="toolbar">
+        @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" [noBadges]="true"/>
+                    <dot-search align="flex-start" [controller]="controller" placeholder="Nombre, id, descripción"/>
+                </div>
+            } @else {
+                <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, id, descripción" [fullWidth]="true"/>
+            }
+    </div>
+
+    @if (isMobile()) {
+        <dot-table-caption [controller]="controller" [noTable]="true" [center]="true"/>
+    }
+</ng-template>
+
+<ng-template #productList>
+    <div class="dot-table">
+        <table class="select-products-table">
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            @if (!isMobile()) {
+                <dot-table-caption [controller]="controller" />
+            }
+            <tbody>
+                @for (product of controller.GetData().data; track product.id) {
+                    <tr (click)="selectProduct(product)" [class.selected]="isSelected(product)">
+                        <td align="center">
+                            <div class="img-container" loading>
+                                @if (product.image) {
+                                    <img 
+                                        ngSrc="{{ product.image }}" 
+                                        alt=""
+                                        [width]="40"
+                                        [height]="40"
+                                        loading="lazy"
+                                    >
+                                } @else {
+                                    <dot-no-image [contrast]="isSelected(product)"/>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <span>
+                                {{ product.productName }}
+                            </span>
+                        </td>
+                        <td class="center">
+                            <span class="product-limit" [class.limitless]="!product.quantities.maxQuantity">
+                                {{ product.quantities.maxQuantity }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="dot-badge unit-measure all-width">
+                                {{ product.unitInventory.abbreviation | unitMeasures }}
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (!isMobile()) {
+        <dot-pagination [controller]="controller" />
+    }
+</ng-template>
+
+<ng-template #paginationMobile>
+    <dot-pagination [controller]="controller" />
+</ng-template>
+
+<dot-modal #mobilePicker
+    tittleText="Productos"
+    [headerRef]="productListHeader"
+    [footerRef]="paginationMobile"
+    [longModal]="true"
+>
+    <div class="dot-card product-list mobile">
+        <div *ngTemplateOutlet="productList"></div>
+    </div>
+</dot-modal>
+
+<dot-modal 
+    #confirmationModal
+    tittleText="{{ actualRequest() && CAN_RESOLVE && !userEdited() ? 'Aprobar' : 'Enviar'}} solicitud"
+    [noFooter]="true"
+>
+    @if (selectedProductsMaxQuantity().length > 0) {
+        @if (actualRequest()) {
+            <p>Los siguientes productos aun tienen <strong>conflictos</strong>:</p>    
+        } @else {
+            <p>Los siguientes productos requieren una <strong>aprobación</strong> para ser aceptados:</p>
+        }
+
+        <table class="product-max-quantity">
+            <thead>
+                <tr>
+                    <th>
+                        Nombre producto
+                    </th>
+                    <th>
+                        Cantidad <strong>seleccionada</strong>
+                    </th>
+                    <th>
+                        Cantidad <strong>máxima</strong>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(product of selectedProductsMaxQuantity(); track product.id) {
+                    <tr>
+                        <td>
+                            {{ product.productName }}
+                        </td>
+                        <td>
+                            {{ product.quantity }}
+                        </td>
+                        <td>
+                            {{ product.quantities?.maxQuantity }}
+                        </td>
+                    </tr>            
+                }
+            </tbody>
+        </table>
+    } @else {
+        <p>¿Estas seguro de enviar la solicitud?</p>
+    }
+
+    <div class="actions">
+        <button class="dot-btn lg"
+            [class.success]="(!userEdited() && actualRequest()) || (!actualRequest() && selectedProductsMaxQuantity().length === 0)" 
+            (click)="sendRequest()"
+        >
+            <i class="fa-solid fa-paper-plane"></i>
+            @if (!actualRequest()) {
+                @if (selectedProductsMaxQuantity().length === 0) {
+                    Enviar
+                } @else {
+                    Enviar igualmente
+                }
+            }
+            @if (userEdited() && selectedProductsMaxQuantity().length === 0) {
+                Enviar cambios
+            } @else if (userEdited() && selectedProductsMaxQuantity().length > 0) {
+                Enviar cambios igualmente
+            } @else {
+                @if (actualRequest() && CAN_RESOLVE && selectedProductsMaxQuantity().length === 0) {
+                    Aprobar
+                } @else if ( actualRequest() && CAN_RESOLVE && selectedProductsMaxQuantity().length > 0) {
+                    Aprobar igualmente
+                }
+            }
+        </button>
+
+        @if (
+            (CAN_RESOLVE && userEdited() && selectedProductsMaxQuantity().length > 0) ||
+            (CAN_RESOLVE && !actualRequest() && selectedProductsMaxQuantity().length > 0)
+        ) {
+            <hr>
+            <span class="info-powers mb-1">
+                <i class="fa-solid fa-shield"></i>
+                Tienes permisos para aprobar y enviar esta solicitud
+            </span>
+            <button class="dot-btn lg success" (click)="sendRequestAndApprove()">
+                <i class="fa-solid fa-thumbs-up"></i>
+                Enviar y aprobar
+            </button>
+        } @else if (
+            CAN_RESOLVE && userEdited() && selectedProductsMaxQuantity().length === 0
+        ) {
+            <hr>
+            <span class="info-powers mb-1">
+                <i class="fa-solid fa-shield"></i>
+                Tienes permisos para aprobar y enviar esta solicitud
+            </span>
+            <button class="dot-btn lg success" (click)="sendRequestAndApprove()">
+                <i class="fa-solid fa-thumbs-up"></i>
+                Enviar y aprobar
+            </button>
+        }
+    </div>
+</dot-modal>
+
+<dot-modal #responseRequestModal
+    tittleText="Gestionar solicitud"
+    (callback)="responseRequestModal.closeModal()"
+    [noFooter]="true"
+>
+    <div class="reject-container">
+        <div class="reject-container-header">
+            <div class="info-container-check">
+                <span class="info-row">
+                    <span class="info-label">Responsable:</span>
+                    <span class="info-value"> {{ actualRequest()?.requesterName }} </span>
+                </span>
+                <span class="info-row">
+                    <span class="info-label">Tipo de solicitud:</span>
+                    <span class="info-value"> {{ actualRequest()?.requestType }} </span>
+                </span>
+                <span class="info-row">
+                    <span class="info-label">Destino:</span>
+                    <span class="info-value"> {{ selectedWarehouse()?.warehouseName }} </span>
+                </span>
+                <span class="info-row">
+                    <span class="info-label">Estado actual:</span>
+                    <span class="info-value"> 
+                        <span class="dot-badge" 
+                            [class.caution]="actualRequest()?.status === 'conflicted'"
+                            [class.danger]="actualRequest()?.status === 'rejected'"
+                            [class.success]="actualRequest()?.status === 'approved'"
+                        >
+                            @switch (actualRequest()?.status) {
+                                @case ('conflicted') {
+                                    Pendiente de revisión
+                                } @case ('approved') {
+                                    Aprobada
+                                } @case ('rejected') {
+                                    Rechazada
+                                } @case ('cancelled') {
+                                    Cancelada
+                                } @default {
+                                    Pendiente
+                                }
+                            }
+                        </span>
+                    </span>
+                </span>
+            </div>
+            <span class="info-powers">
+                <i class="fa-solid fa-shield"></i>
+                Tienes permisos para gestionar esta solicitud
+            </span>
+        </div>
+    
+        <div class="actions-checker">
+            @if (actualRequest()?.status !== 'rejected') {
+                <button class="dot-btn caution lg" (click)="handleRequestStatus('rejected')">
+                    <i class="fa-solid fa-xmark"></i>
+                    Rechazar Solicitud
+                </button>
+            }
+    
+            <hr>
+            
+            @if (actualRequest()?.status !== 'cancelled') {
+                <button class="dot-btn danger lg" (click)="handleRequestStatus('cancelled')">
+                    <i class="fa-regular fa-trash-can"></i>
+                    Eliminar Solicitud
+                </button>
+            }
+        </div>
+    </div>
+</dot-modal>
+
+<dot-modal
+    #noProvidersMobileModal
+    tittleText="Sin proveedores"
+    [noFooter]="true"
+    [longModal]="true"
+>
+    <div *ngTemplateOutlet="noProducts"></div>
+</dot-modal>

@@ -1,0 +1,195 @@
+<section>
+    <ng-template #templateRef>
+        <div class="cont">
+            <dot-go-back fallback="profiles" />
+            <h1 class="title">
+                @if (actualProfile()) {
+                    @if (!isMobile()) {
+                        Perfil 
+                    }
+
+                    {{ actualProfile()?.profileName }}
+                } @else {
+                    Crear perfil
+                }
+            </h1>
+        </div>
+        <div class="cont">
+            <button class="dot-btn success" (click)="saveProfile()" [disabled]="profileForm.invalid" loading>
+                <i class="fa-regular fa-floppy-disk"></i>
+                @if (!isMobile()) {
+                    Guardar perfil
+                }
+            </button>
+        </div>
+    </ng-template>
+
+    <dot-on-scroll-toolbar [templateRef]="templateRef"/>
+
+    <div class="section-header">
+        <div *ngTemplateOutlet="templateRef"></div>
+    </div>
+
+    <div class="section-content">
+        <div class="section-col">
+            <div class="dot-card shadow">
+                <div class="card-header">
+                    <h3>Información</h3>
+
+                    @if (actualProfile()) {
+                        <ng-template #dropdownTrigger>
+                            <button class="dot-btn">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                        </ng-template>
+
+                        <dot-dropdown [dropdownTrigger]="dropdownTrigger" position="left">
+                            <button class="dot-btn" (click)="deleteModal.openModal()">
+                                <i class="fa-solid fa-trash"></i>
+                                <span>Eliminar</span>
+                            </button>
+                        </dot-dropdown>
+                    }
+                </div>
+
+                <form [formGroup]="profileForm">
+                    <div class="form-row">
+                        <label class="dot-label input" tabindex="1" dot-input>
+                            <div class="dot-label-icon">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <span class="dot-label-text">Nombre</span>
+                            <input formControlName="profileName" type="text" placeholder="Perfil">
+
+                            @if (profileForm.get('profileName')?.hasError('required') && profileForm.get('profileName')?.touched) {
+                                <span class="error">El nombre es requerido</span>
+                            } @else if (profileForm.get('profileName')?.hasError('invalid') && profileForm.get('profileName')?.touched) {
+                                <span class="error">{{ profileForm.get('profileName')?.getError('invalid') }}</span>
+                            }
+                        </label>
+
+                        <label class="dot-label input" tabindex="1" dot-input>
+                            <div class="dot-label-icon">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <span class="dot-label-text">Descripción</span>
+                            <input formControlName="description" type="text">
+
+                            @if (profileForm.get('description')?.hasError('required') && profileForm.get('description')?.touched) {
+                                <span class="error">La descripción es requerida</span>
+                            } @else if (profileForm.get('description')?.hasError('invalid') && profileForm.get('description')?.touched) {
+                                <span class="error">{{ profileForm.get('description')?.getError('invalid') }}</span>
+                            }
+                        </label>
+                    </div>
+                </form>
+            </div>
+        
+            <div class="dot-card shadow">
+                <div class="card-header-info">
+                    <div class="cont">
+                        <h3>Permisos</h3>
+                        <span class="dot-badge secondary">
+                            {{totalPowers()}}
+                        </span>
+                    </div>
+                    <p class="subtitle">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Selecciona los permisos que deseas asignar al perfil. Puedes buscar catálogos y permisos específicos.
+                    </p>
+                </div>
+
+                <div class="toolbar-powers">
+                    <dot-search 
+                        [controller]="controller" 
+                        placeholder="Nombre catalogo o permiso, descripción" 
+                        loading
+                        [noCollapse]="true"
+                        [fullWidth]="true"
+                    />
+
+                    <mat-accordion>
+                    @for (cat of controller.GetData().data; track cat.id) {
+                        <mat-expansion-panel loading>
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <div class="title-cat">
+                                        {{ cat.categoryName }}
+                                    </div>
+                                </mat-panel-title>
+                                <mat-panel-description>
+                                    @if (cat.ownable) {
+                                        <span class="dot-badge not-bordered brand contrast">Propio</span>
+                                    }
+                                    <span class="dot-badge">
+                                        {{ cat.powers.length }}
+                                    </span>
+                                </mat-panel-description>
+                            </mat-expansion-panel-header>
+
+                            <div class="powers-list">
+                                @for (power of cat.powers; track power.id) {
+                                    <div class="power-item" (click)="$event.stopPropagation(); $event.preventDefault(); selectPower(power, checkbox)">
+                                        <label class="dot-checkbox">
+                                            <input type="checkbox" [value]="power.id" [checked]="selectedPowersIds().includes(power.id)" #checkbox>
+                                            <div class="dot-checkbox-box"></div>
+                                        </label>
+
+                                        <h4>{{ power.displayName }}</h4>
+                                        <p class="description">{{ power.description }}</p>
+                                    </div>
+                                }
+                            </div>
+                        </mat-expansion-panel>
+                    }
+                    </mat-accordion>
+                </div>              
+            </div>
+        </div>
+
+        <div class="dot-card shadow powers-summary">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>Permisos seleccionados</h3>
+                    <span class="dot-badge secondary">{{selectedPowers().length}}</span>
+                </div>
+            </div>
+
+            <div class="selected-powers" [class.empty]="selectedPowers().length === 0">
+                @for (power of selectedPowers(); track power.id) {
+                    <div class="selected-power-item" loading>
+                        <span class="selected-power-name">{{ power.displayName }}</span>
+
+                        <div class="selected-power-actions">
+                            @if (ownablePower(power.id)) {
+                                <span class="dot-badge not-bordered brand contrast">Propio</span>
+                            }
+
+                            <button class="dot-btn sm" (click)="unselectPower(power)">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                } @empty {
+                    <div class="empty-selected-powers">
+                        <i class="fa-regular fa-circle-check"></i>
+                        <span>Selecciona permisos para ver el resumen</span>
+                    </div>
+                }
+
+            </div>
+
+            <!-- <div class="actions">
+                
+            </div> -->
+        </div>
+    </div>
+</section>
+
+<dot-modal
+    okText="Eliminar"
+    (callback)="deleteProfile()"
+    #deleteModal
+>
+    Estás seguro que deseas eliminar el perfil {{ actualProfile()?.profileName }}?
+</dot-modal>

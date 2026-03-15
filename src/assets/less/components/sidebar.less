@@ -1,0 +1,443 @@
+//////////////////////
+/// SIDENAV PARENT ///
+//////////////////////
+
+// mat-sidenav-container {
+//     mat-sidenav {
+//         background-color: var(--background-3);
+//         border-right: 1px solid var(--border-light);
+//         padding: 0 .8rem;
+//         width: auto;
+//         width: var(--sidenav-width-closed);
+//         max-width: var(--sidenav-width-closed);
+//         transition: width var(--animation-duration-long) ease-out, max-width var(--animation-duration-long) ease-out;
+
+//         &.open {
+//             width: var(--sidenav-width-open);
+//             max-width: var(--sidenav-width-open);
+    
+//             .items {
+//                 margin: 6rem 1.3rem 0 2rem;
+//             }
+//         }
+
+//         &.mobile {
+//             background-color: var(--background-3);
+
+//             transition: transform var(--animation-duration-default) ease-in-out;
+//         }
+    
+//         .sidenav-toggler {
+//             width: 35px;
+//             height: auto;
+//             aspect-ratio: 1/1;
+//             transform: translateX(72px) translateY(40px);
+//             background-color: var(--brand);
+//             color: light-dark(white, black);
+//             border-radius: 50%;
+//             transition: transform 400ms ease-out;
+    
+//             &.open {
+//                 transform: translateX(calc(var(--sidenav-width-open) - 1.2rem)) translateY(40px) rotate(180deg);
+//             }
+//         }
+        
+//         .sidenav-items {
+//             transition: margin 300ms ease-in-out;
+//             margin-top: 8rem;
+    
+//             .accordionActions {
+//                 bottom: 2rem;
+//                 transform: translateX(-150px);
+//                 background-color: var(--background-2);
+//                 color: var(--default-dark);
+//                 border: 1px solid var(--color-slate-300);
+                
+//                 transition: transform var(--animation-duration-default) ease-in-out, background-color var(--animation-duration-default) ease-in-out, opacity var(--animation-duration-default) ease-in-out;
+
+//                 button {
+//                     padding-inline: 1rem;
+//                     height: 2rem;
+//                     color: var(--default-dark);
+//                     background-color: var(--background-2);
+//                     border-radius: 0;
+                    
+//                     transition: background-color var(--animation-duration-default) ease-in-out;
+
+//                     &:first-child {
+//                         border: 1px solid var(--border-light);
+//                     }
+    
+//                     &:nth-child(2) {
+//                         border-top: 1px solid var(--border-light);
+//                         border-right: 1px solid var(--border-light);
+//                         border-bottom: 1px solid var(--border-light);
+//                     }
+    
+//                     i {
+//                         font-size: .8rem;
+//                     }
+//                 }
+    
+//                 i{
+//                     font-size: .8rem;
+//                     padding: 0;
+//                     padding-inline: .5rem;
+//                 }
+    
+                
+//                 &.open {
+//                     transform: translateX(-100px);
+                    
+//                     &.active {
+//                         transform: translateX(0);
+        
+//                         background-color: var(--background-light);
+        
+//                         button {
+//                             background-color: var(--background-light);
+//                         }
+//                     }
+//                 }
+//             }
+    
+//             mat-accordion {
+//                 gap: .5rem;
+//             }
+//         }  
+//     }
+
+//     #main-app-content {
+//         background-color: var(--background-2) !important;  //<-- important necesarios debido a componente angular material
+//         margin-left: var(--sidenav-width-closed) !important; //<-- si se quitan se rompe el funcionamiento de la abertura y cierre
+//         padding: 2rem;
+        
+//         transition: margin var(--animation-duration-long) ease-out, 
+//             max-width var(--animation-duration-long) ease-out, 
+//             width var(--animation-duration-long) ease-out
+//         ;
+
+//         width: 100%;
+
+//         &.open {
+//             margin-left: var(--sidenav-width-open) !important;
+//             max-width: calc(100vw - var(--sidenav-width-open));
+//             width: calc(100vw - var(--sidenav-width-open));
+//         }
+//     }
+// }
+
+//////////////////////
+//// SIDENAV ITEM ////
+//////////////////////
+
+.sidenav-item {
+    position: relative;
+
+    &.close {
+        cursor: pointer;
+    }
+
+    .sidenav-expansion-panel {
+        background-color: transparent !important;
+        transition: background-color var(--animation-duration-short), margin var(--animation-duration-default) ease-in-out;
+
+        &.active {
+            border-radius: 0 8px 8px 0 !important;
+            
+            &::after {
+                position: absolute;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                border-radius: 0 12px 12px 0;
+                width: 4px;
+                height: 95%;
+                content: '';
+                background-color: var(--brand);
+            }
+
+            mat-expansion-panel-header {
+                mat-panel-title {
+                    .sidenav-matText, i {
+                        color: var(--brand) !important;
+                        font-weight: 600;
+                    }
+                }
+
+                ::ng-deep .mat-expansion-indicator {
+                    svg {
+                        fill: var(--brand) !important;
+                        color: var(--brand) !important;
+                    }
+                }
+            }
+        }
+
+        mat-expansion-panel-header {
+            padding: 0 2rem;
+            height: 3rem;
+            
+            transition: padding var(--animation-duration-long) ease-in-out, background-color var(--animation-duration-short) ease-in-out;
+
+            &:hover {
+                background-color: color-mix(in oklch, var(--background-3) 90%, light-dark(black, white) 10%);
+            }
+            
+            mat-panel-title {
+                gap: 2rem;
+                
+                .sidenav-matText, i{
+                    transition: opacity var(--animation-duration-short) ease-in-out;
+                    color: var(--text) !important;
+                }
+
+                i {
+                    font-size: 1.3rem;
+
+                    transition: left var(--animation-duration-short) ease-in-out var(--animation-duration-short);
+
+                    &.only-icon {
+                        animation: opacityPop 500ms ease-in-out;
+                    }
+                }
+
+                @keyframes opacityPop {
+                    from {
+                        opacity: 0;
+                    }
+
+                    to {
+                        opacity: 1;
+                    }
+                }
+            }
+
+            ::ng-deep .mat-expansion-indicator {
+                svg {
+                    height: 1.8rem;
+                    width: auto;
+                }
+            }
+        }
+
+        ul {
+            gap: 6px;
+            padding: 0;
+
+            mat-expansion-panel {
+                border-radius: 8px;
+
+                mat-expansion-panel-header {
+                    
+                    mat-panel-title {
+                        gap: .5rem;
+                    }
+                }
+            }
+
+            .subItemLink {
+                color: var(--text) !important;
+            
+                li {
+                    background-color: light-dark(var(--default-light, var(--default-dark)));
+                    transition: background-color var(--animation-duration-short);
+                    padding: 0 1rem;
+                    border-radius: 8px;
+                    gap: .5rem;
+
+                    &:hover {
+                        background-color: color-mix(in oklch, var(--background-3) 90%, light-dark(black, white) 10%);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/////////////////////////////
+//// SIDENAV ITEM MOBILE ////
+/////////////////////////////
+
+.sidenav-item-mobile {
+    mat-expansion-panel {
+        background-color: transparent !important;
+        border-radius: 8px !important;
+        box-shadow: none;
+    
+        &.active {
+            border-radius: 0 8px 8px 0 !important;
+
+            mat-expansion-panel-header mat-panel-title {
+                .matText, i{
+                   color: var(--brand) !important;
+                }
+            }
+            
+
+            &::after {
+                position: absolute;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                border-radius: 0 12px 12px 0;
+                width: 4px;
+                height: 95%;
+                content: '';
+                background-color: var(--brand);
+            }
+
+            .subItemLink {
+                li {
+                    background-color: transparent;
+                }
+            }        }
+    
+        mat-expansion-panel-header {
+            height: 3rem;
+            padding: 0 2rem;
+            
+            transition: padding var(--animation-duration-default) ease-in-out;
+            
+            mat-panel-title {
+                gap: 12px;
+                
+                .matText, i{
+                    color: var(--text) !important;
+                }
+            }
+
+            ::ng-deep .mat-expansion-indicator {
+                svg {
+                    height: 2rem;
+                    width: auto;
+                }
+            }
+        }
+    
+        ul {
+            gap: 1rem;
+            
+            li {
+                padding: 1rem;
+                border-radius: 8px;
+
+                transition: background-color var(--animation-duration-short) ease-in-out, 
+                    color var(--animation-duration-short) ease-in-out, 
+                    opacity var(--animation-duration-short) ease-in-out
+                ;
+            }
+        }
+    }
+
+}
+
+/////////////////////////////
+//// SIDENAV FIRST LAYER ////
+/////////////////////////////
+
+.sidenav-first-layer {
+    .sidenav-menuList-first-layer {
+        padding: 4rem 2rem;
+        gap: 2rem;
+        background-color: var(--background-3);
+        width: 20rem;
+        margin: .5rem 0 .5rem 1.1rem;
+        border: 1px solid var(--border-very-light);
+        border-radius: var(--default-rounded);
+        transition: opacity var(--animation-duration-long) ease-in-out, transform var(--animation-duration-long) ease-in-out;
+        -webkit-box-shadow: 20px 7px 14px 0px light-dark(rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.432));
+        -moz-box-shadow: 20px 7px 14px 0px light-dark(rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.432));
+        box-shadow: 20px 7px 14px 0px light-dark(rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.432));
+
+        header {
+
+            div {
+
+                a {
+                    color: var(--text);
+                    gap: .5rem;
+                    padding: 1rem;
+                    border-radius: 8px;
+
+                    transition: background-color var(--animation-duration-short) ease-in-out;
+
+                    &:hover {
+                        background-color: color-mix(in oklch, var(--background-3) 90%, light-dark(black, white) 10%);
+                    }
+                }
+            }
+        }
+
+        main {
+
+            ul {
+                gap: 1rem;
+
+                .subItemLink, .subItem {
+                    transition: background-color var(--animation-duration-short) ease-in-out;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    color: var(--text);
+
+                    &:hover {
+                        background-color: color-mix(in oklch, var(--background-3) 90%, light-dark(black, white) 10%);
+                    }
+                }
+            }
+        }
+    }
+}
+
+//////////////////////////////
+//// SIDENAV SECOND LAYER ////
+//////////////////////////////
+
+.sidenav-second-layer {
+    .sidenav-menuList-second-layer {
+        padding-left: 4rem 2rem;
+        gap: 2rem;
+        width: 20rem;
+        margin-bottom: .5rem;
+        border: 1px solid var(--border-very-light);
+        border-radius: var(--default-rounded);
+        transition: opacity var(--animation-duration-long), transform var(--animation-duration-long) ease-in-out;
+        -webkit-box-shadow: 10px 7px 14px 0px light-dark(rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.432));
+        -moz-box-shadow: 10px 7px 14px 0px light-dark(rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.432));
+        box-shadow: 10px 7px 14px 0px light-dark(rgba(0, 0, 0, 0.1),rgba(0, 0, 0, 0.432));
+
+        header {
+            div {
+                a {
+                    color: var(--text);
+                    gap: .5rem;
+                    padding: 1rem;
+                    border-radius: 8px;
+
+                    transition: background-color var(--animation-duration-short) ease-in-out;
+
+                    &:hover {
+                        background-color: color-mix(in oklch, var(--background-3) 90%, light-dark(black, white) 10%);
+                    }
+                }
+            }
+        }
+
+        main {
+            ul {
+                gap: 1rem;
+
+                .subItemLink {
+                    transition: background-color var(--animation-duration-short) ease-in-out;
+                    border-radius: 8px;
+                    padding: 1rem;
+                    color: var(--text);
+
+                    &:hover {
+                        background-color: color-mix(in oklch, var(--background-3) 90%, light-dark(black, white) 10%);
+                    }
+                }
+            }
+        }
+    }
+}

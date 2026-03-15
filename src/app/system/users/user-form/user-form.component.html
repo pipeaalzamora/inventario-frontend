@@ -1,0 +1,227 @@
+
+<ng-template #templateRef>
+    <div class="cont">
+        <dot-go-back fallback="users" />
+        <div class="dot-col no-gap">
+            <h1 class="title">
+                @if (actualUser()) {
+                    @if (!isMobile()) {
+                        Usuario
+                    }
+                    {{ actualUser()?.userName }}
+                } @else {
+                    Crear usuario
+                }
+            </h1>
+            @if (actualUser() && !actualUser()?.available && !isMobile()) {
+                <span class="dot-badge secondary not-bordered">
+                    No disponible
+                </span>
+            }
+    
+            @if (actualUser() && actualUser()?.isNewAccount && !isMobile()) {
+                <span class="dot-badge new not-bordered">Nuevo</span>
+            }
+        </div>
+    </div>
+
+    <div class="cont">
+        <button class="dot-btn success" 
+            (click)="saveUser()"
+            [disabled]="userForm.invalid"
+        >
+            <i class="fa-regular fa-floppy-disk"></i>
+            @if (!isMobile()) {
+                Guardar
+            }
+        </button>
+    </div>
+</ng-template>
+
+<dot-section-wrapper
+    [headerRef]="templateRef"
+    [withStickyToolbar]="true"
+>
+    <div class="section-col sticky">
+        <div class="dot-card shadow">
+            <div class="card-header-info">
+                <h3>Información personal</h3>
+
+                @if (actualUser() && POWER_CAN_ACTIVATE) {
+                    <ng-template #dropdownTrigger>
+                        <button class="dot-btn">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                        </button>
+                    </ng-template>
+
+                    <dot-dropdown [dropdownTrigger]="dropdownTrigger" position="left">
+                        @if (actualUser()?.available) {
+                            <button class="dot-btn" (click)="deactivateModal.openModal()">
+                                <i class="fa-solid fa-user-slash"></i>
+                                <span>Desactivar</span>
+                            </button>
+                        } @else {
+                            <button class="dot-btn" (click)="activateUser()">
+                                <i class="fa-solid fa-user-check"></i>
+                                <span>Activar</span>
+                            </button>
+                        }
+                    </dot-dropdown>
+                }
+            </div>
+
+            <form [formGroup]="userForm">
+                <div class="form-row">
+                    <label class="dot-label input" tabindex="1" dot-input loading>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <span class="dot-label-text">Nombre</span>
+                        <input formControlName="userName" type="text" placeholder="Usuario">
+
+                        @if (userForm.get('userName')?.hasError('required') && userForm.get('userName')?.touched) {
+                            <span class="error">El nombre es requerido</span>
+                        } @else if (userForm.get('userName')?.hasError('invalid') && userForm.get('userName')?.touched) {
+                            <span class="error">{{ userForm.get('userName')?.getError('invalid')}}</span>
+                        }
+                    </label>
+
+                    <label class="dot-label input" tabindex="1" dot-input loading>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <span class="dot-label-text">Email</span>
+                        <input formControlName="userEmail" type="email" placeholder="usuario@dotsolutions.cl">
+
+                        @if (userForm.get('userEmail')?.hasError('required') && userForm.get('userEmail')?.touched) {
+                            <span class="error">El email es requerido</span>
+                        } @else if (userForm.get('userEmail')?.hasError('email') && userForm.get('userEmail')?.touched) {
+                            <span class="error">El email es inválido</span>
+                        } @else if (userForm.get('userEmail')?.hasError('invalid') && userForm.get('userEmail')?.touched) {
+                            <span class="error">{{ userForm.get('userEmail')?.getError('invalid')}}</span>
+                        }
+                    </label>
+                </div>
+
+                <div class="form-row">
+                    <label class="dot-label input" tabindex="1" dot-input>
+                        <div class="dot-label-icon">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </div>
+                        <span class="dot-label-text">Descripción</span>
+                        <input formControlName="description" type="text" placeholder="Descripción">
+
+                        @if (userForm.get('description')?.hasError('invalid') && userForm.get('description')?.touched) {
+                            <span class="error">{{ userForm.get('description')?.getError('invalid')}}</span>
+                        } 
+                    </label>
+                </div>
+            </form>
+
+        </div>
+
+        <div class="dot-card shadow">
+            @if (selectedProfiles().length === 0) {
+                <div class="svg-container">
+                    <svg class="empty-powers-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><g stroke-linecap="round" stroke-width="1.5"><path d="M15 12h-3m0 0H9m3 0V9m0 3v3M3 10.417c0-3.198 0-4.797.378-5.335.377-.537 1.88-1.052 4.887-2.081l.573-.196C10.405 2.268 11.188 2 12 2c.811 0 1.595.268 3.162.805l.573.196c3.007 1.029 4.51 1.544 4.887 2.081C21 5.62 21 7.22 21 10.417v1.574c0 2.505-.837 4.437-2 5.913M3.193 14c.857 4.298 4.383 6.513 6.706 7.527.721.315 1.082.473 2.101.473 1.02 0 1.38-.158 2.101-.473.579-.252 1.231-.58 1.899-.994"/></g></svg>
+                    <span class="empty-powers-text">No hay perfiles seleccionados</span>
+                </div>
+            } @else {
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>Perfiles seleccionados</h3>
+                        <span class="dot-badge secondary">
+                            {{ selectedProfiles().length }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="profiles-selected">
+                    <div class="badges-container">
+                        @for (profile of selectedProfiles(); track profile.id) {
+                            <div class="selected-profile-item">
+                                <span>{{profile.profileName}}</span>
+                                <button class="remove-selected" (click)="removeSelectedProfile(profile)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                    <span class="powers-counter">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>{{ selectedPowers() }} permisos seleccionados</span>
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="card-header">
+            <h3>Perfiles</h3>
+            <p class="subtitle">
+                <i class="fa-solid fa-circle-info"></i>
+                Selecciona los perfiles que deseas asignar. Cada perfil incluye un conjunto específico de permisos.
+            </p>
+        </div>
+
+        <div class="toolbar-profiles">
+            <dot-search 
+                [controller]="controller" 
+                placeholder="Nombre, descripción"
+                [noCollapse]="true"
+                [fullWidth]="true"
+            />
+        </div>
+
+        <div class="profiles-container">
+            @for (profile of controller.GetData().data; track profile.id) {
+                <div class="profile-item" 
+                    (click)="$event.stopPropagation(); $event.preventDefault(); toggleSelected(checkbox, profile)"
+                    #profile
+                >
+                    <label class="dot-checkbox">
+                        <input type="checkbox" [value]="profile.id" [checked]="selectedProfilesIds().includes(profile.id)" #checkbox>
+                        <div class="dot-checkbox-box"></div>
+                    </label>
+
+                    <h4>{{ profile.profileName }}</h4>
+
+                    <p class="power-description">{{ profile.description }}</p>
+
+                    <div class="powers-container">
+                        @for(profilePowers of mapProfilePowers(profile.powers); track $index) {
+                            <div class="dot-badge"> {{ profilePowers }} </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</dot-section-wrapper>
+
+<dot-modal
+    okText="Desactivar"
+    (callback)="deactivateUser()"
+    #deactivateModal
+>
+    Estás seguro que deseas desactivar el usuario {{ actualUser()?.userName }}?
+
+    <p>Escribe su email para confirmar</p>
+
+    <label class="dot-label input" dot-input>
+        <div class="dot-label-icon">
+            <i class="fa-solid fa-envelope"></i>
+        </div>
+        <span class="dot-label-text">Email</span>
+        <input 
+            #deactivateEmail
+            type="email" 
+            placeholder="usuario@dotsolutions.cl" 
+            (paste)="noCopyPaste($event)"
+            (copy)="noCopyPaste($event)"
+            (cut)="noCopyPaste($event)"
+            (contextmenu)="noCopyPaste($event)"
+        >
+    </label>
+</dot-modal>

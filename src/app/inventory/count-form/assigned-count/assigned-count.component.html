@@ -1,0 +1,900 @@
+<ng-template #headerRef>
+    <div class="cont">
+        <dot-go-back fallback="inventory" />
+        <div class="dot-col no-gap">
+            <h1>@if (!isMobile()) {Conteo} {{actualCount()?.displayId}}</h1>
+            <span class="dot-badge not-bordered"
+                [class.success]="actualCount()?.status === 'completed'"
+                [class.tertiary]="actualCount()?.status === 'in_progress'"
+                [class.contrast]="actualCount()?.status === 'cancelled' || actualCount()?.status === 'completed'"
+                [class.danger]="actualCount()?.status === 'cancelled' || actualCount()?.status === 'rejected'"
+            >
+                @switch (actualCount()?.status) {
+                    @case ('completed') {
+                        Completado
+                    } @case ('pending') {
+                        Pendiente
+                    } @case ('in_progress') {
+                        En progreso
+                    } @case ('cancelled') {
+                        Cancelado
+                    } @case ('rejected') {
+                        Rechazado
+                    }
+                }
+            </span>
+        </div>
+    </div>
+
+    <div class="cont">
+        @if (isMobile()) {
+            <ng-template #dropdownTrigger>
+                <button class="dot-btn">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+            </ng-template>
+
+            <dot-dropdown [dropdownTrigger]="dropdownTrigger">
+                @if ((actualCount()?.status === 'pending' || actualCount()?.status === 'rejected') && actualCount()?.assignedTo === currentUser()?.id) {
+                    <button class="dot-btn lg" (click)="initCount()">
+                        @if (actualCount()?.status === 'pending') {
+                            <i class="fa-solid fa-play"></i>
+                            Iniciar
+                        } @else if (actualCount()?.status === 'rejected') {
+                            <i class="fa-solid fa-forward-step"></i>
+                            Reiniciar
+                        }
+                        conteo
+                    </button>
+                }
+        
+                <button class="dot-btn lg"
+                    (click)="saveDraft()"
+                    [disabled]="!userEdited()"
+                >
+                    <i class="fa-solid fa-file-lines"></i>
+                    Guardar borrador
+                </button>
+        
+                @if (actualCount()?.status === 'completed' && CAN_REJECT_COUNT) {
+                    <button class="dot-btn danger secondary lg"
+                        (click)="confirmReject.openModal()"
+                    >
+                        <i class="fa-solid fa-rotate-left"></i>
+                        Rechazar conteo
+                    </button>
+                }
+            </dot-dropdown>
+        } @else {
+            @if ((actualCount()?.status === 'pending' || actualCount()?.status === 'rejected') && actualCount()?.assignedTo === currentUser()?.id) {
+                <button class="dot-btn flashy" (click)="initCount()">
+                    @if (actualCount()?.status === 'pending') {
+                        <i class="fa-solid fa-play"></i>
+                        Iniciar
+                    } @else if (actualCount()?.status === 'rejected') {
+                        <i class="fa-solid fa-forward-step"></i>
+                        Reiniciar
+                    }
+                    conteo
+                </button>
+            }
+    
+            <button class="dot-btn"
+                (click)="saveDraft()"
+                [disabled]="!userEdited()"
+            >
+                <i class="fa-solid fa-file-lines"></i>
+                @if (!isMobile()) {
+                    Guardar borrador
+                }
+            </button>
+    
+            @if (actualCount()?.status === 'completed' && CAN_REJECT_COUNT) {
+                <button class="dot-btn danger secondary"
+                    (click)="confirmReject.openModal()"
+                >
+                    <i class="fa-solid fa-rotate-left"></i>
+                    @if (!isMobile()) {
+                        Rechazar conteo
+                    }
+                </button>
+            }
+        }
+
+        @if (actualCount()?.status !== 'completed' && actualCount()?.status !== 'cancelled') {
+            <button class="dot-btn success"
+                (click)="completeCount()"
+                [disabled]="productsUncompleted().length > 0 || shouldReadonly()"
+            >
+                <i class="fa-solid fa-floppy-disk"></i>
+                @if (!isMobile()) {
+                    Finalizar conteo
+                }
+            </button>
+        }
+    </div>
+</ng-template>
+
+<dot-section-wrapper [headerRef]="headerRef" columns="1fr .9fr" [withStickyToolbar]="true">
+    <div class="section-col">
+        <div class="dot-card shadow products-list-card">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>
+                        Productos asignados al conteo
+                    </h3>
+                    
+                    <span class="dot-badge secondary">
+                        {{ countProducts().length }}
+                    </span>
+                </div>
+            </div>
+
+            @if (isMobile()) {
+                <dot-percentage-bar 
+                    mode="circle" 
+                    [currentValue]="currentCountedProductsPercentage()"
+                />
+
+                @if (shouldReadonly()) {
+                    <div class="count-info-completed-container">
+                        <div class="info-completed-item">
+                            <div class="info-completed-label">
+                                Responsable:
+                            </div>
+        
+                            <div class="info-completed-value">
+                                {{ actualCount()?.assignedToName || 'No asignado' }}
+                            </div>
+                        </div>
+
+                        @if (actualCount()?.completedAt) {
+                            <div class="info-completed-item">
+                                <div class="info-completed-label">
+                                    Completado:
+                                </div>
+            
+                                <div class="info-completed-value" [matTooltip]="actualCount()!.completedAt! | date:'long'">
+                                    {{ actualCount()!.completedAt! | humanDate }}
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            <dot-search 
+                [controller]="controller" 
+                [fullWidth]="true"
+                [noCollapse]="true"
+                placeholder="Nombre, SKU"
+            />
+
+            <div class="product-list">
+                @for (product of controller.GetData().data; track product.productId) {
+                    <div class="product-item"
+                        [class.readonly]="shouldReadonly()"
+                        [class.completed]="product.completed && !shouldReadonly()"
+                        [class.selected]="selectedProduct()?.productId === product.productId && !shouldReadonly()"
+                        (click)="toggleProductSelection(product)"
+                    >
+                        <div class="dot-row align-start gap-1">
+                            @if (!shouldReadonly()) {
+                                <div class="check-container">
+                                    <label class="dot-checkbox success"
+                                        (click)="$event.stopPropagation()"
+                                    >
+                                        <input type="checkbox" 
+                                            [checked]="product.completed"
+                                            (change)="completeProductCount(product, $event)"
+                                        />
+                                        <div class="dot-checkbox-box"></div>
+                                    </label>
+                                </div>
+                            }
+                            <div class="img-container" [class.completed]="product.completed && !shouldReadonly()">
+                                @if (product.productImage) {
+                                    <img [src]="product.productImage" alt="{{ product.productName }}" />
+                                } @else {
+                                    <dot-no-image />
+                                }
+                            </div>
+                            <div class="info-container" [class.uncompleted]="!shouldReadonly()">
+                                <h5 class="product-name" [class.completed]="product.completed && !shouldReadonly()">
+                                    {{ product.productName }}
+                                </h5>
+                                <span class="product-sku" [class.completed]="product.completed && !shouldReadonly()">
+                                    {{ product.productSku }}
+                                </span>
+
+                                <div class="dot-row wrap gap-1 mt-05 product-actions-row">
+                                    <span class="product-unit-measure">
+                                        Total en <strong>{{ product.unitsCount[0].unitAbv | unitMeasures }}: {{ totalProductCount(product) }}</strong>
+                                    </span>
+
+                                    <div class="product-actions-group">
+                                        @if (!shouldReadonly() || hasIncidence(product)) {
+                                            <button 
+                                                class="dot-btn sm"
+                                                [class.secondary]="!hasIncidence(product)"
+                                                [class.success]="hasIncidence(product)"
+                                                (click)="openIncidenceModal(product); $event.stopPropagation()"
+                                                type="button"
+                                            >
+                                                <i class="fa-solid fa-camera"></i>
+                                                @if (hasIncidence(product)) {
+                                                    Editar Incidencia
+                                                } @else {
+                                                    Registrar Incidencia
+                                                }
+                                            </button>
+                                            
+                                            @if (hasIncidence(product)) {
+                                                <span [class]="getIncidenceBadgeClass(product)">
+                                                    @if (hasIncidencePhotoForIcon(product)) {
+                                                        <i class="fa-solid fa-check"></i>
+                                                    } @else {
+                                                        <i class="fa-solid fa-message"></i>
+                                                    }
+                                                    {{ getIncidenceBadgeText(product) }}
+                                                </span>
+                                            }
+                                        }
+
+                                        @if (product.completed && !shouldReadonly()) {
+                                            <span class="dot-badge success contrast not-bordered">
+                                                Contado
+                                            </span>
+                                        }
+                                    </div>
+
+                                    @if (hasReconciliationPending()) {
+                                        <span class="dot-badge caution contrast not-bordered">
+                                            <i class="fa-solid fa-triangle-exclamation"></i>
+                                            Requiere acción
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="count-container">
+                            @for (unitCount of product.unitsCount; track unitCount.unitId) {
+                                <div class="unit-item" [class.selected]="selectedProduct()?.productId === product.productId && !shouldReadonly()">
+                                    <div class="unit-label">
+                                        {{ unitCount.unitAbv | unitMeasures }}:
+                                    </div>
+
+                                    <div class="unit-value">
+                                        {{ unitCount.count }}
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (!isMobile()) {
+        <div class="section-col">
+            <div class="dot-card shadow sticky products-selected-card">
+                <div *ngTemplateOutlet="selectedProductTemplate"></div>
+            </div>
+
+            @if (hasReconciliationPending()) {
+                <div class="dot-card shadow reconciliation-warning-card">
+                    <div class="dot-alert caution">
+                        <div class="dot-alert-info">
+                            <div class="dot-alert-icon">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div class="dot-alert-content">
+                                <span class="dot-alert-title">Productos con diferencias</span>
+                                <span class="dot-alert-text">{{ reconciliationProducts().length }} productos requieren revisión y reconciliación</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="reconciliation-products-list">
+                        @for (product of reconciliationProducts(); track product.productId) {
+                            <div class="reconciliation-product-item" 
+                                [class.consistent]="product.diagnosisSeverity === 'consistent'"
+                                [class.requires-decision]="product.diagnosisSeverity === 'requires_decision'"
+                                [class.critical-risk]="product.diagnosisSeverity === 'critical_risk'"
+                                (click)="openReconciliationModal(product)"
+                            >
+                                <div class="product-info">
+                                    <div class="img-container">
+                                        @if (product.productImage) {
+                                            <img [src]="product.productImage" [alt]="product.productName" />
+                                        } @else {
+                                            <dot-no-image />
+                                        }
+                                    </div>
+                                    <div class="info-text">
+                                        <span class="product-name">{{ product.productName }}</span>
+                                        <span class="product-sku">{{ product.productSku }}</span>
+                                    </div>
+                                </div>
+                                <div class="product-difference">
+                                    <span class="difference-value" 
+                                        [class.positive]="product.difference > 0"
+                                        [class.negative]="product.difference < 0"
+                                    >
+                                        {{ product.difference > 0 ? '+' : '' }}{{ product.difference }}
+                                    </span>
+                                    <span class="dot-badge caution contrast not-bordered">
+                                        Requiere acción
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</dot-section-wrapper>
+
+<ng-template #selectedProductTemplate>
+    <div class="selected-product-detail">
+        <div class="selected-product-header" 
+            [class.no-selection]="!selectedProduct()" 
+            [class.all-completed]="productsUncompleted().length === 0 && !shouldReadonly()"
+        >   
+            @if (shouldReadonly()) {
+                <div class="count-info-completed-container">
+                    <div class="info-completed-item">
+                        <div class="info-completed-label">
+                              Responsable:
+                        </div>
+    
+                        <div class="info-completed-value">
+                            {{ actualCount()?.assignedToName || 'No asignado' }}
+                        </div>
+                    </div>
+
+                    @if (actualCount()?.completedAt) {
+                        <div class="info-completed-item">
+                            <div class="info-completed-label">
+                                Completado:
+                            </div>
+        
+                            <div class="info-completed-value" [matTooltip]="actualCount()!.completedAt! | date:'long'">
+                                {{ actualCount()!.completedAt! | humanDate }}
+                            </div>
+                        </div>
+                    }
+                </div>
+            } @else {
+                <div class="img-container">
+                    @if (selectedProduct()) {
+                        @if (selectedProduct()!.productImage) {
+                            <img [src]="selectedProduct()!.productImage" [alt]="'imagen de ' + selectedProduct()?.productName" />
+                        } @else {
+                            <dot-no-image />
+                        }
+                    } @else if (productsUncompleted().length > 0) {
+                        <i class="fa-solid fa-box-open"></i>
+                    }
+                </div>
+            }
+
+            <div class="selected-product-info" [class.no-selection]="!selectedProduct()">
+                @if (selectedProduct()) {
+                    <h4>
+                        {{ selectedProduct()?.productName }}
+                    </h4>
+                } @else if (productsUncompleted().length > 0 && !shouldReadonly()) {
+                    <h4 class="empty-product">
+                        Selecciona un producto en el panel de la izquierda
+                    </h4>
+                }
+
+                @if (selectedProduct()) {
+                    <div class="dot-row gap-1">
+                        <span>
+                            Total en <strong>{{ selectedProduct()!.unitsCount[0].unitAbv | unitMeasures }}: {{ totalProductCount(selectedProduct()!) }}</strong>
+                        </span>
+                    </div>
+
+                    @if (selectedProduct()!.completed) {
+                        <span class="dot-badge success contrast not-bordered">
+                            Contado
+                        </span>
+                    }
+                }
+            </div>
+
+            @if (!isMobile()) {
+                <div class="count-percentage-container">
+                    <dot-percentage-bar 
+                        mode="circle" 
+                        [currentValue]="currentCountedProductsPercentage()"
+                    />
+                </div>
+            }
+        </div>
+
+        @if (selectedProduct()) {
+            <hr>
+    
+            <div class="selected-product-counts">
+                @for (unitCount of selectedProduct()!.unitsCount; track unitCount.unitId) {
+                    <div class="selected-product-counts-item">
+                        <span class="selected-product-counts-item-label">{{unitCount.unitAbv | unitMeasures}}</span>
+                        <dot-numeric-input 
+                            buttonsAlign="right"
+                            [min]="0"
+                            [readonly]="shouldReadonly()"
+                            [floatNumber]="true"
+                            [initialValue]="unitCount.count"
+                            (valueChange)="countChange(unitCount.unitId, $event)"
+                        />
+                    </div>
+                }
+            </div>
+        }
+
+    </div>
+</ng-template>
+
+<dot-modal #selectedProductModal
+    [longModal]="true"
+    (onClose)="selectedProduct.set(null)"
+    [noFooter]="true"
+    tittleText="Producto seleccionado"
+>
+    <div *ngTemplateOutlet="selectedProductTemplate"></div>
+</dot-modal>
+
+<dot-modal #preventLossModal
+    [withCancel]="true"
+    (callback)="handlePreventNavigation($event)"
+    (cancelCallback)="handlePreventNavigation($event, true)"
+    okText="Continuar y guardar"
+    cancelText="Continuar sin guardar"
+    modalType="success"
+>
+    <div class="dot-col gap-1">
+        <p>Si continúas, se perderán los cambios realizados en el conteo actual. ¿Deseas continuar?</p>
+    </div>
+</dot-modal>
+
+<dot-modal #confirmReject
+    tittleText="¿Rechazar conteo?"
+    (callback)="rejectCount()"
+    (cancelCallback)="confirmReject.closeModal()"
+    [withCancel]="true"
+    okText="Rechazar conteo"
+    modalType="danger"
+>
+    <p>Si rechazas este conteo, se reiniciará por completo y el usuario asignado deberá realizarlo nuevamente desde cero.</p>
+
+</dot-modal>
+
+<!-- Reconciliation Modal -->
+<dot-modal #reconciliationModal
+    [isLateral]="true"
+    [noFooter]="true"
+    (onClose)="closeReconciliationModal()"
+    tittleText="Reconciliación de inventario"
+>
+    @if (selectedReconciliationProduct(); as product) {
+        <div class="reconciliation-modal-content">
+            <!-- 1. ENCABEZADO -->
+            <section class="reconciliation-section header-section">
+                <div class="product-header">
+                    <div class="product-header-img">
+                        @if (product.productImage) {
+                            <img [src]="product.productImage" [alt]="product.productName" />
+                        } @else {
+                            <dot-no-image />
+                        }
+                    </div>
+                    <div class="product-header-info">
+                        <span class="product-sku">{{ product.productSku }}</span>
+                        <h3 class="product-name">{{ product.productName }}</h3>
+                        <span class="product-location">
+                            <i class="fa-solid fa-warehouse"></i>
+                            {{ actualCount()?.warehouseName }}
+                        </span>
+                    </div>
+                    <div class="product-header-status">
+                        <span class="dot-badge not-bordered lg" 
+                            [class]="getSeverityBadgeClass(product.diagnosisSeverity)"
+                        >
+                            {{ getSeverityLabel(product.diagnosisSeverity) }}
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- 2. SITUACIÓN ACTUAL (DOS COLUMNAS) -->
+            <section class="reconciliation-section situation-section">
+                <h4 class="section-title">Situación actual</h4>
+                
+                <div class="situation-grid">
+                    <div class="situation-column counted">
+                        <div class="column-header">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                            <span>Conteo físico</span>
+                        </div>
+                        <div class="column-content">
+                            <div class="data-row">
+                                <span class="data-label">Cantidad contada</span>
+                                <span class="data-value highlight">{{ product.countedStock }} {{ product.unitsCount[0].unitAbv | unitMeasures }}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Fecha del conteo</span>
+                                <span class="data-value">{{ actualCount()?.completedAt ?? '' | humanDate }}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Responsable</span>
+                                <span class="data-value">{{ actualCount()?.assignedToName || 'No asignado' }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="situation-column system">
+                        <div class="column-header">
+                            <i class="fa-solid fa-database"></i>
+                            <span>Sistema</span>
+                        </div>
+                        <div class="column-content">
+                            <div class="data-row">
+                                <span class="data-label">Stock disponible</span>
+                                <span class="data-value highlight">{{ product.systemStock }} {{ product.unitsCount[0].unitAbv | unitMeasures }}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">En tránsito (entrada)</span>
+                                <span class="data-value">{{ product.inTransitIn }} {{ product.unitsCount[0].unitAbv | unitMeasures }}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">En tránsito (salida)</span>
+                                <span class="data-value">{{ product.inTransitOut }} {{ product.unitsCount[0].unitAbv | unitMeasures }}</span>
+                            </div>
+                            <div class="data-row">
+                                <span class="data-label">Comprometido</span>
+                                <span class="data-value">{{ product.committed }} {{ product.unitsCount[0].unitAbv | unitMeasures }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="difference-summary" 
+                    [class.positive]="product.difference > 0"
+                    [class.negative]="product.difference < 0"
+                    [class.zero]="product.difference === 0"
+                >
+                    <span class="difference-label">Diferencia:</span>
+                    <span class="difference-value">
+                        {{ product.difference > 0 ? '+' : '' }}{{ product.difference }} {{ product.unitsCount[0].unitAbv | unitMeasures }}
+                        ({{ product.differencePercentage }}%)
+                    </span>
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- 3. DIAGNÓSTICO DEL SISTEMA -->
+            <section class="reconciliation-section diagnosis-section">
+                <h4 class="section-title">Diagnóstico del sistema</h4>
+                
+                <div class="dot-alert" 
+                    [class.success]="product.diagnosisSeverity === 'consistent'"
+                    [class.caution]="product.diagnosisSeverity === 'requires_decision'"
+                    [class.danger]="product.diagnosisSeverity === 'critical_risk'"
+                >
+                    <div class="dot-alert-info">
+                        <div class="dot-alert-icon">
+                            @switch (product.diagnosisSeverity) {
+                                @case ('consistent') {
+                                    <i class="fa-solid fa-circle-check"></i>
+                                }
+                                @case ('requires_decision') {
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                }
+                                @case ('critical_risk') {
+                                    <i class="fa-solid fa-circle-xmark"></i>
+                                }
+                            }
+                        </div>
+                        <div class="dot-alert-content">
+                            <span class="dot-alert-title">{{ getSeverityLabel(product.diagnosisSeverity) }}</span>
+                            <span class="dot-alert-text">{{ product.diagnosisMessage }}</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- 4. MOVIMIENTOS RELACIONADOS -->
+            <section class="reconciliation-section movements-section">
+                <h4 class="section-title">Movimientos recientes</h4>
+                
+                <div class="movements-list">
+                    @for (movement of product.movementHistory; track movement.id) {
+                        <div class="movement-item">
+                            <div class="movement-icon" [attr.data-type]="movement.type">
+                                <i [class]="getMovementTypeIcon(movement.type)"></i>
+                            </div>
+                            <div class="movement-info">
+                                <span class="movement-description">{{ movement.description }}</span>
+                                <span class="movement-meta">
+                                    {{ movement.date | humanDate }} · {{ movement.user }}
+                                    @if (movement.reference) {
+                                        · <strong>{{ movement.reference }}</strong>
+                                    }
+                                </span>
+                            </div>
+                            <div class="movement-quantity" 
+                                [class.positive]="movement.quantity > 0"
+                                [class.negative]="movement.quantity < 0"
+                            >
+                                {{ movement.quantity > 0 ? '+' : '' }}{{ movement.quantity }}
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- 5. DECISIÓN REQUERIDA -->
+            <section class="reconciliation-section decision-section">
+                <h4 class="section-title">
+                    Decisión requerida
+                    <span class="required-mark">*</span>
+                </h4>
+                
+                <dot-radio-group-buttons 
+                    [options]="DECISION_OPTIONS"
+                    [selected]="selectedDecision()"
+                    [detailedView]="true"
+                    (onSelectOption)="onDecisionChange($event)"
+                />
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- 6. IMPACTO DE LA DECISIÓN -->
+            @if (decisionImpact(); as impact) {
+                <section class="reconciliation-section impact-section">
+                    <h4 class="section-title">Impacto de la decisión</h4>
+                    
+                    <div class="dot-alert"
+                        [class.success]="impact.riskLevel === 'consistent'"
+                        [class.caution]="impact.riskLevel === 'requires_decision'"
+                        [class.danger]="impact.riskLevel === 'critical_risk'"
+                    >
+                        <div class="dot-alert-info">
+                            <div class="dot-alert-icon">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div class="dot-alert-content">
+                                <span class="dot-alert-title">Proyección de impacto</span>
+                                <span class="dot-alert-text">{{ impact.description }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="impact-details">
+                        <div class="impact-item">
+                            <span class="impact-label">Cambio de stock:</span>
+                            <span class="impact-value" 
+                                [class.positive]="impact.stockChange > 0"
+                                [class.negative]="impact.stockChange < 0"
+                            >
+                                {{ impact.stockChange > 0 ? '+' : '' }}{{ impact.stockChange }} unidades
+                            </span>
+                        </div>
+                        <div class="impact-item">
+                            <span class="impact-label">Impacto contable:</span>
+                            <span class="impact-value" [class.negative]="impact.costImpact > 0">
+                                {{ impact.costImpact | currency:'MXN':'symbol':'1.0-0' }}
+                            </span>
+                        </div>
+                        <div class="impact-item">
+                            <span class="impact-label">Reportes afectados:</span>
+                            <span class="impact-value">{{ impact.affectedReports.join(', ') }}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="section-divider">
+            }
+
+            <!-- 7. MOTIVO (only show if decision is not reconcile_transit) -->
+            @if (selectedDecision()?.type !== 'reconcile_transit') {
+                <section class="reconciliation-section reason-section">
+                    <h4 class="section-title">
+                        Motivo de la diferencia
+                        <span class="required-mark">*</span>
+                    </h4>
+                    
+                    <dot-radio-group-buttons 
+                        [options]="REASON_OPTIONS"
+                        [selected]="selectedReason()"
+                        [detailedView]="true"
+                        (onSelectOption)="onReasonChange($event)"
+                    />
+
+                    <label class="dot-label textarea">
+                        <div class="dot-label-text">Comentario adicional (opcional)</div>
+                        <textarea
+                            rows="3" 
+                            [(ngModel)]="reasonComment"
+                            placeholder="Agregue información adicional sobre el motivo de la diferencia..."
+                        ></textarea>
+                    </label>
+                </section>
+
+                <hr class="section-divider">
+            }
+
+            <!-- 8. CONFIRMACIÓN -->
+            <section class="reconciliation-section confirmation-section">
+                <div class="confirmation-warning">
+                    <i class="fa-solid fa-info-circle"></i>
+                    <span>Esta acción quedará registrada y no es reversible.</span>
+                </div>
+
+                <button class="dot-btn lg all-width"
+                    [class.danger]="decisionImpact()?.riskLevel === 'critical_risk'"
+                    [class.caution]="decisionImpact()?.riskLevel === 'requires_decision'"
+                    [class.success]="decisionImpact()?.riskLevel === 'consistent' || !decisionImpact()"
+                    [disabled]="!canConfirmReconciliation()"
+                    (click)="openConfirmReconciliation()"
+                >
+                    <i class="fa-solid fa-check"></i>
+                    Confirmar reconciliación
+                </button>
+            </section>
+        </div>
+    }
+</dot-modal>
+
+<!-- Confirm Reconciliation Modal -->
+<dot-modal #confirmReconciliationModal
+    tittleText="¿Confirmar reconciliación?"
+    (callback)="confirmReconciliation()"
+    (cancelCallback)="confirmReconciliationModal.closeModal()"
+    [withCancel]="true"
+    okText="Confirmar"
+    cancelText="Cancelar"
+    [modalType]="decisionImpact()?.riskLevel === 'critical_risk' ? 'danger' : 'success'"
+>
+    <div class="dot-col gap-1">
+        @if (selectedReconciliationProduct(); as product) {
+            <p><strong>Producto:</strong> {{ product.productName }}</p>
+            <p><strong>Decisión:</strong> {{ selectedDecision()?.label }}</p>
+            @if (selectedDecision()?.type !== 'reconcile_transit') {
+                <p><strong>Motivo:</strong> {{ selectedReason()?.label }}</p>
+            }
+            @if (reasonComment()) {
+                <p><strong>Comentario:</strong> {{ reasonComment() }}</p>
+            }
+        }
+        <p class="warning-text">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            Esta acción quedará registrada en el historial y no es reversible.
+        </p>
+    </div>
+</dot-modal>
+
+<!-- Incidence Modal -->
+<dot-modal #incidenceModal
+    [isLateral]="true"
+    [withCancel]="true"
+    (callback)="saveIncidence()"
+    (cancelCallback)="closeIncidenceModal()"
+    [longModal]="true"
+    (onClose)="closeIncidenceModal()"
+    okText="Guardar"
+    cancelText="Cancelar"
+    modalType="success"
+    [tittleText]="selectedProductForIncidence()?.productName || 'Incidencia'"
+>
+    @if (selectedProductForIncidence(); as product) {
+        <div class="dot-col gap-2 incidence-modal-content">
+            <!-- Foto de evidencia -->
+            <div class="dot-col gap-1">
+                <div class="section-header-with-icon">
+                    <div class="section-icon">
+                        <i class="fa-solid fa-camera"></i>
+                    </div>
+                    <h4 class="section-title">Foto de evidencia</h4>
+                </div>
+                
+                @if (incidencePhotoPreview()) {
+                    <div class="photo-preview-container">
+                        <img [src]="incidencePhotoPreview()!" [alt]="'Foto de evidencia - ' + product.productName" />
+                        <button 
+                            class="photo-remove-btn"
+                            type="button"
+                            (click)="clearIncidencePhoto()"
+                        >
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                } @else {
+                    <dot-drop-file 
+                        [multiple]="false"
+                        [acceptedFormats]="['.jpg', '.jpeg', '.png', '.webp']"
+                        [maxSizeInMB]="2"
+                        (uploadedFiles)="onIncidencePhotoSelected($event)"
+                    />
+                }
+            </div>
+
+            <!-- Observación -->
+            <dot-input
+                [value]="incidenceObservation()"
+                (valueChange)="setIncidenceObservation($event)"
+                [standalone]="true"
+                label="Observación"
+                icon="fa-solid fa-message"
+                placeholder="Agregue una observación sobre la incidencia..."
+            />
+        </div>
+    }
+</dot-modal>
+
+<!-- View Incidence Modal (para visualizar incidencias guardadas desde backend) -->
+<dot-modal #viewIncidenceModal
+    [isLateral]="true"
+    [withCancel]="false"
+    (onClose)="closeViewIncidenceModal()"
+    [longModal]="true"
+    [noFooter]="true"
+    [tittleText]="selectedProductForViewIncidence()?.productName || 'Incidencia'"
+>
+    @if (selectedProductForViewIncidence(); as product) {
+        <div class="dot-col gap-2 incidence-modal-content">
+            <!-- Foto de evidencia -->
+            @if (product.incidenceImageUrl) {
+                <div class="dot-col gap-1">
+                    <div class="section-header-with-icon">
+                        <div class="section-icon">
+                            <i class="fa-solid fa-camera"></i>
+                        </div>
+                        <h4 class="section-title">Foto de evidencia</h4>
+                    </div>
+                    
+                    <div class="photo-preview-container">
+                        <img [src]="product.incidenceImageUrl" [alt]="'Foto de evidencia - ' + product.productName" />
+                    </div>
+                </div>
+            }
+
+            <!-- Observación -->
+            @if (product.incidenceObservation) {
+                <div class="dot-col gap-1">
+                    <div class="section-header-with-icon">
+                        <div class="section-icon">
+                            <i class="fa-solid fa-message"></i>
+                        </div>
+                        <h4 class="section-title">Observación</h4>
+                    </div>
+                    <div class="incidence-observation-text">
+                        {{ product.incidenceObservation }}
+                    </div>
+                </div>
+            }
+
+            <!-- Si no hay datos -->
+            @if (!product.incidenceImageUrl && !product.incidenceObservation) {
+                <div class="dot-col gap-1" style="text-align: center; padding: 2rem;">
+                    <i class="fa-solid fa-info-circle" style="font-size: 3rem; color: var(--text-light); margin-bottom: 1rem;"></i>
+                    <p style="color: var(--text-light);">No hay información de incidencia disponible</p>
+                </div>
+            }
+        </div>
+    }
+</dot-modal>

@@ -1,0 +1,92 @@
+section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-lg);
+}
+
+
+
+.text-suppliers{
+    padding: 15px;
+}
+
+// Estilo del idFiscal como trigger del dropdown
+.idFiscal-cell .idFiscal-trigger {
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: var(--gap-md);
+    
+    .modal-search {
+        padding: var(--gap-md) var(--gap-md) 0;
+    }
+    
+    .modal-table-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 var(--gap-md);
+        
+        .dot-table {
+            box-shadow: none;
+        }
+    }
+    
+    .selected-info {
+        padding: 10px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .modal-pagination {
+        padding: 0 var(--gap-md) var(--gap-md);
+        margin-top: auto;
+    }
+}
+
+.clickable {
+    cursor: pointer;
+    transition: background-color var(--animation-duration-short) ease-out,
+        border-color var(--animation-duration-short) ease-out;
+    
+    &:hover {
+        background-color: var(--background-4);
+    }
+    
+    &.selected {
+        background-color: light-dark(var(--color-green-200), var(--color-green-950));
+        
+        &:hover {
+            background-color: light-dark(var(--color-green-200), var(--color-green-950));
+        }
+    }
+}
+
+.selected-info {
+    margin-top: var(--gap-md);
+    display: flex;
+    justify-content: center;
+}
+
+.section-header-item {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    
+    &:first-child {
+        flex: 1;
+    }
+}
+
+.dot-btn.danger.secondary {
+    &:hover:not(:disabled) {
+        background-color: var(--color-red-600);
+        border-color: var(--color-red-600);
+        color: var(--color-white);
+    }
+}

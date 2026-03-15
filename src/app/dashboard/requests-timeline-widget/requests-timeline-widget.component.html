@@ -1,0 +1,16 @@
+<div class="dot-card shadow">
+  <div class="card-header">
+    <h2>Solicitudes por Tiempo</h2>
+  </div>
+
+  <div class="card-body">
+    <div class="widget-description">
+      <p>Evolución diaria del número de solicitudes de compra activas por tienda durante {{ currentMonth() }}. Permite visualizar patrones y picos de demanda.</p>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-container">
+      <canvas #requestsTimelineChart></canvas>
+    </div>
+  </div>
+</div>

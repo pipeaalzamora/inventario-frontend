@@ -1,0 +1,42 @@
+<div class="dot-card shadow">
+  <div class="card-header">
+    <h2>Exactitud de Inventario</h2>
+  </div>
+
+  <div class="card-body">
+    <div class="widget-description">
+      <p>Diferencia entre inventario físico y sistema del último conteo cíclico realizado. Un indicador de la precisión de los registros y la gestión del inventario.</p>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="exactness-table">
+        <thead>
+          <tr>
+            <th>Ubicación</th>
+            <th>% Exactitud</th>
+            <th>Último Conteo</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (record of records(); track record.store) {
+            <tr>
+              <td class="store-name">
+                @if (record.store === 'Global') {
+                  <strong>{{ record.store }}</strong>
+                } @else {
+                  {{ record.store }}
+                }
+              </td>
+              <td class="exactness-value">
+                <span [ngClass]="getExactnessClass(record.exactness)">
+                  {{ record.exactness }}%
+                </span>
+              </td>
+              <td class="count-date">{{ formatDate(record.lastCountDate) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

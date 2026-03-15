@@ -1,0 +1,21 @@
+<section
+    [ngStyle]="{ 
+        'padding-inline': `${paddingInline()}rem`,
+        'padding-block': `${paddingBlock()}rem`,
+        'padding-bottom': `${paddingBottom()}rem`,
+        '--section-columns': columns()
+    }"
+>
+    @if (headerRef()) {
+        <div class="section-header">
+            <div *ngTemplateOutlet="headerRef()"></div>
+        </div>
+    }
+
+    @if (withStickyToolbar() && headerRef()) {
+        <dot-on-scroll-toolbar [templateRef]="headerRef()"/>
+    }
+    <div class="section-content">
+        <ng-content></ng-content>
+    </div>
+</section>

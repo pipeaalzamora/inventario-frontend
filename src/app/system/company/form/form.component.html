@@ -1,0 +1,243 @@
+<ng-template #templateRef>
+    <div class="cont">
+        <dot-go-back fallback="company" />
+        <h2>
+            @if (isEditMode()) {
+                @if (isViewMode()) {
+                    Ver compañía
+                } @else {
+                    Editar compañía
+                }
+            } @else {
+                Nueva compañía
+            }
+        </h2>
+    </div>
+
+     <div class="cont">
+        @if (isEditMode() && isViewMode()) {
+            @if (COMPANY_CAN_UPDATE) {
+                <button class="dot-btn primary" (click)="enableEditMode()">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                    @if (!isMobile()) {
+                        Editar
+                    }
+                </button>
+            }
+        } @else {
+            @if (isEditMode()) {
+                <button class="dot-btn secondary" (click)="cancelEdit()">
+                    <i class="fa-solid fa-xmark"></i>
+                    @if (!isMobile()) {
+                        Cancelar
+                    }
+                </button>
+            }
+            
+            <button class="dot-btn success" 
+                (click)="onSubmit()"
+                [disabled]="Company.invalid"
+            >
+                <i class="fa-regular fa-floppy-disk"></i>
+                @if (!isMobile()) {
+                    @if (isEditMode()) {
+                        Guardar cambios
+                    } @else {
+                        Guardar
+                    }
+                }
+            </button>
+            }
+        
+    </div>
+</ng-template>
+
+<dot-section-wrapper
+    [headerRef]="templateRef"
+    [withStickyToolbar]="true"
+>
+    <div class="dot-card shadow">
+        <div class="card-header">
+            <h3>Información básica</h3>
+        </div>
+
+        <div class="logo-section">
+            @if (logoPreview()) {
+                <div class="logo-preview">
+                    <img [src]="logoPreview()" alt="Logo preview">
+                    @if (!isViewMode()) {
+                        <button 
+                            type="button" 
+                            class="dot-btn danger sm clear-logo-btn" 
+                            (click)="clearLogo()"
+                        >
+                            <i class="fa-solid fa-trash"></i>
+                            Eliminar logo
+                        </button>
+                    }
+                </div>
+            }
+            
+            @if (!isViewMode() && !logoPreview()) {
+                <dot-drop-file 
+                    [acceptedFormats]="['.jpg', '.png']"
+                    [maxSizeInMB]="2"
+                    [multiple]="false"
+                    (uploadedFiles)="onFileSelected($event)"
+                />
+            }
+        </div>
+
+        <form [formGroup]="Company">
+            <label class="dot-label input" tabindex="1" dot-input>
+                <div class="dot-label-icon">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <span class="dot-label-text">Nombre de la compañía</span>
+                <input formControlName="companyName" type="text" placeholder="Ej: Mi Empresa S.A.">
+
+                @if (Company.get('companyName')?.hasError('required') && Company.get('companyName')?.touched) {
+                    <span class="error">El nombre es requerido</span>
+                } @else if (Company.get('companyName')?.hasError('minlength') && Company.get('companyName')?.touched) {
+                    <span class="error">El nombre debe tener al menos 3 caracteres</span>
+                } @else if (Company.get('companyName')?.hasError('invalid') && Company.get('companyName')?.touched) {
+                    <span class="error">El nombre de la compañía es inválido</span>
+                }
+            </label>
+
+            <label class="dot-label input" tabindex="1" dot-input>
+                <div class="dot-label-icon">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                </div>
+                <span class="dot-label-text">Descripción</span>
+                <input formControlName="description" type="text" placeholder="Descripción de la compañía">
+            </label>
+        </form>
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="card-header">
+            <h3>Información fiscal</h3>
+        </div>
+
+        <form [formGroup]="Company">
+            @if (isEditMode()) {
+                <div class="info-field">
+                    <div class="info-label">
+                        <i class="fa-solid fa-id-card"></i>
+                        <span>ID Fiscal (RUT)</span>
+                    </div>
+                    <div class="info-value">{{ Company.get('idFiscal')?.value || '-' }}</div>
+                </div>
+            } @else {
+                <label class="dot-label input" tabindex="1" dot-input>
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                    <span class="dot-label-text">ID Fiscal (RUT)</span>
+                    <input formControlName="idFiscal" type="text" placeholder="123456789">
+
+                    @if (Company.get('idFiscal')?.hasError('required') && Company.get('idFiscal')?.touched) {
+                        <span class="error">El ID Fiscal es requerido</span>
+                    } @else if (Company.get('idFiscal')?.hasError('invalid') && Company.get('idFiscal')?.touched) {
+                        <span class="error">El ID Fiscal es inválido</span>
+                    }
+                     @else if (Company.get('idFiscal')?.hasError('invalid')) {
+                        <span class="error">El ID Fiscal es inválido</span>
+                    }
+                
+                </label>
+            }
+
+            <label class="dot-label input" tabindex="1" dot-input>
+                <div class="dot-label-icon">
+                    <i class="fa-solid fa-building"></i>
+                </div>
+                <span class="dot-label-text">Nombre fiscal</span>
+                <input formControlName="fiscalName" type="text" placeholder="Razón social">
+
+                @if (Company.get('fiscalName')?.hasError('required') && Company.get('fiscalName')?.touched) {
+                    <span class="error">El nombre fiscal es requerido</span>
+                } @else if (Company.get('fiscalName')?.hasError('invalid') && Company.get('fiscalName')?.touched) {
+                    <span class="error">El nombre fiscal es inválido</span>
+                }
+            </label>
+
+            <label class="dot-label input" tabindex="1" dot-input>
+                <div class="dot-label-icon">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                </div>
+                <span class="dot-label-text">Dirección fiscal</span>
+                <input formControlName="fiscalAddress" type="text" placeholder="Av. Libertador 1234">
+
+                @if (Company.get('fiscalAddress')?.hasError('required') && Company.get('fiscalAddress')?.touched) {
+                    <span class="error">La dirección fiscal es requerida</span>
+                } @else if (Company.get('fiscalAddress')?.hasError('invalid') && Company.get('fiscalAddress')?.touched) {
+                    <span class="error">La dirección fiscal es inválida</span>
+                }
+            </label>
+
+            <label class="dot-label input" tabindex="1" dot-input>
+                <div class="dot-label-icon">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <span class="dot-label-text">Email</span>
+                <input formControlName="email" type="email" placeholder="contacto@empresa.cl">
+
+                @if (Company.get('email')?.hasError('required') && Company.get('email')?.touched) {
+                    <span class="error">El email es requerido</span>
+                } @else if (Company.get('email')?.hasError('email') && Company.get('email')?.touched) {
+                    <span class="error">El email es inválido</span>
+                    
+                } @else if (Company.get('email')?.hasError('invalid')){
+                    <span class="error">El email es inválido</span>
+            
+                }
+                
+            </label>
+
+            <label class="dot-label input" tabindex="1" dot-input>
+                <div class="dot-label-icon">
+                    <i class="fa-solid fa-city"></i>
+                </div>
+                <span class="dot-label-text">Ciudad</span>
+                <input formControlName="fiscalCity" type="text" placeholder="Santiago">
+
+                @if (Company.get('fiscalCity')?.hasError('required') && Company.get('fiscalCity')?.touched) {
+                    <span class="error">La ciudad es requerida</span>
+                } @else if (Company.get('fiscalCity')?.hasError('invalid') && Company.get('fiscalCity')?.touched) {
+                    <span class="error">La ciudad es inválida</span>
+                }
+            </label>
+
+            <label class="dot-label input" tabindex="1" dot-input>
+                <div class="dot-label-icon">
+                    <i class="fa-solid fa-map-marker-alt"></i>
+                </div>
+                <span class="dot-label-text">Comuna</span>
+                <input formControlName="fiscalState" type="text" placeholder="Las Condes">
+
+                @if (Company.get('fiscalState')?.hasError('required') && Company.get('fiscalState')?.touched) {
+                    <span class="error">La comuna es requerida</span>
+                } @else if (Company.get('fiscalState')?.hasError('invalid') && Company.get('fiscalState')?.touched) {
+                    <span class="error">La comuna es inválida</span>
+                }
+            </label>
+           
+        </form>
+    </div>
+</dot-section-wrapper>
+
+<dot-modal
+    #preventLossModal
+    tittleText="¿Salir sin guardar?"
+    okText="Salir sin guardar"
+    cancelText="Continuar editando"
+    [withCancel]="true"
+    modalType="caution"
+    (callback)="handleConfirmExit()"
+    (cancelCallback)="preventLossModal.closeModal()"
+>
+    <p>Si sales ahora, perderás todos los cambios realizados</p>
+    <p>¿Estás seguro de que deseas salir?</p>
+</dot-modal>

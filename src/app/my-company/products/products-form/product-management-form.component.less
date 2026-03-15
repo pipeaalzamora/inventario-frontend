@@ -1,0 +1,623 @@
+.product-img {
+    width: 100px;
+    height: 100px;
+}
+
+.dot-badge{
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.dot-btn{
+
+    &.flashy { 
+        background-color: var(--color-green-600);
+        color: var(--dot-text-color);
+    }
+
+    &.success{
+        background-color: var(--color-green-600);
+        color: var(--dot-text-color);
+    }
+
+    &.brand{
+        background-color: var(--brand);
+        color: var(--default-dark);
+    }
+
+}
+
+.change{
+    &.brand{
+        color: var(--dot-text-color);
+        cursor: pointer;
+    }
+}
+
+label.dot-label.input.sku {
+    flex: 1 1 50% !important; /* Permite que el label crezca y se reduzca, con un ancho base de 200px */
+}
+
+/*Tabla para Unidades de conteo*/
+.selected-units-table {
+  margin-top: 1rem;
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-primary);
+
+    th, td {
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-disabled);
+    }
+
+    td {
+      font-size: 1rem;
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.actions-units {
+  text-align: center !important;
+}
+
+.selected-template-card {
+  display: flex;
+  flex-direction: row !important;
+}
+
+.mobile-reverse{
+  @media (max-width: 750px) {
+    flex-direction: column-reverse;
+  }
+}
+
+
+/*Mensaje de Unidades de conteo*/
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+  padding-block: 2rem;
+
+  @media (max-width: 750px) {
+    padding-block: 1rem;
+    span.empty-title {
+      font-size: 1.15rem !important;
+    }
+    i:not(button.dot-btn > *) {
+      font-size: 4rem !important;
+    }
+  }
+
+  i:not(button.dot-btn > *) {
+    font-size: 5rem;
+    color: var(--text-disabled);
+  }
+
+  span.empty-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  span.empty-title, p {
+    color: var(--text-disabled);
+    margin: 0;
+  }
+
+  p {
+    font-weight: 500;
+    text-align: center;
+  }
+}
+
+
+
+
+
+/*Plantilla seleccionada en formulario*/
+.product-template-resume {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  justify-content: flex-start;
+  overflow-y: auto;
+
+  .readonly-product-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+    .item.horizontal {
+      display: flex;
+      flex-direction: row;
+      gap: 1.5rem;
+      align-items: flex-start;
+
+      
+    }
+  }
+}
+
+/* Estilos para los campos principales */
+.main-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  .field-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    .icon-container {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-light);
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      font-size: 1.4rem;
+      margin-top: 0.2rem;
+    }
+
+    .field-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+
+      .label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-disabled);
+      }
+      .value {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text);
+      }
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  
+
+  .main-fields {
+
+    .field-row {
+      align-items: flex-start;
+
+      .icon-container {
+        margin-bottom: 0.2rem;
+        margin-top: 0;
+      }
+    }
+  }
+}
+
+
+.item-info.image-side {
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Badges para categorías y códigos */
+.dot-badge {
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+/* Estilos generales del formulario */
+.product-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    /* Espacio entre cada campo del formulario */
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    /* Espacio entre la etiqueta y el input */
+
+    label {
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        /* Asegura que el padding no afecte el ancho total */
+
+        &:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+    }
+
+    textarea {
+        resize: vertical;
+        /* Permite al usuario redimensionar verticalmente */
+    }
+}
+
+/* Estilos para los checkboxes */
+.form-checkboxes {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+
+.pick-products-table {
+    tr {
+        cursor: pointer;
+
+        &.selected {
+            background-color: green;
+            border-color: green;
+        }
+    }
+
+}
+
+
+
+.image-cell {
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img,
+  dot-no-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+
+
+/*Estilos para la card seleccionada*/
+
+.dot-card .card-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    h3 {
+        margin: 0;
+    }
+}
+
+
+
+
+.detail-row {
+    display: flex;
+    flex-direction: column; // Etiqueta arriba, valor abajo
+    gap: 0.25rem;
+}
+
+
+.detail-value {
+    color: var(--dot-text-color);
+    flex-grow: 1; /* Permite que el valor ocupe el espacio restante */
+}
+
+.selected-product-img {
+    max-width: 100%; 
+    max-height: 100%; 
+    object-fit: contain;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+}
+
+.detail-badges-wrapper,
+.detail-codes-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+
+.col-codes {
+    .code-wrapper {
+        white-space: nowrap;
+    }
+    
+    .code-item {
+        white-space: nowrap;
+        
+        .code-name {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+    }
+}
+
+
+
+
+/*Estilos para Card-multiselect*/
+.multiselect-card {
+  .card-header-info {
+    
+    .unit-type-block {
+      
+      .count-unit-layout {
+        
+        .unit-selection-group {
+          
+          .selected-units-list {
+            margin-top: 1rem; // Un poco de espacio entre el select y la lista
+            
+            h3 {
+              font-size: 0.9rem;
+              color: var(--dot-text-muted);
+              margin-bottom: 0.5rem;
+            }
+
+            .selected-unit-display {
+              display: flex;             // Activa Flexbox
+              align-items: center;       // Centra verticalmente los elementos
+              padding: 0.5rem 0.75rem;   // Espaciado interno
+              border: 1px solid var(--dot-border-color);
+              border-radius: var(--dot-border-radius);
+              margin-bottom: 0.5rem;     // Espacio entre cada unidad listada
+              gap: 0.75rem;              // Espacio entre los items de la unidad (label, value)
+
+              .display-value-item {
+                font-size: 0.875rem;
+                color: var(--dot-text-primary);
+                
+                &:first-of-type {
+                  font-weight: bold; // Para que el nombre de la unidad se destaque
+                }
+              }
+
+              // Mover el botón "borrar" al final de la línea
+              .dot-btn.icon.danger.sm {
+                margin-left: auto; // Esto empuja el botón a la derecha
+                flex-shrink: 0;    // Evita que el botón se encoja si no hay espacio
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.unit-type-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; /* Espacio entre el h3 y el grupo de selección */
+    width: 100%;
+    
+    h3 {
+        margin-bottom: 0; /* Elimina el margen inferior predeterminado del h3 */
+        color: var(--dot-color-primary, #007bff);
+        font-size: 1.17em; /* Vuelve a un tamaño de h3 estándar si se alteró */
+    }
+}
+
+
+.inventory-unit-section,
+.count-unit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dot-text-primary);
+    margin-bottom: 0.5rem;
+  }
+}
+
+
+.unit-selection-group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+
+.selected-units-list {
+  display: flex;
+  flex-direction: column; 
+  gap: 0.5rem;
+  flex-grow: 1;
+  min-width: 150px;
+}
+
+
+//Estilos para la modal
+.modal-form-container {
+    .product-form {
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+
+            @media (min-width: 768px) {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+       
+    }
+}
+
+
+/*Estilos para Card-multiselect*/
+.multiselect-card {
+  .card-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    .unit-type-block {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+
+      h3 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+      }
+
+      .inventory-unit-section,
+      .count-unit-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        dot-select {
+          width: 100%;
+        }
+      }
+
+      .selected-units-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+
+        .selected-unit-display {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.75rem 1rem;
+          border: 1px solid var(--dot-border-color);
+          border-radius: var(--dot-border-radius);
+          background-color: var(--dot-surface-light);
+          gap: 1rem;
+
+          .display-value-item {
+            font-size: 0.875rem;
+            color: var(--dot-text-primary);
+            
+            &:first-of-type {
+              font-weight: 600;
+              flex: 1;
+            }
+            
+            &:nth-of-type(2) {
+              flex: 0.5;
+              text-align: center;
+              color: var(--dot-text-muted);
+            }
+          }
+
+          .dot-btn.icon.danger.sm {
+            margin-left: auto;
+            flex-shrink: 0;
+          }
+        }
+      }
+
+      .selected-unit-display {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--dot-border-color);
+        border-radius: var(--dot-border-radius);
+        background-color: var(--dot-surface-light);
+        gap: 1rem;
+        margin-top: 0.5rem;
+
+        .display-value-item {
+          font-size: 0.875rem;
+          color: var(--dot-text-primary);
+          
+          &:first-of-type {
+            font-weight: 600;
+            flex: 1;
+          }
+          
+          &:nth-of-type(2) {
+            flex: 0.5;
+            text-align: center;
+            color: var(--dot-text-muted);
+          }
+        }
+
+        .dot-btn.icon.danger.sm {
+          margin-left: auto;
+          flex-shrink: 0;
+        }
+      }
+    }
+  }
+}
+
+
+
+
+

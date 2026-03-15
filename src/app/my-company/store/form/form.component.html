@@ -1,0 +1,571 @@
+<ng-template #templateRef>
+    <div class="cont">
+        <dot-go-back fallback="store"/>
+        <div class="dot-column gap-05">
+            @if (actualStore()) {
+            <h2>
+                {{actualStore()?.storeName}}
+            </h2>
+            <span class="dot-badge success not-bordered">Disponible</span>
+            } @else {
+            <h2>
+                Tienda
+            </h2>
+            <span class="dot-badge new not-bordered">Nueva</span>
+            }
+        </div>
+    </div>
+
+    <div class="cont">
+        @if (!isEditMode()) {
+        <button (click)="onSubmit()" class="dot-btn success">
+            <i class="fa-solid fa-check"></i>
+            Crear
+        </button>
+        }
+    </div>
+</ng-template>
+<ng-template #form>
+    <form>
+        <dot-input [field]="storeForm.externalCode" label="Código externo" icon="fa-solid fa-hashtag" />
+
+        <dot-input [field]="storeForm.storeName" label="Nombre" icon="fa-solid fa-store" />
+
+        <dot-input [field]="storeForm.description" label="Descripción" icon="fa-solid fa-store" />
+
+        <dot-input [field]="storeForm.storeAddress" label="Dirección" icon="fa-solid fa-map-location-dot" />
+
+        <dot-input [field]="storeForm.idCostCenter" label="Centro de Costo" icon="fa-solid fa-building-columns" />
+    </form>
+</ng-template>
+
+<dot-section-wrapper [headerRef]="templateRef" [withStickyToolbar]="true" [columns]="isEditMode() ? '1fr .5fr' : '1fr'">
+    @if (!isEditMode()) {
+    <div class="section-col">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <h3>Información de la tienda</h3>
+            </div>
+
+            <div *ngTemplateOutlet="form"></div>
+        </div>
+    </div>
+    } @else {
+    <div class="section-col">
+        <div class="dot-card shadow">
+            <div class="toolbar">
+                <div class="card-header products-header">
+                    <div class="dot-row gap-05 align-center">
+                        <h3>Productos de compras</h3>
+                        <span class="dot-badge secondary">{{ storeProductsController.GetData().totalItems }}</span>
+                    </div>
+
+                    <button class="dot-btn success add-product-button" [class.md]="!isMobile()"
+                        (click)="productListModal.openModal()">
+                        <i class="fa-solid fa-plus"></i>
+
+                        Agregar producto
+                    </button>
+                </div>
+                <dot-search [controller]="storeProductsController"
+                    placeholder="Nombre, Descripción, ID Plantilla, Unidad de Inventario" [noCollapse]="true"
+                    [fullWidth]="true" />
+            </div>
+
+            <div class="dot-table">
+            <table class="table-striped">
+                <dot-table-caption [controller]="storeProductsController" [center]="true" />
+                <dot-sorter-header [controller]="storeProductsController" [headers]="storeProductsColumns" />
+
+                <tbody>
+                    @for (product of storeProductsController.GetData().data; track product.id) {
+                    <tr>
+                        <td>
+                            <div class="dot-col gap-05">
+                                <span class="dot-anchor" (click)="getStoreProduct(product.id, product.productTemplate.id)">
+                                    {{ product.productName }}
+                                </span>
+
+                                <div class="dot-row gap-05 align-center">
+                                    @if (product.itemSale) {
+                                        <span class="dot-badge success sm not-bordered">Venta</span>
+                                    }
+                                    @switch (product.tagId) {
+                                        @case (1) {
+                                            <span class="dot-badge sm not-bordered raw-material">Materia Prima</span>
+                                        } @case (2) {
+                                            <span class="dot-badge warning sm not-bordered">Receta</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td class="sku-cell">
+                            {{ product.sku }}
+                        </td>
+                        <td [matTooltip]="product.description.length > 20 ? product.description : ''">
+                            {{ product.description | slice:0:20 }} {{ product.description.length > 20 ? '...' : '' }}
+                        </td>
+                        <td class="center">
+                            {{ product.costs.costEstimated | clpCurrency }}
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            <dot-pagination [controller]="storeProductsController" />
+        </div>
+    </div>
+
+    @if (isEditMode() && actualStore()) {
+
+    <div class="section-col sticky">
+        <div class="dot-card shadow store-resume" [class.transparent]="!isMobile()">
+            <div class="readonly-supplier-info-container">
+                <div class="header">
+                    <h3>Ficha de la tienda</h3>
+                    @if (STORE_CAN_UPDATE) {
+                    <button class="dot-btn" (click)="openEditStoreModal()">
+                        Editar
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    }
+                </div>
+
+                <div class="item">
+                    <div class="icon-container">
+                        <i class="fa-solid fa-hashtag"></i>
+                    </div>
+                    <div class="item-info">
+                        <span class="label">Código externo</span>
+                        <span class="value">{{ actualStore()?.externalCode || '-' }}</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="icon-container">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div class="item-info">
+                        <span class="label">Nombre</span>
+                        <span class="value">{{ actualStore()?.storeName }}</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="icon-container">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </div>
+                    <div class="item-info">
+                        <span class="label">Descripción</span>
+                        <span class="value">{{ actualStore()?.description }}</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="icon-container">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <div class="item-info">
+                        <span class="label">Dirección</span>
+                        <span class="value">{{ actualStore()?.storeAddress }}</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="icon-container">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                    <div class="item-info">
+                        <span class="label">Centro de costo</span>
+                        <span class="value">{{ actualStore()?.idCostCenter }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dot-card shadow store-resume" [class.transparent]="!isMobile()">
+            <div class="readonly-supplier-info-container">
+                <div class="header">
+                    <h3>Bodegas</h3>
+                    @if (STORE_CAN_UPDATE) {
+                    <button class="dot-btn" (click)="openWarehouseFormModal()">
+                        Agregar
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    }
+                </div>
+
+
+
+                @if (actualStore()?.warehouses && actualStore()!.warehouses.length > 0) {
+
+                @for (warehouse of actualStore()?.warehouses; track warehouse.id) {
+                <div class="item contact-supplier" (click)="openWarehouseFormModal(warehouse)">
+                    <div class="dot-row gap-1 align-center">
+                        <div class="icon-container">
+                            <i class="fa-solid fa-user"></i>
+                            <i class="fa-solid fa-pen"></i>
+                        </div>
+                        <div class="item-info">
+                            <span class="value">
+                                {{ warehouse.warehouseName }}
+                            </span>
+
+                            <span class="label">
+                                <i class="fa-solid fa-envelope"></i>
+                                {{ warehouse.warehouseAddress }}
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+                }
+
+                } @else {
+                <div class="empty-state">
+                    <i class="fa-solid fa-warehouse"></i>
+                    <span>No hay bodegas registradas</span>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+    }
+    }
+</dot-section-wrapper>
+
+<ng-template #paginationProductList>
+    <dot-pagination [controller]="templateProductsController" />
+</ng-template>
+
+<ng-template #productListHeaderActions>
+    <div class="toolbar">
+        <p class="stepper-instruction">
+            <i class="fa-solid fa-circle-info"></i>
+            Busca y selecciona tu producto.
+        </p>
+        <div class="dot-row gap-05 align-center">
+            <dot-filter [controller]="templateProductsController" [columns]="templateProductsColumns" />
+            <dot-search [controller]="templateProductsController" [noCollapse]="true" [fullWidth]="true" />
+        </div>
+
+        <dot-table-caption [controller]="templateProductsController" [noTable]="true" [center]="true" />
+    </div>
+
+</ng-template>
+
+<dot-modal #productListModal tittleText="Productos" [footerRef]="paginationProductList"
+    [headerRef]="productListHeaderActions" [longModal]="isMobile()" [isLateral]="true">
+
+    <div class="product-list-container">
+        @for (product of templateProductsController.GetData().data; track product.id) {
+        <div class="product-list-item" (click)="selectTemplateProduct(product)">
+            <div class="img-container">
+                @if (product.image) {
+                <img ngSrc="{{ product.image }}" alt="" [width]="60" [height]="60" loading="lazy">
+                } @else {
+                <dot-no-image />
+                }
+            </div>
+            <div class="product-info-container">
+                <span class="product-name">
+                    {{ product.name }}
+                </span>
+
+                <div class="product-cat-container">
+                    @for (category of product.categories; track category.id) {
+                    <span class="dot-badge sm">
+                        {{ category.name }}
+                    </span>
+                    }
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</dot-modal>
+
+<dot-modal 
+    #productAddModal 
+    [tittleText]="actualProductSelected()?.name || 'Agregar producto'" 
+    modalType="success"
+    [steps]="[secondBodyRef, thirdBodyRef]" 
+    [canLeaveStep]="[productForm().valid(), !!selectedMainUnit()]"
+    [stepButtonTexts]="['Siguiente', 'Siguiente']" 
+    (callback)="handleProductFormSubmit()" 
+    [longModal]="true"
+    (onClose)="resetProductStepperModal()" 
+    (cancelCallback)="handleProductFormSubmit()"
+    cancelText="Guardar"
+    [showCancelInSteps]="[isEditProductMode(),isEditProductMode(),false]"
+>
+    <form>
+        <p class="stepper-instruction">
+            Completa la información del producto antes de asignar límites, información importante para stock y
+            proveedores del producto para esta tienda.
+        </p> 
+
+        <div class="dot-row gap-1 wrap">
+            <dot-input class="readonly-input" [field]="productForm.productName" label="Nombre del producto" icon="fa-solid fa-tag" />
+
+            <dot-input [field]="productForm.sku" label="SKU" icon="fa-solid fa-barcode" />
+        </div>
+
+        <dot-input [field]="productForm.description" label="Descripción" icon="fa-solid fa-file-lines" />
+
+
+        <label class="dot-checkbox inline success md mt-05">
+            <input type="checkbox" [field]="productForm.isSellable">
+            <div class="dot-checkbox-box"></div>
+            <div class="dot-label-text">Habilitado para venta</div>
+        </label>
+    </form>
+</dot-modal>
+
+<ng-template #secondBodyRef>
+    <div class="second-step-container">
+        <form class="limits-form">
+            <div class="form-description">
+                - Configura los límites de stock y cantida maxima de compra para este producto en la tienda.
+            </div>
+
+            <div class="dot-row gap-05 align-center wrap">
+                <dot-input [field]="limitsForm.minimalStock" type="number" label="Stock mínimo"
+                    icon="fa-solid fa-arrow-down" />
+
+                <dot-input [field]="limitsForm.maximalStock" type="number" label="Stock máximo"
+                    icon="fa-solid fa-arrow-up" />
+
+                <dot-input [field]="limitsForm.maxQuantity" type="number" label="Cantidad maxima de compra"
+                    icon="fa-solid fa-boxes-packing" />
+            </div>
+        </form>
+
+        <form class="matrix-form">
+            <div class="form-description">
+                - Configura las unidades de medida del producto
+            </div>
+
+            <div class="units-matrix-container">
+                <div class="main-unit">
+                    <dot-select #baseUnitSelect [options]="baseUnits()" searchBy="name" label="Unidad principal *"
+                        icon="fa-solid fa-ruler" [fullWidth]="true" [withNullOption]="true"
+                        (changeOption)="onMainUnitSelect($event)" />
+
+                    <div class="unit-info-card">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>La unidad principal es la unidad base de inventario para este producto en la tienda.</span>
+                    </div>
+                </div>
+
+                <div class="separator"></div>
+
+                <div class="matrix-unit" [class.empty]="posiblesMatrixUnits().length === 0 || !selectedMainUnit()"
+                    loading>
+                    @if (!selectedMainUnit()) {
+                    <div class="empty-state">
+                        <i class="fa-solid fa-ruler"></i>
+                        Selecciona una unidad principal para ver las unidades de la matriz
+                    </div>
+                    } @else {
+                    @for (unit of posiblesMatrixUnits(); track unit.id) {
+                    <label class="dot-checkbox inline success md mt-05">
+                        <input type="checkbox" [checked]="isMatrixUnitSelected(unit.id)"
+                            (change)="toggleMatrixUnitSelection(unit)">
+                        <div class="dot-checkbox-box"></div>
+                        <div class="dot-label-text unit-name">
+                            {{ unit.name }}
+                            <div class="dot-col no-gap mt-05">
+                                <div class="unit-desc">{{ unit.description }}</div>
+                                <div class="unit-factor">
+                                    Conversión: {{ unit.factor }}
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                    } @empty {
+                    <div class="empty-state">
+                        <i class="fa-solid fa-ruler"></i>
+                        No hay unidades disponibles para esta matriz
+                    </div>
+                    }
+                    <div class="unit-info-card">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Selecciona las unidades adicionales en las que este producto puede ser medido o vendido.</span>
+                    </div>
+                    }
+                    
+                </div>
+                
+            </div>
+        </form>
+    </div>
+
+</ng-template>
+
+<ng-template #thirdBodyRef>
+    <div class="supplier-product-container">
+        <!-- Lista izquierda: Proveedores asignados al producto (DESTINO) -->
+        <div class="assigned-suppliers-section">
+            <div class="list-header">
+                <div class="dot-row gap-05">
+                    <h4>Proveedores asignados</h4>
+                    <span class="dot-badge secondary">{{ assignedSuppliers().length }}</span>
+                </div>
+
+                @if (isMobile()) {
+                <button class="dot-btn success secondary sm" (click)="openSupplierSelectionModal()">
+                    <i class="fa-solid fa-plus"></i>
+                    Agregar proveedor
+                </button>
+                }
+            </div>
+            <div class="ranking-hint">
+                <i class="fa-solid fa-circle-question"></i>
+                El orden define la preferencia donde 1 es mayor prioridad.
+            </div>
+            <div #assignedList="cdkDropList" class="assigned-suppliers-list" cdkDropList
+                (cdkDropListDropped)="dropAssignedSupplier($event)" [cdkDropListData]="assignedSuppliers()"
+                [cdkDropListConnectedTo]="[availableList]">
+
+                @for (supplier of assignedSuppliers(); track supplier.id) {
+                <div cdkDrag class="item-supplier assigned" [cdkDragData]="supplier">
+                    <span class="position-badge">{{ $index + 1 }}</span>
+                    <span class="supplier-name">{{ supplier.supplierName }}</span>
+                    <i class="fa-solid fa-grip-vertical"></i>
+                </div>
+                } @empty {
+                <div class="empty-state">
+                    <p>Arrastra proveedores aquí</p>
+                </div>
+                }
+
+            </div>
+        </div>
+
+        <!-- Separador -->
+        @if (!isMobile()) {
+        <div class="separator"></div>
+        }
+
+        <!-- Lista derecha: Todos los proveedores disponibles (ORIGEN) -->
+        <div class="available-suppliers-section">
+            <div class="list-header">
+                <div class="dot-row gap-05">
+                    <h4>Proveedores disponibles</h4>
+                    <span class="dot-badge secondary">{{ availableSuppliers().length }}</span>
+                </div>
+            </div>
+            <div #availableList="cdkDropList" class="available-suppliers-list" cdkDropList
+                (cdkDropListDropped)="dropAvailableSupplier($event)" [cdkDropListConnectedTo]="[assignedList]">
+
+                @for (supplier of availableSuppliers(); track supplier.id) {
+                <div cdkDrag class="item-supplier available" [cdkDragData]="supplier">
+                    <span class="supplier-name">{{ supplier.supplierName }}</span>
+                    <i class="fa-solid fa-grip-vertical"></i>
+                </div>
+                } @empty {
+                <div class="empty-state">
+                    <p>Todos los proveedores están asignados</p>
+                </div>
+                }
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<!-- //MOBILE SUPPLIER SELECTION -->
+<dot-modal #supplierSelectionModal tittleText="Seleccionar proveedores" [noFooter]="true" [longModal]="true">
+    <div class="supplier-selection-list">
+        @for (supplier of availableSuppliers(); track supplier.id) {
+        <div class="supplier-select-item" [class.selected]="isSupplierAssigned(supplier.id)"
+            (click)="toggleSupplierSelection(supplier)">
+            <span class="supplier-name">{{ supplier.supplierName }}</span>
+            @if (isSupplierAssigned(supplier.id)) {
+            <span class="dot-badge success">Seleccionado</span>
+            }
+        </div>
+        } @empty {
+        <div class="empty-state">
+            <p>No hay proveedores disponibles</p>
+        </div>
+        }
+    </div>
+</dot-modal>
+
+<dot-modal #editStoreModal 
+    tittleText="Editar tienda" 
+    modalType="success" 
+    okText="Guardar cambios" 
+    [withCancel]="true"
+    (callback)="onSubmit()" 
+    [longModal]="true" 
+    (cancelCallback)="editStoreModal.closeModal()"
+    [disabledIf]="storeForm().invalid()" 
+    (onClose)="resetStoreForm()"
+>
+    <div *ngTemplateOutlet="form"></div>
+</dot-modal>
+
+<ng-template #warehouseFormTemplate>
+    <form>
+        <dot-input [field]="warehouseForm.warehouseName" label="Nombre de la bodega" icon="fa-solid fa-warehouse" />
+
+        <dot-input [field]="warehouseForm.description" label="Descripción" icon="fa-solid fa-pen-to-square" />
+
+        <dot-input [field]="warehouseForm.warehouseAddress" label="Dirección" icon="fa-solid fa-map-location-dot" />
+    </form>
+</ng-template>
+
+<dot-modal #warehousesModal tittleText="Gestión de Bodegas" modalType="success" okText="Aplicar" [withCancel]="true"
+    (callback)="applyWarehouses()" (cancelCallback)="warehousesModal.closeModal()">
+    <div class="dot-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Descripción</th>
+                    <th style="width: 80px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="4" class="add-row">
+                        <button class="dot-btn success secondary sm" (click)="openWarehouseFormModal()">
+                            <i class="fa-solid fa-plus"></i>
+                            Agregar bodega
+                        </button>
+                    </td>
+                </tr>
+                @for (warehouse of warehouses(); track warehouse.id) {
+                <tr>
+                    <td>{{ warehouse.warehouseName }}</td>
+                    <td>{{ warehouse.warehouseAddress }}</td>
+                    <td>{{ warehouse.description || '-' }}</td>
+                    <td>
+                        <button class="dot-btn sm" (click)="openWarehouseFormModal(warehouse)">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </td>
+                </tr>
+                } @empty {
+                <tr>
+                    <td colspan="4" class="empty-message">
+                        No hay bodegas registradas. Agrega una nueva bodega.
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</dot-modal>
+
+<dot-modal #warehouseFormModal [tittleText]="isWarehouseEditMode() ? 'Editar bodega' : 'Nueva bodega'"
+    modalType="success" okText="Guardar" [withCancel]="true" (callback)="saveWarehouse()"
+    (cancelCallback)="warehouseFormModal.closeModal()" [disabledIf]="warehouseForm().invalid()"
+    (onClose)="resetWarehouseForm()">
+    <div *ngTemplateOutlet="warehouseFormTemplate"></div>
+</dot-modal>

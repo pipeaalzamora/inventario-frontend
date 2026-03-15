@@ -1,0 +1,121 @@
+<div class="dot-card shadow">
+  <div class="card-header">
+    <h2>Stock Lento</h2>
+  </div>
+
+  <div class="card-body">
+    <div class="widget-description">
+      <p>Clasificación de productos según tiempo sin movimiento en inventario. Identifica stock obsoleto y moderado para optimizar gestión de almacén: <strong>Lentos >30 días</strong>, <strong>Moderados 15-29 días</strong>, <strong>Rápidos <15 días</strong>.</p>
+    </div>
+
+    <!-- Summary Table -->
+    <div class="table-section">
+      <h3>Resumen de Stock</h3>
+      <div class="table-wrapper">
+        <table class="slow-stock-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Producto</th>
+              <th>Días Sin Movimiento</th>
+              <th>Valor Bloqueado</th>
+              <th>Tienda</th>
+              <th>% del Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of summaryData(); track item.sku) {
+              <tr>
+                <td class="sku"><code>{{ item.sku }}</code></td>
+                <td>{{ item.productName }}</td>
+                <td>
+                  <span [ngClass]="getStockClass(item.daysSinceMovement)">
+                    {{ item.daysSinceMovement }}d
+                  </span>
+                </td>
+                <td class="value">${{ item.blockedValue.toLocaleString('es-ES') }}</td>
+                <td>{{ item.store }}</td>
+                <td class="percentage">{{ item.percentageOfTotal }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="tables-grid">
+      <div class="table-item">
+        <h3 class="table-title">Lentos (>30 días)</h3>
+        <div class="table-wrapper">
+          <table class="velocity-table">
+            <thead>
+              <tr>
+                <th>Ranking</th>
+                <th>Producto</th>
+                <th>Días</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of slowData(); track $index; let idx = $index) {
+                <tr>
+                  <td class="ranking">{{ idx + 1 }}</td>
+                  <td>{{ item.product }}</td>
+                  <td class="days"><span class="stock-slow">{{ item.days }}d</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-item">
+        <h3 class="table-title">Moderados (15-29 días)</h3>
+        <div class="table-wrapper">
+          <table class="velocity-table">
+            <thead>
+              <tr>
+                <th>Ranking</th>
+                <th>Producto</th>
+                <th>Días</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of moderateData(); track $index; let idx = $index) {
+                <tr>
+                  <td class="ranking">{{ idx + 1 }}</td>
+                  <td>{{ item.product }}</td>
+                  <td class="days"><span class="stock-moderate">{{ item.days }}d</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-item">
+        <h3 class="table-title">Rápidos (<15 días)</h3>
+        <div class="table-wrapper">
+          <table class="velocity-table">
+            <thead>
+              <tr>
+                <th>Ranking</th>
+                <th>Producto</th>
+                <th>Días</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of fastData(); track $index; let idx = $index) {
+                <tr>
+                  <td class="ranking">{{ idx + 1 }}</td>
+                  <td>{{ item.product }}</td>
+                  <td class="days"><span class="stock-fast">{{ item.days }}d</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

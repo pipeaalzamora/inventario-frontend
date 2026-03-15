@@ -1,0 +1,115 @@
+.status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-name {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: .2rem;
+}
+
+.product-img {
+    width: 100px;
+    height: 100px;
+}
+
+.image-cell {
+  width: 68px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  img,
+  dot-no-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    display: block;
+  }
+}
+
+.dot-badge{
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+tr.unavailable > td {
+    color: var(--text-disabled);
+}
+
+.new-product {
+    font-weight: 600;
+    font-size: .8rem;
+    padding: .3rem .5rem;
+    border-radius: 4px;
+    margin-left: .5rem;
+    background-color: var(--color-purple-600);
+    color: white;
+}
+
+.product-container {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: .5rem;
+    padding-block: .5rem;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.section-header {
+    justify-content: flex-start;
+    align-items: center;
+}
+
+h1 {
+    margin: 0;
+}
+
+
+/* Estilos para columna codigos */
+.col-codes {
+  min-width: 140px; 
+}
+
+.code-wrapper {
+  display: flex;
+  flex-direction: column; // Apila los códigos uno encima de otro
+  gap: 2px; // Espacio vertical entre cada código
+}
+
+.code-item {
+  display: flex; // Pone el Nombre y el Valor en la misma línea
+  align-items: baseline; // Alinea el texto por su base
+  gap: 4px; // Espacio entre los dos puntos ":" y el valor
+  font-size: 0.75rem; // 12px (letra pequeña para metadatos)
+  line-height: 1.2;
+  
+  .code-name {
+    font-weight: 600;
+    white-space: nowrap; // Evita que "GTIN/EAN-13" se rompa en dos líneas
+  }
+
+  .code-val {
+    color: var(--text-primary);
+    // word-break: break-all; // Descomenta si tienes códigos extremadamente largos sin espacios
+  }
+}
+
+.no-data {
+  color: #999;
+  font-size: 0.75rem;
+}

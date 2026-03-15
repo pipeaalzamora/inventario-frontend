@@ -1,0 +1,40 @@
+<div class="dot-card shadow">
+  <div class="card-header">
+    <h2>Proveedores - Entregas a Tiempo</h2>
+  </div>
+
+  <div class="card-body">
+    <div class="widget-description">
+      <p>Ranking de top 10 proveedores según su cumplimiento de entregas a tiempo en {{ currentMonth() }}. Métrica de confiabilidad y desempeño operacional.</p>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="suppliers-table">
+        <thead>
+          <tr>
+            <th class="ranking-col">Ranking</th>
+            <th>Proveedor</th>
+            <th class="percentage-col">% A Tiempo</th>
+            <th class="deliveries-col"># Entregas</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (supplier of suppliers(); track supplier.ranking) {
+            <tr>
+              <td class="ranking-col">
+                <span class="ranking-number">#{{ supplier.ranking }}</span>
+              </td>
+              <td class="supplier-name">{{ supplier.supplier }}</td>
+              <td class="percentage-col">
+                <span [ngClass]="getOnTimeClass(supplier.onTimePercentage)" class="ontime-badge">
+                  {{ supplier.onTimePercentage }}%
+                </span>
+              </td>
+              <td class="deliveries-col">{{ supplier.deliveries }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

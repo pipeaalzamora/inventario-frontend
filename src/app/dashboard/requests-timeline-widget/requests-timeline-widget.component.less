@@ -1,0 +1,91 @@
+.widget-description {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--background-3);
+  border-left: 4px solid var(--brand);
+  border-radius: 0.5rem;
+
+  p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.store-selector {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--background-4);
+  border-radius: 0.5rem;
+}
+
+.selector-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+}
+
+.selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.store-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+
+  input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--brand);
+  }
+
+  span {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border-left: 3px solid var(--border-light);
+    border-radius: 0.25rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--background-3);
+    }
+  }
+
+  input[type="checkbox"]:checked + span {
+    font-weight: 600;
+    color: var(--text-dark);
+    background: color-mix(in oklch, var(--brand) 10%, transparent 90%);
+  }
+}
+
+.chart-container {
+  position: relative;
+  height: 350px;
+  width: 100%;
+  margin-top: 1.5rem;
+
+  canvas {
+    max-height: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .selector-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .chart-container {
+    height: 400px;
+  }
+}

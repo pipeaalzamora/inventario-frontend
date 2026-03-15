@@ -1,0 +1,434 @@
+<section>
+
+    <div class="section-header">
+        <div class="section-header-item">
+
+            <div class="section-header-row">
+                <h1>
+                    @switch(mode()) {
+                        @case ('request') {
+                            Solicitudes
+                        } @case ('order') {
+                            Ordenes
+                        } @case ('receipt') {
+                            Recepciones
+                        }
+                    }
+                </h1>
+    
+                <span class="dot-badge tertiary lg">
+                    @switch(mode()) {
+                        @case('request') {
+                            {{ requestMetadata()?.total }}
+                        } @case ('order') {
+                            {{ orderMetadata()?.total }}
+                        } @case ('receipt') {
+                            {{ receiptMetadata()?.total }}
+                        }
+                    }
+                </span>
+            </div>
+        
+            <div class="mode-toggler shadow-inset" >
+                <div class="active-item shadow"></div>
+                <div 
+                    role="tab" 
+                    class="mode-toggler-item request"
+                    [class.active]="mode() === 'request'"
+                    (click)="mode.set('request')"
+                >
+                    Solicitudes
+                </div>
+        
+                <div 
+                    role="tab" 
+                    class="mode-toggler-item order"
+                    [class.active]="mode() === 'order'"
+                    (click)="mode.set('order')"
+                >
+                    Ordenes
+                </div>
+        
+                <div 
+                    role="tab" 
+                    class="mode-toggler-item receipt"
+                    [class.active]="mode() === 'receipt'"
+                    (click)="mode.set('receipt')"
+                >
+                    Recepciones
+                </div>
+            </div>
+        </div>
+
+        @if (isMobile()) {
+            <dot-mobile-create [options]="mobileCreateOptions" />
+        } @else {
+            @if ( CAN_CREATE ) {
+                <button class="dot-btn flashy" link="solicitud-form-new">
+                    <i class="fa-regular fa-plus"></i>
+                    <span>Crear solicitud</span>
+                </button>
+            }
+    
+            @if ( CAN_RESOLVE ) {
+                <button class="dot-btn flashy" link="purchase-order-form-new">
+                    <i class="fa-regular fa-plus"></i>
+                    <span>Crear orden</span>
+                </button>
+            }
+        }
+    </div>
+
+    <div class="dot-card shadow">
+        @switch (mode()) {
+            @case ('request') {
+                <ng-container *ngTemplateOutlet="requestTable"></ng-container>
+            } @case ('order') {
+                <ng-container *ngTemplateOutlet="orderTable"></ng-container>
+            } @case ('receipt') {
+                <ng-container *ngTemplateOutlet="receiptTable"></ng-container>
+            }
+        }
+        
+    </div>
+
+    <ng-template #orderTable>
+        <div class="toolbar">
+            <div class="col nowrap">
+                <dot-filter [controller]="orderController" [columns]="orderColumns" />
+                <dot-search 
+                    [controller]="orderController" 
+                    placeholder="Nombre, id, descr." 
+                    
+                    align="flex-end"
+                />
+            </div>
+        </div>
+
+        <div class="dot-table">
+            <table class="table-striped" loading>
+            <dot-table-caption [metadata]="orderMetadata()" [center]="isMobile()"/>
+            <dot-sorter-header [controller]="orderController" [headers]="orderColumns" />
+            <tbody >
+                @for (order of orderController.GetData().data; track order.id) {
+                    <tr>
+                        <td class="center">
+                            <ng-template #orderDisplayIdTrigger>
+                                <span class="dot-anchor no-wrap pointer">
+                                    {{ order.displayId }}
+                                </span>
+                            </ng-template>
+                            <dot-dropdown [dropdownTrigger]="orderDisplayIdTrigger" [fullWidth]="true">
+                                <button class="dot-btn" link="purchase-order-form" [params]="{ orderId: order.id }">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <span>Ver detalle</span>
+                                </button>
+                            </dot-dropdown>
+                        </td>
+                        <td>
+                            <span class="dot-badge all-width not-bordered"
+                                [class.danger]="order.status === 'rejected' || order.status === 'cancelled'"
+                                [class.contrast]="order.status === 'cancelled'|| order.status === 'completed'"
+                                [class.success]="order.status === 'on_delivery' || order.status === 'completed' || order.status === 'arrived' || order.status === 'edited'"
+                                [class.caution]="order.status === 'sunk'"
+                            >
+                                @switch (order.status) {
+                                    @case ('pending') {
+                                        Pendiente
+                                    } @case ('rejected') {
+                                        Rechazada
+                                    } @case ('completed') {
+                                        Completada
+                                    } @case ('sunk') {
+                                        No concretada
+                                    } @case ('on_delivery') {
+                                        En camino
+                                    } @case ('cancelled') {
+                                        Cancelada
+                                    } @case ('arrived') {
+                                        Recibido
+                                    } @case ('edited') {
+                                        Editado
+                                    }
+                                }
+                            </span>
+                        </td>
+                        <td>
+                            {{ order.supplierName }}
+                        </td>
+                        <td>
+                            {{ order.storeName }}
+                        </td>
+                        <td>
+                            {{ order.warehouseName }}
+                        </td>
+                        <td>
+                            <div class="date-time">
+                                <time datetime="dd/MM/yy">
+                                    {{ order.createdAt | date: 'dd/MM/yy' }}
+                                </time>
+
+                                <time datetime="hh:mm">
+                                    {{ order.createdAt | date: 'hh:mm' }}
+                                </time>
+                            </div>
+                        </td>
+                        <td class="center" [matTooltip]="order.updatedAt | date: 'dd/MM/yy hh:mm'">
+                            {{ order.updatedAt | humanDate}}
+                        </td>
+                        <!-- <td>
+                            <ng-template #dropdownOrderTrigger>
+                                <button class="dot-btn lg">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                                </button>
+                            </ng-template>
+
+                            <dot-dropdown [dropdownTrigger]="dropdownOrderTrigger" [fullWidth]="true">
+                                <button class="dot-btn" link="purchase-order-form" [params]="{ orderId: order.id }">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <span>
+                                        Ver detalle
+                                    </span>
+                                </button>
+                            </dot-dropdown>
+                        </td> -->
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <dot-pagination 
+            [metadata]="orderMetadata()" 
+            (changePage)="handlePageChangeOrder($event)"
+        />
+    </ng-template>
+
+    <ng-template #requestTable>
+        <div class="toolbar">
+            <div class="col nowrap">
+                <dot-filter [controller]="requestController" [columns]="requestColumns" />
+                <dot-search [controller]="requestController" placeholder="Nombre, id, descr." />
+            </div>
+        </div>
+
+        <div class="dot-table">
+            <table class="table-striped" loading>
+            <dot-table-caption [metadata]="requestMetadata()" [center]="isMobile()"/>
+            <dot-sorter-header [controller]="requestController" [headers]="requestColumns" />
+            <tbody >
+                @for (request of requestController.GetData().data; track request.id) {
+                    <tr>
+                        <td class="center">
+                            <dot-dropdown [dropdownTrigger]="requestDisplayIdTrigger" [fullWidth]="true">
+                                <ng-template #requestDisplayIdTrigger>
+                                    <span class="dot-anchor no-wrap pointer">
+                                        {{ request.displayId }}
+                                    </span>
+                                </ng-template>
+                                @if (request.status === 'approved' || request.status === 'completed') {
+                                    <button class="dot-btn" link="solicitud-orders" [params]="{ id: request.id }">
+                                        Ver ordenes de compra
+                                    </button>
+                                } @else {
+                                    <button class="dot-btn" link="solicitud-form" [params]="{ id: request.id }">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                        <span>
+                                            @if (request.status === 'conflicted' && CAN_RESOLVE) {
+                                                Gestionar solicitud
+                                            } @else if (request.status === 'conflicted' && !CAN_RESOLVE) {
+                                                Ver solicitud (solo lectura)
+                                            } @else if (request.status === 'rejected' && CAN_UPDATE) {
+                                                Editar solicitud
+                                            } @else {
+                                                Ver solicitud
+                                            }
+                                        </span>
+                                    </button>
+                                }
+                            </dot-dropdown>
+                        </td>
+                        <td>
+                            <span class="dot-badge all-width not-bordered"
+                                [class.caution]="request.status === 'conflicted'" 
+                                [class.danger]="request.status === 'rejected'" 
+                                [class.success]="request.status === 'approved' || request.status === 'completed'"
+                                [class.contrast]="request.status === 'completed'"
+                            >
+                                @switch (request.status) {
+                                    @case ('conflicted') {
+                                        Conflictos
+                                    } @case ('approved') {
+                                        Aprobada
+                                    } @case ('rejected') {
+                                        Rechazada
+                                    } @case ('cancelled') {
+                                        Cancelada
+                                    } @case ('completed') {
+                                        Completada
+                                    } @default {
+                                        Pendiente
+                                    }
+                                }
+                            </span>
+                        </td>
+                        <td class="capitalize">
+                            {{ request.requesterName }}
+                        </td>
+                        <td>
+                            {{ request.storeName }}
+                        </td>
+                        <td>
+                            {{ request.warehouseName }}
+                        </td>
+                        <td>
+                            {{ request.requestType }}
+                        </td>
+                        <td>
+                            <div class="date-time">
+                                <time datetime="dd/MM/yy">
+                                    {{ request.createdAt | date: 'dd/MM/yy' }}
+                                </time>
+
+                                <time datetime="hh:mm">
+                                    {{ request.createdAt | date: 'hh:mm' }}
+                                </time>
+                            </div>
+                        </td>
+                        <td class="center" [matTooltip]="request.updatedAt | date: 'dd/MM/yy hh:mm'">
+                            {{ request.updatedAt | humanDate}}
+                        </td>
+                        <!-- <td>
+                            @if (request.status !== 'cancelled') {
+                                <ng-template #dropdownRequestTrigger>
+                                    <button class="dot-btn lg">
+                                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                                    </button>
+                                </ng-template>
+
+                                <dot-dropdown [dropdownTrigger]="dropdownRequestTrigger">
+                                    @if (request.status === 'approved' || request.status === 'completed') {
+                                        <button class="dot-btn" link="solicitud-orders" [params]="{ id: request.id }">
+                                            Ver ordenes de compra
+                                        </button>
+                                    } @else {
+                                        <button class="dot-btn" link="solicitud-form" [params]="{ id: request.id }">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                            <span>
+                                                @if (request.status === 'conflicted' && CAN_RESOLVE) {
+                                                    Gestionar solicitud
+                                                } @else if (request.status === 'conflicted' && !CAN_RESOLVE) {
+                                                    Ver solicitud (solo lectura)
+                                                } @else if (request.status === 'rejected' && CAN_UPDATE) {
+                                                    Editar solicitud
+                                                } @else {
+                                                    Ver solicitud
+                                                }
+                                            </span>
+                                        </button>
+                                    }
+                                </dot-dropdown>
+                            }
+                        </td> -->
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <dot-pagination 
+            [metadata]="requestMetadata()"
+            (changePage)="handlePageChangeRequest($event)"
+        />
+    </ng-template>
+
+    <ng-template #receiptTable>
+        <div class="toolbar">
+            <div class="col nowrap">
+                <dot-filter [controller]="receiptController" [columns]="receiptColumns" />
+                <dot-search [controller]="receiptController" placeholder="Nombre, id, descr." />
+            </div>
+        </div>
+
+        <div class="dot-table">
+            <table class="table-striped" loading>
+            <dot-table-caption [metadata]="receiptMetadata()" [center]="isMobile()"/>
+            <dot-sorter-header [controller]="receiptController" [headers]="receiptColumns" />
+            <tbody >
+                @for (receipt of receiptController.GetData().data; track receipt.id) {
+                    <tr>
+                        <td class="center">
+                            <a class="dot-anchor no-wrap" link="receipt-detail" [params]="{ receiptId: receipt.id }">
+                                {{ receipt.display_id }}
+                            </a>
+                        </td>
+                        <td>
+                            <span class="dot-badge all-width not-bordered"
+                                [class.success]="receipt.status === 'completed'"
+                                [class.caution]="receipt.status === 'disputed'"
+                                [class.contrast]="receipt.status === 'completed' || receipt.status === 'cancelled' || receipt.status === 'disputed'"
+                                [class.danger]="receipt.status === 'cancelled'"
+                            >
+                                @switch(receipt.status) {
+                                    @case('completed') {
+                                        Completada
+                                    } @case ('disputed') {
+                                        En disputa
+                                    } @case ('cancelled') {
+                                        Cancelada
+                                    } @default {
+                                        Pendiente
+                                    }
+                                }
+                            </span>
+                        </td>
+                        <td class="capitalize">
+                            {{ receipt.user_name }}
+                        </td>
+                        <td>
+                            <div class="folios">
+                                <span>Factura: {{ receipt.folio_invoice === '' ? 'N/A' : receipt.folio_invoice}}</span>
+                                <span>Guia: {{ receipt.folio_guide === '' ? 'N/A' : receipt.folio_guide}}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {{ receipt.supplier_name }}
+                        </td>
+                        <td>
+                            {{ receipt.store_name }}
+                        </td>
+                        <td>
+                            {{ receipt.warehouse_name }}
+                        </td>
+                        <td class="center">
+                            {{ receipt.due_date | date: 'dd/MM/yy' }}
+                        </td>
+                        <td class="center">
+                            {{ receipt.total | clpCurrency }}
+                        </td>
+                        <td class="center">
+                            <div class="date-time">
+                                <time datetime="dd/MM/yy">
+                                    {{ receipt.created_at | date: 'dd/MM/yy' }}
+                                </time>
+
+                                <time datetime="hh:mm">
+                                    {{ receipt.created_at | date: 'hh:mm' }}
+                                </time>
+                            </div>
+                        </td>
+                        <td class="center" [matTooltip]="receipt.updated_at | date: 'dd/MM/yy hh:mm'">
+                            {{ receipt.updated_at| humanDate}}
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <dot-pagination
+            [metadata]="receiptMetadata()" 
+            (changePage)="handlePageChangeReceipt($event)"
+        />
+    </ng-template>
+</section>

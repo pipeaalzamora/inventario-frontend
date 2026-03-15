@@ -1,0 +1,340 @@
+
+
+.inventory-toolbar{
+    justify-content: space-between;
+    width: 100%;
+    @media (max-width: 750px) {
+        justify-content: flex-start;
+        flex-direction: column-reverse;
+
+        > * {
+            flex: none;
+            width: 100%;
+        }
+
+        
+        ::ng-deep dot-search label {
+            max-width: none !important;
+        }
+
+        .inventory-view-toggler-item {
+            display: inline-block;
+            width: 50%;
+            text-align: center;
+        }
+    }
+}
+
+.inventory-by-warehouse-table {
+    tbody tr td div.warehouse-tr {
+        padding: .75rem 1rem;
+        background-color: var(--background-2);
+        border-radius: 6px;
+    }
+}
+
+.limits-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: .5rem;
+    color: var(--text-disabled);
+
+    .limit-item {
+        font-size: 0.75rem;
+        color: var(--text-light);
+        line-height: 1.2rem;
+    }
+}
+
+.stock-level-cell {
+    gap: .2rem;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    .section-header {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        justify-content: flex-start;
+        gap: 2rem;
+
+        @media (max-width: 740px) {
+            justify-content: space-between;
+        }
+
+        @media (max-width: 500px) {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    .section-header-item {
+        flex-direction: column;
+        gap: .5rem;
+        align-items: flex-start;
+        width: fit-content;
+
+        .section-header-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            width: 100%;
+        }
+    }
+}
+
+.mode-toggler {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 6px;
+    padding: .5rem;
+    background-color: var(--background-1);
+    z-index: 50;
+    width: fit-content;
+
+    .mode-toggler-item {
+        cursor: pointer;
+        padding: .5rem 1rem;
+        z-index: 60;
+        color: var(--text-light);
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+
+        transition: color var(--animation-duration-default) ease-in-out, font-weight var(--animation-duration-default) ease-in-out;
+
+        &:hover {
+            color: var(--text);
+        }
+
+        &.active {
+            color: var(--text);
+            font-weight: 600;
+        }
+    }
+
+    .active-item {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: .5rem;
+        height: 80%;
+        border-radius: 6px;
+        background-color: var(--background-2);
+
+        transition: left var(--animation-duration-long) ease-in-out, width var(--animation-duration-long) ease-in-out;
+    }
+}
+
+.inventory-view-toggler {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 6px;
+    padding: .5rem;
+    background-color: var(--background-1);
+    z-index: 50;
+    width: fit-content;
+
+    .inventory-view-toggler-item {
+        cursor: pointer;
+        padding: .5rem 1rem;
+        z-index: 60;
+        color: var(--text-light);
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+
+        transition: color var(--animation-duration-default) ease-in-out, font-weight var(--animation-duration-default) ease-in-out;
+
+        &:hover {
+            color: var(--text);
+        }
+
+        &.active {
+            color: var(--text);
+            font-weight: 600;
+        }
+    }
+
+    .active-item {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: .5rem;
+        height: 80%;
+        border-radius: 6px;
+        background-color: var(--background-2);
+
+        transition: left var(--animation-duration-long) ease-in-out, width var(--animation-duration-long) ease-in-out;
+    }
+}
+
+.uncompleted-count {
+    color: var(--text-light);
+    font-style: italic;
+}
+
+.count-table {
+    tbody tr td:nth-child(3) {
+        padding-inline: .5rem;
+        min-width: 150px;
+    }
+}
+
+.fa-lock {
+    margin-right: .5rem;
+    color: var(--text-disabled);
+}
+
+// Estilo del SKU como trigger del dropdown
+.sku-cell .sku-trigger {
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+}
+
+// Estilos para celdas compuestas de inventario
+.composite-cell {
+    display: flex;    
+    gap: .5rem;
+
+    &.stock {
+        align-items: center;        
+        justify-content: center;        
+
+        .empty {
+            color: var(--text-disabled);
+            font-style: italic;
+        }
+
+        .stock-main {
+            font-weight: 600;
+
+            &.supplier-stock {
+                font-size: .9rem;
+                font-weight: normal;
+            }
+        }
+
+        .stock-details {
+            display: flex;
+            flex-direction: column;            
+            align-items: center;
+
+            .movement {
+                display: flex;                
+                align-items: center;
+                line-height: 0.8rem;
+                justify-content: flex-start;                
+                white-space: nowrap;
+                font-size: 0.8rem;
+
+                i{
+                    text-align: left;
+                    font-size: 0.8rem;
+                    width: 1rem;
+                    //margin-right: 1rem;
+                }
+
+                &.success {
+                    color: var(--success);
+                    i{
+                        color: var(--success);
+                    }
+                }
+
+                &.caution {
+                    color: var(--caution);
+                    i{
+                        color: var(--caution);
+                    }
+                }
+            }
+        }
+    }
+
+    &.cost {
+        align-items: center;
+        text-align: center;        
+        justify-content: center;
+
+        .cost-value {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .cost-avg {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .cost-trend {
+            margin-top: .3rem;
+            font-size: 1rem;
+            color: var(--text);
+
+            i {
+                display: inline-block;
+
+                &.danger {
+                    color: var(--danger);
+                }
+
+                &.success {
+                    color: var(--success);
+                }
+            }
+        }
+    }
+}
+
+.product-name {
+    font-weight: 500;
+    color: var(--text);
+}
+
+.warehouse-name {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.badges-container {
+    display: flex;
+    flex-direction: row;
+    gap: .5rem;
+    margin-top: .3rem;
+
+    .dot-badge {
+        font-size: 0.75rem;
+    }
+}
+
+.stock-alert {
+    font-size: 0.75rem;
+    margin-top: .3rem;
+    font-weight: 500;
+
+    &.danger {
+        color: var(--danger);
+    }
+
+    &.success {
+        color: var(--success);
+    }
+}
+
+/* reverted collapse toggle styles */
+

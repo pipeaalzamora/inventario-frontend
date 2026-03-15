@@ -1,0 +1,229 @@
+@if (statusHistory()) {
+    <div class="status-history-container">
+        <span class="line"></span>
+
+        @if (showOnlyLast()) {
+            @let status = statusHistory()[0];
+
+            <div class="status-item">
+                <div 
+                    class="status-icon shadow"
+                    [class.success]="status['newStatus'] === 'approved'" 
+                    [class.caution]="status['newStatus'] === 'conflicted'" 
+                    [class.danger]="status['newStatus'] === 'rejected'"
+                    [class.canceled]="status['newStatus'] === 'canceled'"
+                >
+                    @switch (status['newStatus']) {
+                        @case ('conflicted') {
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        } @case ('approved') {
+                            <i class="fa-solid fa-thumbs-up"></i>
+                        } @case ('rejected') {
+                            <i class="fa-solid fa-thumbs-down"></i>
+                        } @case ('canceled') {
+                            <i class="fa-solid fa-xmark"></i>
+                        } @case ('arrived') {
+                            <i class="fa-boxes-packing fa-solid"></i>
+                        } @default {
+                            <i class="fa-solid fa-gear"></i>
+                        }
+                    }
+                </div>
+                <div class="status-info-container shadow-inset" 
+                    [class.success]="status['newStatus'] === 'approved'" 
+                    [class.caution]="status['newStatus'] === 'conflicted'" 
+                    [class.danger]="status['newStatus'] === 'rejected'"
+                    [class.canceled]="status['newStatus'] === 'canceled'"
+                >
+                    <div class="status-info-header">
+                        <div class="status-info-title">
+                            @if (status['changedByName']) {
+                                <span class="status-info-by"> 
+                                    @switch (status['newStatus']) {
+                                        @case ('conflicted') {
+                                            Solicitado
+                                        } @case ('approved') {
+                                            Aprobada
+                                        } @case ('rejected') {
+                                            Rechazada
+                                        } @case ('canceled') {
+                                            Cancelada
+                                        }
+                                    }
+                                    por 
+                                    <strong>{{ status['changedByName'] }}</strong>
+                                </span>
+                            }
+                            <div class="status-info-badges">
+                                <span class="dot-badge contrast" 
+                                    [class.sm]="isMobile()"
+                                    [class.success]="status['newStatus'] === 'approved'" 
+                                    [class.caution]="status['newStatus'] === 'conflicted'" 
+                                    [class.danger]="status['newStatus'] === 'rejected'"
+                                > 
+                                    @switch(status['newStatus']) {
+                                        @case ('conflicted') {
+                                            Conflicto
+                                        } @case ('approved') {
+                                            Aprobada
+                                        } @case ('rejected') {
+                                            Rechazada
+                                        } @case ('canceled') {
+                                            Cancelada
+                                        } @default {
+                                            Pendiente
+                                        }
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                        <div class="date"
+                            [class.success]="status['newStatus'] === 'approved'" 
+                            [class.caution]="status['newStatus'] === 'conflicted'" 
+                            [class.danger]="status['newStatus'] === 'rejected'"
+                        >
+                            <time datetime="DD/MM/YYYY">{{ status['changedAt'] | date: 'dd/MM/yyyy' }}</time>
+                            <time datetime="HH:mm">{{ status['changedAt'] | date: 'HH:mm' }}</time>
+                        </div>
+                    </div>
+                    @if (status['observation']) {
+                        <div class="status-info-body"
+                            [class.success]="status['newStatus'] === 'approved'"
+                            [class.caution]="status['newStatus'] === 'conflicted'"
+                            [class.danger]="status['newStatus'] === 'rejected'"
+                            [class.canceled]="status['newStatus'] === 'canceled'"
+                        >
+                            <p>
+                                <strong>Observación: </strong>{{ status['observation'] }}
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        } @else {
+            @for (status of statusHistory(); track status['changedAt']) {
+                <div class="status-item">
+                    <div 
+                        class="status-icon shadow"
+                        (click)="status['newStatus'] === 'sunk' ? emitRedirect.emit() : null"
+                        [class.link]="status['newStatus'] === 'sunk'"
+                        [class.success]="status['newStatus'] === 'approved' || status['newStatus'] === 'completed' || status['newStatus'] === 'on_delivery'" 
+                        [class.caution]="status['newStatus'] === 'conflicted' || status['newStatus'] === 'sunk'" 
+                        [class.danger]="status['newStatus'] === 'rejected' || status['newStatus'] === 'cancelled'"
+                    >
+                        @switch (status['newStatus']) {
+                            @case ('conflicted'){
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            } @case ('approved') {
+                                <i class="fa-solid fa-thumbs-up"></i>
+                            } @case ('rejected') {
+                                <i class="fa-solid fa-thumbs-down"></i>
+                            } @case ('cancelled') {
+                                <i class="fa-solid fa-xmark"></i>
+                            } @case ('issued') {
+                                <i class="fa-solid fa-bullhorn"></i>
+                            } @case ('completed') {
+                                <i class="fa-solid fa-circle-check"></i>
+                            } @case('on_delivery') {
+                                <i class="fa-solid fa-truck-fast"></i>
+                            } @case('sunk') {
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            } @case ('arrived') {
+                                <i class="fa-boxes-packing fa-solid"></i>
+                            } @default {
+                                <i class="fa-solid fa-hourglass-half"></i>
+                            }
+                        }
+                    </div>
+                    <div class="status-info-container shadow-inset" 
+                        [class.success]="status['newStatus'] === 'approved' || status['newStatus'] === 'completed' || status['newStatus'] === 'on_delivery'" 
+                        [class.caution]="status['newStatus'] === 'conflicted' || status['newStatus'] === 'sunk'" 
+                        [class.danger]="status['newStatus'] === 'rejected' || status['newStatus'] === 'cancelled'"
+                    >
+                        <div class="status-info-header">
+                            <div class="status-info-title">
+                                <span class="status-info-by"> 
+                                    @if (status['changedByName']) {
+                                        @switch (status['newStatus']) {
+                                            @case ('conflicted') {
+                                                Solicitado
+                                            } @case ('approved') {
+                                                Aprobada
+                                            } @case ('rejected') {
+                                                Rechazada
+                                            } @case ('canceled') {
+                                                Cancelada
+                                            }
+                                        }
+                                        por 
+                                        <strong>{{ status['changedByName'] }}</strong>
+                                    }
+                                </span>
+                                <div class="status-info-badges">
+                                    @if ($last) {
+                                        <span class="dot-badge"
+                                            [class.sm]="isMobile()"
+                                        >
+                                            Inicialización
+                                        </span>
+                                    }
+                                    <span class="dot-badge"
+                                        [class.sm]="isMobile()"
+                                        [class.success]="status['newStatus'] === 'approved' || status['newStatus'] === 'completed' || status['newStatus'] === 'on_delivery'" 
+                                        [class.caution]="status['newStatus'] === 'conflicted' || status['newStatus'] === 'sunk'" 
+                                        [class.danger]="status['newStatus'] === 'rejected' || status['newStatus'] === 'cancelled'"
+                                        [class.contrast]="status['newStatus'] === 'completed' || status['newStatus'] === 'cancelled' || status['newStatus'] === 'sunk' || status['newStatus'] === 'arrived' || status['newStatus'] === 'edited'"
+                                    > 
+                                        @switch(status['newStatus']) {
+                                            @case ('conflicted') {
+                                                Conflicto
+                                            } @case ('approved') {
+                                                Aprobada
+                                            } @case ('rejected') {
+                                                Rechazada
+                                            } @case ('cancelled') {
+                                                Cancelada
+                                            } @case ('pending') {
+                                                Pendiente
+                                            } @case ('completed') {
+                                                Completado
+                                            } @case ('sunk') {
+                                                No concretada
+                                            } @case ('on_delivery') {
+                                                En camino
+                                            } @case ('arrived') {
+                                                Recibido
+                                            } @case ('edited') {
+                                                Editado
+                                            }
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="date"
+                                [class.success]="status['newStatus'] === 'approved' || status['newStatus'] === 'completed' || status['newStatus'] === 'on_delivery'" 
+                                [class.caution]="status['newStatus'] === 'conflicted' || status['newStatus'] === 'sunk'" 
+                                [class.danger]="status['newStatus'] === 'rejected'"
+                            >
+                                <time datetime="DD/MM/YYYY">{{ status['changedAt'] | date: 'dd/MM/yyyy' }}</time>
+                                <time datetime="HH:mm">{{ status['changedAt'] | date: 'HH:mm' }}</time>
+                            </div>
+                        </div>
+                        @if (status['observation']) {
+                            <div class="status-info-body"
+                                [class.success]="status['newStatus'] === 'approved'"
+                                [class.caution]="status['newStatus'] === 'conflicted'"
+                                [class.danger]="status['newStatus'] === 'rejected'"
+                                [class.canceled]="status['newStatus'] === 'cancelled'"
+                            >
+                                <p>
+                                    <strong>Observación: </strong>{{ status['observation'] }}
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}

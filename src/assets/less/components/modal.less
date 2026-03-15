@@ -1,0 +1,48 @@
+.dot-backdrop-modal {
+    background-color: rgba(0, 0, 0, 0.65);
+    // backdrop-filter: blur(1.5px); //goodbye prettyness :(
+    transition: opacity var(--animation-duration-default), top var(--animation-duration-default) ease-in-out, visibility var(--animation-duration-default) ease-in-out;
+
+    &.lateral {
+        .dot-modal {
+            border-radius: 32px 0 0 32px;
+        }
+    }
+}
+
+.dot-modal {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--background-3);
+    color: var(--text);
+    border-radius: 32px;
+    min-width: 20rem;
+    padding: 1.5rem;
+    gap: 1rem;
+    transform: translateY(30px);
+    transition: transform var(--animation-duration-default) ease-in-out, right var(--animation-duration-default) ease-in-out;
+
+    h2 {
+        margin: 0;
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .modal-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        gap: 1rem;
+    }
+
+    .modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+}

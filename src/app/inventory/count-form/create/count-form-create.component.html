@@ -1,0 +1,290 @@
+<ng-template #statusBadge>
+    <span class="dot-badge not-bordered no-wrap"
+        [class.success]="actualCount()?.status === 'completed'"
+        [class.contrast]="actualCount()?.status === 'completed' || actualCount()?.status === 'cancelled'"
+        [class.tertiary]="actualCount()?.status === 'in_progress'"
+        [class.danger]="actualCount()?.status === 'cancelled' || actualCount()?.status === 'rejected'"
+        [class.caution]="actualCount()?.status === 'un_assigned'"
+    >
+        @switch(actualCount()?.status) {
+            @case('pending') {
+                Pendiente
+            } @case('in_progress') {
+                En progreso
+            } @case('completed') {
+                Completado
+            } @case('cancelled') {
+                Cancelado
+            } @case('un_assigned') {
+                No asignado
+            } @case('rejected') {
+                Rechazado
+            }
+        }
+    </span>
+</ng-template>
+
+<ng-template #header>
+    <div class="cont">
+        <dot-go-back fallback="inventory"/>
+        <div class="dot-col no-gap">
+            <h1>Conteo @if (actualCount()) {{{actualCount()?.displayId}}}</h1>
+            @if (actualCount()) {
+                <div *ngTemplateOutlet="statusBadge"></div>
+            } @else {
+                <span class="dot-badge new not-bordered">Nuevo</span>
+            }
+        </div>
+    </div>
+
+    <div class="cont">
+        @if (!actualCount()) {
+            <button class="dot-btn success"
+                [disabled]="selectedProducts().length === 0"
+                (click)="createCount()"
+            >
+                <i class="fa-solid fa-floppy-disk"></i>
+                @if (!isMobile()) {
+                    Crear conteo
+                }
+            </button>
+        } @else {
+            <button class="dot-btn success"
+                [disabled]="selectedProducts().length === 0"
+                (click)="updateCount()"
+            >
+                <i class="fa-solid fa-floppy-disk"></i>
+                @if (!isMobile()) {
+                    Guardar cambios
+                }
+            </button>
+        }
+    </div>
+</ng-template> 
+
+<dot-section-wrapper 
+    [headerRef]="header" 
+    [withStickyToolbar]="true"
+    columns="1fr .9fr"
+>
+    <div class="section-col">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <div class="cont">
+                    <h3>
+                        Información del conteo
+                    </h3>
+                </div>
+            </div>
+
+            <form>
+                <div class="form-row">
+                    <dot-select
+                        [selected]="selectedWarehouse()"
+                        [options]="warehouses()"
+                        [searchBy]="searchByWarehouse"
+                        icon="fa-solid fa-warehouse"
+                        label="Bodega"
+                        [fullWidth]="true"
+                        (changeOption)="selectedWarehouse.set($event)"
+                    />
+
+                    <dot-select
+                        [options]="users()"
+                        [selected]="selectedUser()"
+                        [searchBy]="searchByUser"
+                        icon="fa-solid fa-user"
+                        label="Usuario asignado"
+                        [withNullOption]="true"
+                        [fullWidth]="true"
+                        (changeOption)="selectedUser.set($event)"
+                    />
+                </div>
+
+                <div class="datepicker-container">
+                    <dot-datepicker
+                        [minDate]="minDate"
+                        [(selectedDate)]="selectedDate"
+                        label="Fecha de inicio del conteo"
+                    />
+                    <span>
+                        Define desde qué día el usuario asignado podrá comenzar a realizar el conteo.
+                    </span>
+                </div>
+            </form>
+        </div>
+
+        <div class="dot-card shadow">
+            @if (selectedProducts().length > 0) {
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>
+                            Productos seleccionados
+                        </h3>
+                        <span class="dot-badge secondary">
+                            {{selectedProducts().length}}
+                        </span>
+                    </div>
+
+                    <button class="dot-btn" (click)="deleteAllSelectedProducts()">
+                        Eliminar selección
+                    </button>
+                </div>
+    
+                <div class="selected-products-list">
+                    @for (product of selectedProducts(); track product.id) {
+                        <div class="selected-product-item">
+                            <div class="selected-core-container">
+                                <div class="selected-img-container">
+                                    @if (product.image) {
+                                        <img 
+                                            ngSrc="{{ product.image }}" 
+                                            alt=""
+                                            [width]="40"
+                                            [height]="40"
+                                            loading="lazy"
+                                        >
+                                    } @else {
+                                        <dot-no-image />
+                                    }
+                                </div>
+                                <div class="selected-info-container">
+                                    <h5>
+                                        {{ product.productName }}
+                                    </h5>
+                                    <span class="product-sku">
+                                        {{ product.productTemplate.sku }}
+                                    </span>
+
+                                    <div class="units-container">
+                                        <!--
+                                        @for (unit of product; track unit.unitId) {
+                                            <span class="dot-badge dark unit-measure">
+                                                {{ unit.unitAbv | unitMeasures }}
+                                            </span>
+                                        }
+                                        -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- <dot-select 
+                                [options]="measureUnits"
+                                [searchBy]="searchByUnit"
+                                label="Unidades de medida"
+                                labelBackgroundColor="var(--background-4)"
+                                [multiSelect]="true"
+                            /> -->
+    
+                            <button 
+                                type="button" 
+                                class="dot-btn"
+                                (click)="removeProduct(product.id)"
+                            >
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            
+                        </div>
+                    }
+                </div>
+            } @else {
+                <div class="empty-selected-products">
+                    <i class="fa-solid fa-box-open"></i>
+                    <span>No hay productos seleccionados</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="section-col">
+        @if (!isMobile()) {
+            <div class="dot-card shadow sticky">
+                <div class="card-header">
+                    <div class="cont">
+                        <h3>Productos</h3>
+                        <span class="dot-badge secondary">
+                            {{ controller.GetData().totalItems }}
+                        </span>
+                    </div>
+                </div>
+    
+                <div *ngTemplateOutlet="productList"></div>
+            </div>
+        }
+    </div>
+</dot-section-wrapper>
+
+@if (isMobile()) {
+    <button class="dot-btn success modal-opener" (click)="productsModal.openModal()">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+}
+
+<ng-template #productList>
+    <div class="toolbar"
+        [class.mt-1]="isMobile()"
+    >
+        @if (!isMobile()) {
+            <div class="col">
+                <dot-filter [controller]="controller" [columns]="columns"/>
+                <dot-search [controller]="controller" [noCollapse]="true"/>
+            </div>
+        } @else {
+            <dot-search [controller]="controller" [noCollapse]="true" [fullWidth]="true"/>
+        }
+    </div>
+
+    <table class="pick-products-table">
+        <dot-sorter-header [controller]="controller" [headers]="columns" />
+        <dot-table-caption [controller]="controller" [center]="isMobile()"/>
+
+        <tbody class="pick-products">
+            @for (product of controller.GetData().data; track product.id) {
+                <tr (click)="selectProduct(product)" [class.selected]="isSelected(product.id)">
+                    <td align="center">
+                        <div class="img-container" loading>
+                            @if (product.image) {
+                                <img 
+                                    ngSrc="{{ product.image }}" 
+                                    alt=""
+                                    [width]="40"
+                                    [height]="40"
+                                    loading="lazy"
+                                >
+                            } @else {
+                                <dot-no-image [contrast]="isSelected(product.id)"/>
+                            }
+                        </div>
+                    </td>
+                    <td>
+                        {{ product.productName }}
+                    </td>
+                    <td class="center">
+                        {{ product.totals.currentStock }}
+                    </td>
+                    <td class="center">
+                        <span class="dot-badge unit-measure all-width">
+                            {{ product.unitInventory.abbreviation }}
+                        </span>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!isMobile()) {
+        <dot-pagination [controller]="controller" />
+    }
+</ng-template>
+    
+<ng-template #paginationMobile>
+    <dot-pagination [controller]="controller" />
+</ng-template>
+
+<dot-modal #productsModal
+    tittleText="Productos"
+    [footerRef]="paginationMobile"
+    [longModal]="true"
+>
+    <div *ngTemplateOutlet="productList"></div>
+</dot-modal>

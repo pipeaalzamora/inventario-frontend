@@ -1,0 +1,68 @@
+<section>
+	<div class="section-header">
+		<div class="section-header-item">
+			<div class="section-header-row">
+				<h1>Recetas</h1>
+			</div>
+		</div>
+	</div>
+
+	<div class="dot-card shadow">
+		<div class="toolbar">
+			<div class="col nowrap">
+				<dot-filter [columns]="recipesColumns" [controller]="recipesController" />
+				<dot-search [controller]="recipesController" placeholder="Buscar receta..." />
+			</div>
+		</div>
+
+		<div class="dot-table">
+			<table class="">
+				<dot-table-caption [controller]="recipesController" />
+				<dot-sorter-header [headers]="recipesColumns" [controller]="recipesController" [headerTopTemplate]="headerTop" />
+
+				<tbody>
+					@for (item of recipesController.GetData().data; track item.sku) {
+					<tr>
+						<td class="sku">{{ item.sku }}</td>
+						<td class="image">
+							<dot-no-image class="recipe-image" />
+						</td>
+						<td class="name">
+							<div class="name-content">
+								<span class="name-text">{{ item.nombre }}</span>
+								@if (item.precioVenta > 0) {
+									<span class="dot-badge sm badge-plato">Plato</span>
+								}
+							</div>
+						</td>
+
+						<td class="number">{{ item.costoTotal | clpCurrency }}</td>
+						<td class="number">{{ item.proteccion10 !== null ? (item.proteccion10 | clpCurrency) : '-' }}</td>
+						<td class="number">{{ item.iva ? (item.iva | clpCurrency) : '-' }}</td>
+						<td class="number">{{ item.costoFinal ? (item.costoFinal | clpCurrency) : '-' }}</td>
+						<td class="number">{{ item.porcentajeCosto ? (item.porcentajeCosto | number: '1.0-2') + '%' : '-' }}</td>
+						<td class="number">{{ item.precioVenta ? (item.precioVenta | clpCurrency) : '-' }}</td>
+
+						<td class="tiendas">
+							<ul class="tiendas-list">
+								@for (tienda of item.tiendas; track tienda) {
+									<li>{{ tienda }}</li>
+								}
+							</ul>
+						</td>
+					</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+
+		<dot-pagination [controller]="recipesController"></dot-pagination>
+	</div>
+</section>
+
+<ng-template #headerTop>
+	<tr class="header-top">
+		<th class="centerCol header-receta" colspan="3">Receta</th>
+		<th class="centerCol header-promedios" colspan="7">Promedios</th>
+	</tr>
+</ng-template>

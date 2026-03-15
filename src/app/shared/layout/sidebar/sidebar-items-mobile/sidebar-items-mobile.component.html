@@ -1,0 +1,58 @@
+@if(item()?.isMenuVisible) {
+<div class="sidenav-item-mobile">
+@if (handleDisable()) {
+    <a link="{{ item()?.name }}" class="itemLink" (click)="closeMenu.emit()"></a>
+}
+<mat-expansion-panel
+    [disabled]="handleDisable()"
+    [class.active]="item() && actualRoute().includes(item()!.name)"
+>
+    <mat-expansion-panel-header>
+        <mat-panel-title>
+            <i class="{{ item()?.icon }}"></i>
+            <span class="matText">
+                {{ item()?.text }}
+            </span>
+        </mat-panel-title>
+    </mat-expansion-panel-header>
+    @if (checkForChilds(item())) {
+        <ul>
+            @for (subItem of item()?.menuList; track $index) {
+                @if (subItem?.isMenuVisible) {
+                    @if (checkForChilds(subItem)) {
+                        <mat-expansion-panel>
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    <i class="{{ subItem?.icon }}"></i>
+                                    <span class="matText">
+                                        {{ subItem?.text }}
+                                    </span>
+                                </mat-panel-title>
+                            </mat-expansion-panel-header>
+                            <ul>
+                                @for (subSubItem of subItem?.menuList; track $index) {
+                                    @if (subSubItem?.isMenuVisible) {
+                                        <a link="{{ subSubItem?.name }}" class="subItemLink" (click)="closeMenu.emit()">
+                                            <li>{{ subSubItem?.text }}</li>
+                                        </a>
+                                    }
+                                }
+                            </ul>
+                        </mat-expansion-panel>
+                    } @else {
+                        <a link="{{ subItem?.name }}" class="subItemLink" (click)="closeMenu.emit()">
+                            <li
+                                [class.active]="actualRoute().includes(subItem.name)"
+                            >
+                                <i class="{{ subItem?.icon }}"></i>
+                                <span>{{ subItem?.text }}</span>
+                            </li>
+                        </a>
+                    }
+                }
+            }
+        </ul>
+    }
+</mat-expansion-panel>
+</div>
+}

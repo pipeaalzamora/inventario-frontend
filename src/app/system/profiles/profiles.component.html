@@ -1,0 +1,119 @@
+<section>
+    <div class="section-header">
+        <h1>Perfiles</h1>
+        <span class="dot-badge tertiary lg">{{profiles().length}}</span>
+
+        @if ( POWER_CAN_CREATE ) {
+            @if (!isMobile()) {
+                <button class="dot-btn flashy ml-2" link="profile-form-new">
+                    <i class="fa-regular fa-plus"></i>
+                    <span>Crear perfil</span>
+                </button>
+            } @else {
+                <button class="dot-btn create" link="profile-form-new">
+                    <i class="fa-regular fa-plus"></i>
+                </button>
+            }
+        }
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="toolbar">
+            @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                    <dot-search [controller]="controller" placeholder="Nombre, id, descr."/>
+                </div>
+            } @else {
+                <div class="col">
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, id, descr."/>
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                </div>
+            }
+        </div>
+        <div class="dot-table">
+            <table class="table-striped">
+            <dot-table-caption [controller]="controller" />
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            <tbody>
+                @for (profile of controller.GetData().data; track profile.id) {
+                    <tr>
+                        
+                        <td>
+                            @if (POWER_CAN_HANDLE) {
+                                <dot-dropdown [dropdownTrigger]="profileNameTrigger" [fullWidth]="true">
+                                    <ng-template #profileNameTrigger>
+                                        <a class="dot-anchor">
+                                            {{ profile.profileName }}
+                                        </a>
+                                    </ng-template>
+                                    @if (POWER_CAN_UPDATE) {
+                                        <button class="dot-btn" link="profile-form" [params]="{ id: profile.id }">
+                                            <i class="fa-regular fa-pen-to-square"></i>
+                                            <span>Editar</span>
+                                        </button>
+                                    }
+                                    @if (POWER_CAN_DELETE) {
+                                        <button class="dot-btn" (click)="deleteModal.openModal(profile.id)">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                            <span>Eliminar</span>
+                                        </button>
+                                    }
+                                </dot-dropdown>
+                            } @else {
+                                <td>{{ profile.profileName }}</td>
+                            }
+                        </td>
+                        <td>{{ profile.description }}</td>
+                        <td class="powers-td">
+                            <div class="powers-container">
+                                @for (profilePower of limitedPowers(profile.powers); track profilePower.id) {
+                                    <span class="dot-badge" [class.sm]="isMobile()"> {{ profilePower.displayName }} </span>
+                                } @empty {
+                                    <span> Sin permisos </span>
+                                }
+
+                                @if (profile.powers.length > limitedPowers(profile.powers).length) {
+                                    <span class="dot-anchor" role="button" (click)="selectProfile(profile)">
+                                        Ver todos ({{ profile.powers.length }})
+                                    </span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>
+
+<dot-modal 
+    okText="Eliminar"
+    (callback)="deleteProfile($event)"
+    #deleteModal
+>
+    <p>Estas seguro de eliminar el perfil?</p>
+</dot-modal>
+
+<dot-modal
+    #profilePowersModal
+    [tittleText]="selectedProfile() ? selectedProfile()!.profileName : ''"
+    [noFooter]="true"
+    [longModal]="true"
+>
+    <dot-search
+        [controller]="detailPowersController"
+        placeholder="Nombre, ID permiso, ID categoría"
+        [fullWidth]="true"
+        [noCollapse]="true"
+    />
+
+    <div class="powers-list">
+        @for (power of detailPowersController.GetData().data; track power.id) {
+            <span class="dot-badge" [class.sm]="isMobile()"> {{ power.displayName }} </span>
+        }
+    </div>
+</dot-modal>

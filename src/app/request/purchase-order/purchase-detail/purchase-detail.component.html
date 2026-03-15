@@ -1,0 +1,520 @@
+<ng-template #statusBadge>
+    <span class="dot-badge not-bordered"
+        [class.danger]="actualPurchase()?.status === 'rejected' || actualPurchase()?.status === 'cancelled'"
+        [class.contrast]="actualPurchase()?.status === 'cancelled'|| actualPurchase()?.status === 'completed' || actualPurchase()?.status === 'sunk'"
+        [class.success]="actualPurchase()?.status === 'on_delivery' || actualPurchase()?.status === 'completed' || actualPurchase()?.status === 'arrived'"
+        [class.caution]="actualPurchase()?.status === 'sunk'"
+    >
+        @switch (actualPurchase()?.status) {
+            @case ('pending') {
+                Pendiente
+            } @case ('rejected') {
+                Rechazada
+            } @case ('completed') {
+                Completada
+            } @case ('sunk') {
+                No concretada
+            } @case ('on_delivery') {
+                En camino
+            } @case ('arrived') {
+                Recibido
+            } @case ('edited') {
+                Editado
+            } @case ('cancelled') {
+                Cancelada
+            }
+        }
+    </span>
+</ng-template>
+
+<ng-template #headerRef>
+    <div class="cont">
+            <dot-go-back fallback="request" />
+            <div class="dot-col no-gap">
+                <h1>
+                    @if (!isMobile()) {Orden} {{ actualPurchase()?.displayId }}</h1>
+                <div *ngTemplateOutlet="statusBadge"></div>
+            </div>
+    </div>
+    <div class="cont">
+        @if (CAN_RESOLVE) {
+            <ng-template #dropdownTrigger>
+                <button class="dot-btn">
+                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                </button>
+            </ng-template>
+
+            <dot-dropdown [dropdownTrigger]="dropdownTrigger">
+                <button 
+                    class="dot-btn" 
+                    (click)="retryModal.openModal()"
+                    [disabled]="!someProductRejected() || actualPurchase()?.status === 'completed'"
+                >
+                    <i class="fa-solid fa-share-from-square"></i>
+                    Enviar a otro proveedor
+                </button>
+                <button 
+                    class="dot-btn danger"
+                    (click)="cancelOrder.openModal()"
+                    [disabled]="actualPurchase()?.status !== 'pending'"
+                >
+                    <i class="fa-solid fa-ban"></i>
+                    Cancelar orden
+                </button>
+
+                @if (isMobile()) {
+                    @if (actualPurchase() && actualPurchase()?.status === 'pending' && CAN_APPROVE) {
+                        <button  class="dot-btn success" (click)="approveOrder.openModal()">
+                            <i class="fa-solid fa-circle-check"></i>
+                            Aprobar orden
+                        </button>
+                    }
+
+                    @if (actualPurchase() && actualPurchase()?.status === 'on_delivery') {
+                        <!-- <button  class="dot-btn success" link="goods-receipt" [params]="{ purchaseId: actualPurchase()!.id }" [replace]="true">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            Recibir productos
+                        </button> -->
+                        <button  class="dot-btn success" link="goods-receipt" [params]="{ purchaseId: actualPurchase()!.id }">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            Recibir productos
+                        </button>
+                    }
+                }
+            </dot-dropdown>
+
+            @if (!isMobile()) {
+                @if (actualPurchase() && actualPurchase()?.status === 'pending' && CAN_APPROVE) {
+                    <button  class="dot-btn success" (click)="approveOrder.openModal()">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Aprobar orden
+                    </button>
+                }
+    
+                @if (actualPurchase() && actualPurchase()?.status === 'on_delivery') {
+                    <!-- <button  class="dot-btn success" link="goods-receipt" [params]="{ purchaseId: actualPurchase()!.id }" [replace]="true">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        Recibir productos
+                    </button> -->
+                    <button  class="dot-btn success" link="goods-receipt" [params]="{ purchaseId: actualPurchase()!.id }" >
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        Recibir productos
+                    </button>
+                }
+            }
+        }
+    </div>
+</ng-template>
+
+<dot-section-wrapper [withStickyToolbar]="true" [headerRef]="headerRef" columns=".5fr 1fr">
+    <div class="section-col">
+        <div class="dot-card shadow">
+            <div class="card-header">
+                <h3>Información de la orden</h3>
+            </div>
+
+            <div class="info-container">
+                <div class="info-item-core">
+                    <div class="core-item no-gap">
+                        <span class="core-item-label">N° de orden</span>
+                        <span class="core-item-value">
+                            <dot-copy-clipboard-button [value]="actualPurchase()?.displayId" />
+                        </span>
+                    </div>
+                    <div class="core-item">
+                        <span class="core-item-label">Fecha de creación</span>
+                        <span class="core-item-value">
+                            <i class="fa-regular fa-calendar"></i>
+                            <time datetime="DD/MM/YYYY">
+                                {{ actualPurchase()?.createdAt | date: 'dd/MM/yyyy' }}
+                            </time>
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Proveedor</span>
+                    <span class="info-item-value">{{ actualPurchase()?.supplierName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Tienda</span>
+                    <span class="info-item-value">{{ actualPurchase()?.storeName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Destino</span>
+                    <span class="info-item-value">{{ actualPurchase()?.warehouseName }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Solicitud</span>
+                    <span class="info-item-value">
+                        <a class="dot-anchor" link="solicitud-orders" [params]="{ id: actualPurchase()?.inventoryRequestId! }">
+                            Ir a la solicitud
+
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        </a>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="dot-card shadow more-info">
+            <div class="card-header">
+                <h3>Más información</h3>
+            </div>
+
+            <div class="info-container">
+                <div class="info-item-core">
+                    <div class="core-item">
+                        <span class="core-item-label">Dirección destino</span>
+                        <span class="core-item-value">
+                            <i class="fa-solid fa-location-dot"></i>
+                            {{ actualPurchase()?.warehouseAddress }}
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Teléfono bodega</span>
+                    <span class="info-item-value">{{ actualPurchase()?.warehousePhone }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-item-label">Teléfono proveedor</span>
+                    <span class="info-item-value">{{ actualPurchase()?.supplierPhone }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-col" id="order-status-container">
+        @if (actualPurchase()?.deliveryPurchaseNoteId && actualPurchase()?.status !== 'edited') {
+            <div class="dot-card success shadow delivery-note" #deliveryNoteCard>
+                <div class="card-header">
+                    <h3>¡Productos entregados!</h3>
+                    <button class="dot-btn" (click)="removeDeliveryNoteCard(deliveryNoteCard)">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="delivery-note-body">
+                    <p>
+                        Los artículos de esta orden ya llegaron a su destino. Puedes revisar los detalles de la recepción para confirmar cantidades y adjuntar documentos.
+                    </p>
+
+                    <div class="action-container">
+                        <a 
+                            class="dot-btn success"
+                            link="receipt-detail" 
+                            [params]="{ receiptId: actualPurchase()!.deliveryPurchaseNoteId!}"
+                        >
+                            Ver detalles de la recepción
+                            <i class="fa-regular fa-share-from-square"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="display-id-container">
+                    <div class="display-id-label">
+                        ID de recepción:
+                    </div>
+                    <span class="dot-badge secondary not-bordered">
+                        {{ actualPurchase()?.deliveryPurchaseNoteDisplayId }}
+                    </span>
+                </div>
+            </div>
+        }
+
+        <div class="dot-card shadow order-status">
+            <div class="card-header order-status-header">
+                <h3>Estado de la orden</h3>
+                <div class="shipment-info-item">
+                    <span class="shipment-info-item-value">Última actualización: </span>
+                    <span class="shipment-info-item-value">{{ actualPurchase()?.updatedAt | date: 'dd/MM/yyyy' }} {{ actualPurchase()?.updatedAt | date: 'HH:mm' }}</span>
+                </div>
+            </div>
+
+            @if (actualPurchase(); as purchase) {
+                <div class="timeline-container">
+                    <dot-timeline 
+                        [actualStatus]="purchase.status"
+                        [predefined]="predefinedTimeline"
+                        [statusHistory]="purchase.purchaseHistory!"
+                        customColor="var(--background-4)"
+                        [redirectOptions]="childLinks()"
+                    />
+                </div>
+            }
+        </div>
+
+        @if (isMobile()) {
+            <div class="section-row">
+                <div class="dot-card shadow">
+                    <div class="card-header">
+                        <div class="cont">
+                            <h3>Detalle de productos</h3>
+                            <span class="dot-badge secondary">{{products().length}}</span>
+                        </div>
+                    </div>
+                    <div *ngTemplateOutlet="productsRef"></div>
+                </div>
+    
+                <div class="dot-card shadow">
+                    <div class="card-header">
+                        <div class="cont">
+                            <h3>Observaciones y Comentarios</h3>
+                            <span class="dot-badge secondary">
+                                {{this.actualPurchase()?.purchaseHistory?.length}}
+                            </span>
+                        </div>
+                    </div>
+    
+                    <div *ngTemplateOutlet="commentsRef"></div>
+                </div>
+            </div>
+        } @else {
+            <div class="dot-card shadow">
+                <dot-tabs 
+                    [templates]="{
+                        'Detalle de productos': { content: productsRef },
+                        'Observaciones y comentarios': { label: commentsHeader, content: commentsRef },
+                    }"
+                    align="start"
+                    [stretchLabels]="true"
+                />
+            </div>
+        }
+    </div>
+</dot-section-wrapper>
+
+<ng-template #productsRef>
+    <div class="dot-table table-resume">
+        <table class="mt-1">
+            <dot-sorter-header [controller]="productController" [headers]="productColumns" [minimalist]="true"/>
+            <tbody>
+                @for (product of productController.GetData().data; track product.id) {
+                    <tr>
+                        <td>
+                            <div class="dot-col gap-05">
+                                {{ product.productName }}
+                                <!-- {{ product.sku }} -->
+                            </div>
+                        </td>
+                        <td align="center">
+                            <span class="dot-badge not-bordered sm"
+                                [class.success]="product.status === 'approved' || product.status === 'delivered'"
+                                [class.danger]="product.status === 'rejected'"
+                                [class.contrast]="product.status === 'delivered' || product.status === 'retried'"
+                                [class.info]="product.status === 'retried'"
+                                [class.caution]="product.status === 'no_supplier'"
+                            >
+                                @switch (product.status) {
+                                    @case ('pending') {
+                                        Pendiente
+                                    } @case ('approved') {
+                                        Aprobado
+                                    } @case ('rejected') {
+                                        Rechazado
+                                    } @case ('delivered') {
+                                        Entregado
+                                    } @case ('retried') {
+                                        Reintentado
+                                    } @case ('no_supplier') {
+                                        Sin proveedor
+                                    }
+                                }
+                            </span>
+                        </td>
+                        <td>
+                            <div class="dot-badge all-width unit-measure">
+                                {{ product.purchaseUnit }}
+                            </div>
+                        </td>
+                        <td align="center">
+                            {{ product.quantity }}
+                        </td>
+                        <td class="center">
+                            {{ product.unitPrice | clpCurrency}}
+                        </td>
+                        <td class="center">
+                            {{ product.subtotal | clpCurrency}}
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="total-amounts-container mt-1">
+            <div class="total-amounts">
+                <span>Subtotal</span>
+                <span>{{subTotalAmount() | clpCurrency}}</span>
+            </div>
+            <div class="total-amounts">
+                <span>Descuento</span>
+                <span>-{{discountAmount() | clpCurrency}}</span>
+            </div>
+            <div class="total-amounts">
+                <span>IVA ({{TAX_AMOUNT}}%)</span>
+                <span>{{taxAmount() | clpCurrency}}</span>
+            </div>
+            <hr>
+            <div class="total-amounts">
+                <span>Total</span>
+                <span>{{totalAmount() | clpCurrency}}</span>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #commentsHeader>
+    Observaciones y comentarios <span class="dot-badge sm ml-05">{{this.actualPurchase()?.purchaseHistory?.length}}</span>
+</ng-template>
+
+<ng-template #commentsRef>
+    <div class="comments">
+        @if (actualPurchase()?.purchaseHistory) {
+            <dot-status-history [statusHistory]="actualPurchase()!.purchaseHistory!" (emitRedirect)="redirectToSonPurchase()"/>
+        }
+    </div>
+</ng-template>
+
+<dot-modal #cancelOrder
+    tittleText="Gestionar orden"
+    [noFooter]="true"
+>
+    <div class="manage-container-header">
+        <div class="manage-container-summary">
+            <span class="manage-row">
+                <span class="manage-label">Proveedor:</span>
+                <span class="manage-value"> {{ actualPurchase()?.supplierName }} </span>
+            </span>
+            <span class="manage-row">
+                <span class="manage-label">Tienda:</span>
+                <span class="manage-value"> {{ actualPurchase()?.storeName }} </span>
+            </span>
+            <span class="manage-row">
+                <span class="manage-label">Destino:</span>
+                <span class="manage-value"> {{ actualPurchase()?.warehouseName }} </span>
+            </span>
+            <span class="manage-row">
+                <span class="manage-label">Estado actual:</span>
+                <span class="manage-value"> 
+                    <span class="dot-badge not-bordered sm"
+                        [class.danger]="actualPurchase()?.status === 'rejected' || actualPurchase()?.status === 'cancelled'"
+                        [class.contrast]="actualPurchase()?.status === 'cancelled'|| actualPurchase()?.status === 'completed'"
+                        [class.success]="actualPurchase()?.status === 'on_delivery' || actualPurchase()?.status === 'completed' || actualPurchase()?.status === 'arrived' || actualPurchase()?.status === 'edited'"
+                        [class.caution]="actualPurchase()?.status === 'sunk'"
+                    >
+                        @switch (actualPurchase()?.status) {
+                            @case ('pending') {
+                                Pendiente
+                            } @case ('rejected') {
+                                Rechazada
+                            } @case ('completed') {
+                                Completada
+                            } @case ('sunk') {
+                                No concretada
+                            } @case ('on_delivery') {
+                                En camino
+                            } @case ('cancelled') {
+                                Cancelada
+                            } @case ('arrived') {
+                                Recibido
+                            } @case ('edited') {
+                                Editado
+                            }
+                        }
+                    </span>
+                </span>
+            </span>
+        </div>
+        <span class="manage-powers">
+            <i class="fa-solid fa-shield"></i>
+            Tienes permisos para gestionar esta orden de compra
+        </span>
+    </div>
+
+    <div class="manage-action mt-1">
+        <label class="dot-label textarea" 
+            dot-input
+            [withValueConfirmation]="true"
+        >
+            <div class="dot-label-icon">
+                <i class="fa-solid fa-comment"></i>
+            </div>
+            <span class="dot-label-text">Observación</span>
+            <textarea
+                placeholder="Esta observación dejará un registro en la solicitud." 
+                (input)="setObservationValue($event)"
+            ></textarea>
+        </label>
+        <button 
+            class="dot-btn danger lg" 
+            (click)="cancelPurchase()"
+            [disabled]="observationValue().length <= 0"
+        >
+            Cancelar orden
+        </button>
+    </div>
+</dot-modal>
+
+<dot-modal #approveOrder
+    tittleText="Aprobar orden"
+    [withCancel]="true"
+    [modalType]="'success'"
+    (cancelCallback)="approveOrder.closeModal()"
+    (callback)="approvePurchase(); approveOrder.closeModal()"
+    okText="Aprobar"
+>
+    <div class="modal-approve-info-container">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <p>
+            Si continúas, se omitirá el proceso de revisión del proveedor. Solo deberías avanzar si cuentas con su autorización.
+            Al aprobar, la orden cambiará al estado <strong>En camino.</strong>
+        </p>
+    </div>
+    <span class="manage-powers">
+        <i class="fa-solid fa-shield"></i>
+        Tienes permisos para realizar esta acción
+    </span>
+</dot-modal>
+ 
+<dot-modal 
+    #retryModal
+    [noFooter]="true"
+>
+    <p class="modal-text-rejected">Los siguientes productos rechazados por el proveedor actual se moverán a otra orden de compra con un proveedor diferente</p>
+    <table class="product-rejected">
+        <thead>
+            <tr>
+                <th>
+                    Nombre producto
+                </th>
+                <th class="center">
+                    Cantidad
+                </th>
+                <th class="center">
+                    Subtotal (CLP)
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @for(product of rejectedProducts(); track product.id) {
+                <tr>
+                    <td>
+                        {{ product.productName }}
+                    </td>
+                    <td class="center">
+                        {{ product.quantity }}
+                    </td>
+                    <td class="center">
+                        {{ product.subtotal }}
+                    </td>
+                </tr>            
+            }
+        </tbody>
+    </table>
+
+    <div class="actions">
+        <button class="dot-btn lg success" (click)="retryPurchase()">
+            <i class="fa-solid fa-share-from-square"></i>
+            Reintentar con otro proveedor
+        </button>
+    </div>
+</dot-modal>

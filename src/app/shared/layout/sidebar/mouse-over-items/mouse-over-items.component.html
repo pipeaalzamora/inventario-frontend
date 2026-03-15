@@ -1,0 +1,74 @@
+<div [class.show]="item() && item()?.isMenuVisible" class="sidenav-first-layer">
+    <section class="sidenav-menuList-first-layer" (mouseenter)="handleMouseEnter()" (mouseleave)="handleMouseLeave($event)" (scroll)="onScroll()">
+        <header>
+            <div>
+                @if (item()?.loadComponent) {
+                    <!-- <a link="{{ item()?.name }}" [replace]="true">
+                        <i class="{{ item()?.icon }}"></i>
+                        <span class="matText">
+                            {{ item()?.text }}
+                        </span>
+                    </a> -->
+                    <a link="{{ item()?.name }}" >
+                        <i class="{{ item()?.icon }}"></i>
+                        <span class="matText">
+                            {{ item()?.text }}
+                        </span>
+                    </a>
+                } @else {
+                    <h3 class="pl-1">{{ item()?.text }}</h3>
+                }
+            </div>
+        </header>
+        <main>
+            @if (itemHasChilds(item())) {
+                <ul>
+                    @for ( secondItem of item()?.menuList; track $index) {
+                        @if (secondItem.isMenuVisible) {
+                            @if (itemHasChilds(secondItem)) {
+                                <span class="subItem" 
+                                    (click)="selectSecondItemClick(secondItem)"
+                                    (mouseenter)="selectSecondItem(secondItem)"
+                                    (mouseleave)="handleItemMouseLeave($event)"
+                                    [class.active]="actualRoute().includes(secondItem.name)"
+                                >
+                                    <li>{{secondItem.text}}</li>
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </span>
+                            } @else {
+                                <!-- <a link="{{ secondItem.name }}"
+                                    [replace]="true"
+                                    (click)="handleClickOut()"
+                                    class="subItemLink"
+                                    [class.active]="actualRoute().includes(secondItem.name)"
+                                > -->
+                                <a link="{{ secondItem.name }}"
+                                    (click)="handleClickOut()"
+                                    class="subItemLink"
+                                    [class.active]="actualRoute().includes(secondItem.name)"
+                                >
+                                    <li>
+                                        @if (secondItem.icon) {
+                                            <i class="{{ secondItem.icon }}"></i>
+                                        }
+                                        
+                                        <span>{{secondItem.text}}</span>
+                                    </li>
+                                </a>
+                            }
+                        }
+                    }
+                </ul>
+            }
+        </main>
+    </section>
+
+    <dot-mouse-over-second-layer 
+        [item]="secondItemClick ?? secondItemHover!" 
+        (clickedOut)="handleClickOut()"
+        (hoverOut)="handleSecondLayerMouseLeave($event)"
+        (secondItem)="selectSecondItem($event)"
+    />
+
+    <div class="sidenav-backdrop" (click)="handleClickOut()"></div>
+</div>

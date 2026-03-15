@@ -1,0 +1,263 @@
+<ng-template #headerRef>
+  <div class="cont">
+    <dot-go-back fallback="inventory"/>
+    <div class="dot-col no-gap">
+      <h1>Movimientos @if (!isMobile()) { de producto }</h1>
+      <span class="dot-badge secondary not-bordered" loading>{{ product()?.productTemplate?.sku }}</span>
+    </div>
+  </div>
+  <div class="cont"></div>
+</ng-template>
+
+<dot-section-wrapper 
+  [headerRef]="headerRef"
+  [withStickyToolbar]="true"
+  [columns]="'.7fr 1fr'"
+>
+  <div class="section-col sticky">
+    <div class="dot-card shadow product-card">
+      <div class="product-header">
+        <div class="img-container" loading>
+          @if (product()?.image) {
+            <img [src]="product()?.image" [alt]="product()?.productName"/>
+          } @else {
+            <dot-no-image/>
+          }
+        </div>
+
+        <div class="product-info">
+          <div class="product-main">
+            <span class="sku" loading>{{ product()?.productTemplate?.sku }}</span>
+            <h1 class="product-name" loading>{{ product()?.productName }}</h1>
+            <p class="description" loading>{{ product()?.description }}</p>
+          </div>
+
+          <div class="product-badges">
+            @if (product()?.itemSale) {
+              <span class="dot-badge success not-bordered">Venta directa</span>
+            }
+            @if (product()?.useRecipe) {
+              <span class="dot-badge secondary not-bordered">Usa receta</span>
+            }
+            @if (product()?.unitInventory) {
+              <span class="dot-badge unit-measure">{{ product()?.unitInventory?.name }} ({{ product()?.unitInventory?.abbreviation }})</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-container">
+        <div class="stat-item">
+          <span class="stat-label" loading>Stock Total</span>
+          <span class="stat-value" loading>{{ product()?.totals?.currentStock ?? '-' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" loading>Costo Promedio</span>
+          <span class="stat-value" loading>{{ product()?.totals?.avgCost | clpCurrency }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" loading>Costo Estimado</span>
+          <span class="stat-value" loading>{{ product()?.costs?.costEstimated | clpCurrency }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" loading>Stock Mínimo</span>
+          <span class="stat-value" loading>{{ product()?.quantities?.minimalStock ?? '-' }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" loading>Stock Máximo</span>
+          <span class="stat-value" loading>{{ product()?.quantities?.maximalStock ?? '-' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selector de bodega -->
+    <div class="dot-card shadow warehouse-card">
+      <div class="card-header">
+        <h3>Bodega</h3>
+        <dot-select
+          [options]="warehouses()"
+          [selected]="selectedWarehouse()"
+          searchBy="warehouseName"
+          label="Seleccionar bodega"
+          icon="fa-solid fa-warehouse"
+          (changeOption)="onWarehouseChange($event)"
+        />
+      </div>
+
+      <div class="stat-container">
+        <div class="stat-item for-badge">
+          <div class="dot-col">
+            <span class="stat-label" loading>Stock en bodega</span>
+            <span class="stat-value" loading>{{ currentWarehouseStock().currentStock }}</span>
+          </div>
+        </div>
+        <div class="stat-item for-badge">
+          <span class="stat-label" loading>Salud de stock</span>
+          @if (product() && currentWarehouseStock().currentStock < product()!.quantities.minimalStock) {
+            <span class="dot-badge caution not-bordered contrast">Stock bajo</span>
+          } @else if (product() && currentWarehouseStock().currentStock > product()!.quantities.maximalStock) {
+            <span class="dot-badge info contrast not-bordered">Sobre stock</span>
+          } @else {
+            <span class="dot-badge success  not-bordered contrast">Stock óptimo</span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna derecha: Charts -->
+  <div class="section-col charts-col">
+    <div class="dot-card shadow chart-card">
+      <div class="card-header">
+        <h3>Stock Acumulado</h3>
+        @if (chartFiltersMessage()) {
+          <div class="filter-info">
+            <i class="fa-solid fa-filter"></i>
+            <span>{{ chartFiltersMessage() }}</span>
+          </div>
+        }
+      </div>
+      <div class="chart-wrapper" loading>
+        <canvas #stockChart></canvas>
+        @if (movementsLoaded() && !hasChartData()) {
+          <div class="chart-empty-state">
+            <div class="empty-content">
+              <i class="fa-solid fa-chart-line"></i>
+              <p>Sin datos para mostrar</p>
+              <span class="hint">No hay movimientos registrados para este producto</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="dot-card shadow chart-card">
+      <div class="card-header">
+        <h3>Movimientos por Día</h3>
+        @if (chartFiltersMessage()) {
+          <div class="filter-info">
+            <i class="fa-solid fa-filter"></i>
+            <span>{{ chartFiltersMessage() }}</span>
+          </div>
+        }
+      </div>
+      <div class="chart-wrapper" loading>
+        <canvas #movementsChart></canvas>
+        @if (movementsLoaded() && !hasChartData()) {
+          <div class="chart-empty-state">
+            <div class="empty-content">
+              <i class="fa-solid fa-chart-column"></i>
+              <p>Sin datos para mostrar</p>
+              <span class="hint">Los movimientos aparecerán aquí cuando se registren</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+  
+</dot-section-wrapper>
+
+<dot-section-wrapper [withStickyToolbar]="false" columns="1fr">
+  <div class="section-col">
+    <div class="dot-card shadow movements-table-card">
+      <div class="toolbar">
+        <div class="col nowrap">
+          <dot-filter [controller]="movementsController" [columns]="movementsColumns" />
+          <dot-search [controller]="movementsController" placeholder="Buscar movimiento..." />
+        </div>
+      </div>
+  
+      @if (movementsLoaded() && movementsController.GetData().totalItems === 0) {
+        <div class="empty-state">
+          <i class="fa-solid fa-clipboard-list"></i>
+          <p>No hay movimientos registrados</p>
+          <span class="hint">Los movimientos de este producto aparecerán aquí</span>
+        </div>
+      } @else {
+        <div class="dot-table">
+          <table class="table-striped movements-table">
+            <dot-table-caption [controller]="movementsController" />
+            <dot-sorter-header [controller]="movementsController" [headers]="movementsColumns" />
+  
+            <tbody>
+              @for (mov of movementsController.GetData().data; track mov.id) {
+                <tr>
+                  <td>
+                    <div class="date-cell">
+                      <span class="date">{{ mov.movedAt | date: 'd MMM y' }}</span>
+                      <span class="time">{{ mov.movedAt | date: 'HH:mm' }}</span>
+                    </div>
+                  </td>
+                  <td class="center">
+                    <span class="dot-badge sm not-bordered all-width movement-type-badge" 
+                      [class.success]="mov.movementType === 'NEWINPUT'" 
+                      [class.danger]="mov.movementType === 'NEWOUTPUT'"
+                    >
+                      @switch(mov.movementType) {
+                        @case('NEWINPUT') {
+                          <i class="fa-solid fa-arrow-down"></i>
+                          Entrada
+                        } @case ('NEWOUTPUT') {
+                          <i class="fa-solid fa-arrow-up"></i>
+                          Salida
+                        } @case ('TRANSFER') {
+                          <i class="fa-solid fa-arrows-left-right"></i>
+                          Transferencia
+                        }
+                      }
+                    </span>
+                  </td>
+                  <td class="center">
+                    <div class="dot-col gap-05 align-center justify-center">
+                      <span class="dot-badge secondary not-bordered all-width">
+                        @switch (mov.movementDocType) {
+                          @case ('OC') {
+                            ORDEN DE COMPRA
+                          } @case ('DN') {
+                            RECEPCIÓN
+                          }
+                        }
+                      </span>
+
+                      <a class="dot-anchor" [link]="mov.movementDocType === 'OC' ? 'purchase-order-form' : 'receipt-detail'" [params]="mov.movementDocType === 'OC' ?{ orderId: mov.purchaseId! } : { receiptId: mov.purchaseId! }">
+                        {{ mov.documentReference }}
+                      </a>
+                    </div>
+                  </td>
+                  <td class="center">
+                    <span [class.text-success]="mov.movementType === 'NEWINPUT'" [class.text-danger]="mov.movementType === 'NEWOUTPUT'">
+                      {{ mov.movementType === 'NEWINPUT' ? '+' : '-' }}{{ mov.quantity }}
+                    </span>
+                  </td>
+                  <td class="center">
+                    <div class="dot-col align-end stock-container">
+                      <span class="actual-stock">
+                        {{ mov.stockAfter }}
+                      </span>
+                      <span class="previous-stock">
+                        desde {{ mov.stockBefore }}
+                      </span>
+                    </div>
+                  </td>
+                  <td class="center">{{ mov.totalCost | clpCurrency }}</td>
+                  <td>
+                    @if (mov.movedBy === 'SYSTEM') {
+                      Sistema
+                    } @else {
+                      {{ mov.movedBy }}
+                    }
+                  </td>
+                  <td>{{ mov.observation }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+  
+        <dot-pagination [controller]="movementsController" />
+      }
+    </div>
+  </div>
+</dot-section-wrapper>
+

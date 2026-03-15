@@ -1,0 +1,113 @@
+<section>
+    <div class="section-header">
+        <h1>Plantilla de productos</h1>
+        <span class="dot-badge tertiary">{{controller.GetData().totalItems}}</span>
+
+        @if (CAN_CREATE_PRODUCT) {
+        @if (isMobile()) {
+        <button class="dot-btn create" link="product-form-new">
+            <i class="fa-regular fa-plus"></i>
+        </button>
+        } @else {
+        <button class="dot-btn flashy ml-2" link="product-form-new">
+            <i class="fa-regular fa-plus"></i>
+            <span>Crear plantilla</span>
+        </button>
+        }
+    }
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="toolbar">
+            @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, SKU, imagen, descr." />
+                </div>
+            } @else {
+                <div class="col">
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, SKU, imagen, descr." />
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                </div>
+            }
+        </div>
+        <div class="dot-table">
+            <table>
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            <dot-table-caption [controller]="controller" />
+            <tbody>
+                @for (product of controller.GetData().data; track product.id) {
+                <tr>
+                    <td>
+                        <dot-dropdown [dropdownTrigger]="productNameTrigger" [fullWidth]="true">
+                            <ng-template #productNameTrigger>
+                                <span class="product-name">
+                                    <a class="dot-anchor">{{ product.name }}</a>
+                                </span>
+                            </ng-template>
+                            @if (CAN_UPDATE_PRODUCT) {
+                                <button class="dot-btn" link="product-form" [params]="{ id: product.id }">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <span>Editar</span>
+                                </button>
+                            }
+                        </dot-dropdown>
+                    </td>
+                    <td class="sku-cell">
+                        <span class="sku">{{ skuOf(product) }}</span>
+                    </td>
+                    <td>
+                        <div class="image-cell">
+                            @if (product.image) {
+                            <img [src]="product.image" alt="Img producto" class="product-img">
+                            } @else {
+                            <dot-no-image></dot-no-image>
+                            }
+                        </div>
+                    </td>
+                    <td>{{product.description}}</td>
+                    <td>
+                        <div class="d-flex gap-1 flex-wrap">
+                            @for (cat of product.categories; track cat.name) {
+                            <span class="dot-badge secondary sm">
+                                {{ cat.name }}
+                            </span>
+                            } @empty {
+                            <span class="text-muted text-xs">-</span>
+                            }
+                        </div>
+                    </td>
+                    <td class="col-codes">
+                        <div class="code-wrapper">
+                            @for (c of product.codes; track c.name) {
+                            <div class="code-item">
+                                <span class="code-name">{{ c.name }}:</span>
+
+                                <span class="code-val">{{ c.value }}</span>
+                            </div>
+                            } @empty {
+                            <span class="no-data">-</span>
+                            }
+                        </div>
+                    </td>
+                    <!-- @if (CAN_UPDATE_PRODUCT) {
+                    <td>
+                        <ng-template #dropdownTrigger>
+                            <button class="dot-btn lg">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                        </ng-template>
+                        <button class="dot-btn" link="product-form" [params]="{ id: product.id }">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                            <span>Editar</span>
+                        </button>
+                    </td>
+                    } -->
+                </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>

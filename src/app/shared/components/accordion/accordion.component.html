@@ -1,0 +1,10 @@
+<div class="accordion-container" [class.closed]="!isOpen()">
+    <div class="accordion-header-comp" (click)="toggle()">
+        <ng-content select="[accordion-header]" />
+        <i class="fa-solid fa-caret-down" [class.rotated]="isOpen()"></i>
+    </div>
+    
+    <div class="accordion-content" #accordionContent>
+        <ng-content select="[accordion-content]" />
+    </div>
+</div>

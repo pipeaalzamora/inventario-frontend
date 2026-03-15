@@ -1,0 +1,113 @@
+<div class="pagination">
+    
+    <button 
+        class="dot-btn" 
+        (click)="prevPage()"
+        [disabled]="currentPage() === 1"
+        loading
+        [class.no-active]="isMobile()"
+    >
+        <i class="fa-solid fa-angle-left"></i>
+        @if (!isMobile()) {
+            <span>Anterior</span>
+        }
+
+    </button>
+
+    @if (isMobile()) {
+        <span>Página {{ currentPage() }} de {{ totalPages() }}</span>
+    } @else {
+        <div class="pages">
+            <button 
+                class="dot-btn" 
+                [class.active]="currentPage() === 1" 
+                (click)="firstPage()"
+                loading
+            >
+                1
+            </button>
+
+            @if (itemsBeforeNotShown()) {
+                
+                <ng-template #dropBeforeTrigger>
+                    <button class="dot-btn" loading>
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                </ng-template>
+
+                <dot-dropdown 
+                    [dropdownTrigger]="dropBeforeTrigger"
+                    [horizontal]="true"
+                >
+                    @for (item of itemsBeforeNotShown(); track item) {
+                        <button class="dot-btn" (click)="goToPage( item )">
+                            {{ item }}
+                        </button>
+                    }
+                </dot-dropdown>
+            }
+
+            @if (itemBefore()) {
+                <button class="dot-btn" (click)="goToPage( itemBefore()! )" loading>
+                    {{ itemBefore() }}
+                </button>
+            }
+
+            @if (currentPage()! > 1 && currentPage()! < totalPages() ) {
+                <button class="dot-btn active" loading>
+                    {{ currentPage() }}
+                </button>
+            }
+
+            @if (itemAfter()) {
+                <button class="dot-btn" (click)="goToPage( itemAfter()! )" loading>
+                    {{ itemAfter() }}
+                </button>
+            }
+
+            @if (itemsAfterNotShown()) {
+                <ng-template #dropAfterTrigger>
+                    <button class="dot-btn" loading>
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </button>
+                </ng-template>
+
+                <dot-dropdown 
+                    [dropdownTrigger]="dropAfterTrigger"
+                    [horizontal]="true"
+                >
+                    @for (item of itemsAfterNotShown(); track item) {
+                        <button class="dot-btn" (click)="goToPage( item )">
+                            {{ item }}
+                        </button>
+                    }
+                </dot-dropdown>
+            }
+
+            @if (totalPages() > 1) {
+                <button 
+                    class="dot-btn" 
+                    [class.active]="currentPage() === totalPages()"
+                    (click)="lastPage()"
+                    loading
+                >
+                    {{ totalPages() }}
+                </button>
+            }
+        </div>
+    }
+
+    
+        <button 
+            class="dot-btn" 
+            (click)="nextPage()"
+            [disabled]="currentPage() === totalPages()" 
+            loading
+            [class.no-active]="isMobile()"
+        >
+            @if (!isMobile()) {
+                <span>Siguiente</span>
+            }
+            <i class="fa-solid fa-angle-right"></i>
+        </button>
+</div>

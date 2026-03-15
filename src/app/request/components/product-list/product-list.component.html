@@ -1,0 +1,99 @@
+<div class="selected-product" [class.empty]="products().length === 0">
+    @for (product of products(); track product.id) {
+        @defer (on viewport; prefetch on idle) {
+            <div class="selected-product-item">
+                <div class="selected-product-item-core">
+                    <div class="selected-product-img-container">
+                        @if (product.image) {
+                            <img
+                                ngSrc="{{ product.image }}"
+                                alt=""
+                                [width]="80"
+                                [height]="80"
+                                loading="lazy"
+                            >
+                        } @else {
+                            <dot-no-image />
+                        }
+                    </div>
+                    <div class="selected-product-item-info">
+                        <h5 class="selected-product-name">{{ product.productName }}</h5>
+                        <span class="dot-badge unit-measure dark">
+                            {{ product.unitInventory?.abbreviation }}
+                        </span>
+                        <p> {{  product.description }}</p>
+                    </div>
+                </div>
+                <div class="end-row">
+                    <div class="min-max" [class.require-approval]="product.quantities && product.quantities.maxQuantity && product.quantity > product.quantities.maxQuantity">
+                        <div class="badges-container">
+                            @if (product.quantities && product.quantities.maxQuantity && product.quantity > product.quantities.maxQuantity) {
+                                <span class="require-check">Conflicto</span> 
+                            }
+
+                            @if (actualRequest() && !findProductInRequest(product)) {
+                                <span class="is-new">Nuevo</span>
+                            }
+
+                        </div>
+                        <div class="quantity">
+                            <button class="dot-btn" (click)="decrement(product)">
+                                <i class="fa-solid fa-minus"></i>
+                            </button>
+
+                            <label>
+                                <input 
+                                    type="number" 
+                                    min="1" 
+                                    [value]="product.quantity"
+                                    [disabled]="this.readonly()"
+                                    (input)="handleInput($event, product)"
+                                    (blur)="handleBlur($event, product)"
+                                >
+                            </label>
+
+                            <button class="dot-btn" (click)="increment(product)">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+
+                            @if (product.quantities && product.quantities.maxQuantity > 0) {
+                                <span class="max-quantity">Max: {{ product.quantities.maxQuantity }}</span>
+                            }
+                        </div>
+                    </div>
+
+                    @if (!isMobile() && !readonly()) {
+                        <button class="dot-btn sm" (click)="deleteProduct.emit(product)">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    }
+                </div>
+            </div>
+        } @placeholder {
+            <div class="selected-product-skeleton">
+                <div class="first-col">
+                    <div class="skeleton-img"></div>
+                    <div class="skeleton-core">
+                        <div class="skeleton-name"></div>
+                        <div class="skeleton-description"></div>
+                    </div>
+                </div>
+                <div class="skeleton-quantity">
+                    <div class="skeleton-quantity-item"></div>
+                    <div class="skeleton-quantity-input"></div>
+                    <div class="skeleton-quantity-item"></div>
+                    <div class="skeleton-quantity-item"></div>
+                </div>
+            </div>
+        }
+    } @empty {
+        <div class="empty-selected-product">
+            <i class="fa-solid fa-box-open" loading></i>
+            <div class="empty-selected-product-info">
+                <h3>Productos</h3>
+                <span loading>No hay productos seleccionados</span>
+            </div>
+        </div>
+    }
+
+</div>

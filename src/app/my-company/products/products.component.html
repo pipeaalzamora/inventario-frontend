@@ -1,0 +1,141 @@
+<section>
+    <div class="section-header">
+        <h1>Gestión de productos</h1>
+        <span class="dot-badge tertiary lg">{{controller.GetData().totalItems}}</span>
+
+        @if (isMobile()) {
+        <button class="dot-btn create" (click)="openTemplateModal()">
+            <i class="fa-regular fa-plus"></i>
+        </button>
+        } @else {
+        <button class="dot-btn flashy ml-2" (click)="openTemplateModal()">
+            <i class="fa-regular fa-plus"></i>
+            <span>Agregar producto</span>
+        </button>
+        }
+    </div>
+
+    <div class="dot-table shadow">
+        <div class="toolbar">
+            <div class="col">
+                <dot-filter [controller]="controller" [columns]="columns" />
+                <dot-search [controller]="controller" [noCollapse]="true" placeholder="Sku, nombreProducto, desc..." />
+            </div>
+        </div>
+        <table>
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            <dot-table-caption [controller]="controller" />
+            <tbody>
+                @for (product of controller.GetData().data; track product.id) {
+                <tr>
+                    <td>
+                        <dot-dropdown [dropdownTrigger]="skuTrigger" [fullWidth]="true">
+                            <ng-template #skuTrigger>
+                                <span class="product-sku pointer">
+                                    <a class="dot-anchor">{{ product.sku }}</a>
+                                </span>
+                            </ng-template>
+                            <button class="dot-btn" link="product-management-form" [params]="{ id: product.id }">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                                <span>Editar</span>
+                            </button>
+                        </dot-dropdown>
+                    </td>
+                    <td>{{product.productName}}</td>
+                    <td>{{product.description}}</td>
+                    <td>{{product.costEstimated}}</td>
+                    <td>{{product.costAvg}}</td>
+                    <td>
+                        <ng-template #dropdownTrigger>
+                            <button class="dot-btn lg">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
+                        </ng-template>
+                        <!-- <button class="dot-btn" link="product-management-form">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                            <span>Editar</span>
+                        </button> -->
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        <dot-pagination [controller]="controller" />
+    </div>
+
+</section>
+
+<dot-modal #selectProductTemplateModal
+    tittleText="Productos"
+    [footerRef]="modalFooter"
+    [noFooter]="false"
+    [isLateral]="false"
+    [longModal]="isMobile()"
+    (onClose)="selectedTemplateProductId.set(null)"
+>
+<p class="stepper-instruction">
+    <i class="fa-solid fa-circle-info"></i>
+    Busca y utiliza plantillas de productos para agregar información al producto.
+    </p>
+    <div class="modal-toolbar">
+        <dot-search [controller]="templateController" [fullWidth]="false" [noCollapse]="true" placeholder="Buscar por nombre..." />
+        <button class="dot-btn success"
+            [disabled]="!selectedTemplateProductId()"
+            (click)="navigateToProductForm()"
+            style="margin-left:auto;">
+            <i class="fa-solid fa-plus"></i>
+            @if(isMobile()) {
+                Utilizar
+            } @else {
+                Utilizar plantilla
+            }
+        </button>
+    </div>
+    <div class="product-list-container">
+        @for (product of templateController.GetData().data; track product.id) {
+            <div class="product-list-item"
+                (click)="selectTemplateProduct(product.id)"
+                [class.selected]="selectedTemplateProductId() === product.id">
+                <div class="img-container">
+                    @if (product.image) {
+                        <img [src]="product.image" alt="{{ product.name }}" width="60" height="60">
+                    } @else {
+                        <dot-no-image/>
+                    }
+                </div>
+                <div class="product-info-container">
+                    <span class="product-name">{{ product.name }}</span>
+                    <div class="product-cat-container">
+                        @if (product.categories && product.categories.length > 0) {
+                            @for (cat of product.categories; track cat.name) {
+                                <span class="dot-badge sm">{{ cat.name }}</span>
+                            }
+                        } @else {
+                            <span class="dot-badge sm">Sin categoría</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        } @empty {
+            <p class="text-center">No hay productos disponibles</p>
+        }
+    </div>
+</dot-modal>
+
+<ng-template #modalFooter>
+    <div class="modal-footer-actions">
+        <dot-pagination [controller]="templateController" />
+        
+    </div>
+</ng-template>
+
+<ng-template #modalPagination>
+    <div class="modal-footer-actions">
+        <button class="dot-btn success" 
+            [disabled]="!selectedTemplateProductId()" 
+            (click)="navigateToProductForm()">
+            <i class="fa-solid fa-plus"></i>
+            Agregar plantilla
+        </button>
+    </div>
+</ng-template>

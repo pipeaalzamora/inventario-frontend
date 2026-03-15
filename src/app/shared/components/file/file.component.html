@@ -1,0 +1,10 @@
+<label class="dot-input-file">
+    <div class="dot-input-file-button">
+        Buscar
+    </div>
+    <div class="dot-input-file-name">
+        <span [class.slide-down]="!!actualFileName()">Selecciona un archivo...</span>
+        <span [class.slide-down]="!!actualFileName()">{{ actualFileName() ?? '' }}</span>
+    </div>
+    <input type="file" [multiple]="false" (change)="handleFileInput($event)"/>
+</label>

@@ -1,0 +1,322 @@
+<ng-template #header>
+    <div class="cont">
+        <!-- Componente GoBack: ajusta el 'fallback' si la ruta de regreso es diferente para esta vista -->
+        <dot-go-back fallback="product-management" />
+        <div class="dot-col no-gap">
+            <h1 class="title">
+                <!-- Título dinámico basado en si se edita un producto existente o se crea uno nuevo -->
+                @if (selectedTemplate()) { <!-- Asume un signal 'actualProductManagement' en el TS -->
+                Gestión Producto
+                } @else {
+                Nuevo Producto
+                }
+            </h1>
+        </div>
+    </div>
+
+    <div class="cont">
+        <!-- Botón para guardar el formulario. El método 'saveProductManagement' debe existir en el TS. -->
+        <button class="dot-btn success" (click)="saveProductManagement()" [disabled]="productManagementForm.invalid">
+            <i class="fa-regular fa-floppy-disk"></i>
+            @if (!isMobile()) {
+            Guardar
+            }
+        </button>
+    </div>
+</ng-template>
+
+<dot-section-wrapper [headerRef]="header" [withStickyToolbar]="true" variant="secondary">
+    <div class="section-col">
+        <!-- Card Información del producto -->
+        <div class="dot-card shadow" data-card="1">
+            <div class="card-header-info">
+                <h3>Información del producto</h3>
+            </div>
+            <p class="stepper-instruction">
+                <i class="fa-solid fa-circle-info"></i>
+                Completa la información del producto antes de asignar <strong>Unidad de inventario</strong> y <strong>Unidades de conteo</strong>.
+            </p>
+            <form [formGroup]="productManagementForm" class="product-form">
+                <div class="form-row">
+                    <label class="dot-label input" tabindex="1" dot-input>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+                        <span class="dot-label-text">Nombre</span>
+                        <input formControlName="productName" type="text" placeholder="Nombre del producto">
+                         @if (productManagementForm.get('productName')?.invalid && productManagementForm.get('productName')?.touched) {
+                            <span class="error">{{ productManagementForm.get('productName')?.getError('required') || 'El nombre es obligatorio' }}</span>
+                        }
+                    </label>
+                </div>
+                <div class="dot-row gap-1 wrap">
+                    <label class="dot-label input sku" tabindex="1" dot-input>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-barcode"></i>
+                        </div>
+                        <span class="dot-label-text">SKU</span>
+                        <input formControlName="sku" type="text" placeholder="Ej: CC-600">
+                        @if (productManagementForm.get('sku')?.invalid && productManagementForm.get('sku')?.touched) {
+                            <span class="error">{{ productManagementForm.get('sku')?.getError('required') || 'El SKU es obligatorio' }}</span>
+                        }
+                    </label>
+                    <dot-select
+                        [fullWidth]="isMobile()"
+                        [options]="UnitOptions()"
+                        [searchBy]="'label'"
+                        icon="fa-solid fa-warehouse"
+                        label="Unidad de inventario"
+                        (changeOption)="inventoryUnitChange($event)"
+                    />
+                </div>
+                <div class="form-row">
+                    <label class="dot-label input" tabindex="1" dot-input>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-money-bill"></i>
+                        </div>
+                        <span class="dot-label-text">Costo Estimado</span>
+                        <input formControlName="estimatedCost" type="number" placeholder="0.00">
+                        @if (productManagementForm.get('estimatedCost')?.invalid && productManagementForm.get('estimatedCost')?.touched) {
+                            <span class="error">{{ productManagementForm.get('estimatedCost')?.getError('required') || 'El costo es obligatorio' }}</span>
+                     }
+                    </label>
+                </div>
+                <label class="dot-label textarea">
+                    <div class="dot-label-icon">
+                        <i class="fa-solid fa-comment"></i>
+                    </div>
+                    <span class="dot-label-text">Descripción</span>
+                    <textarea formControlName="description"
+                        placeholder="Escribe tu descripción aqui para dejar un registro en el producto"></textarea>
+                    @if (productManagementForm.get('description')?.invalid && productManagementForm.get('description')?.touched) {
+                        <span class="error">{{ productManagementForm.get('description')?.getError('required') || 'La descripción es obligatoria' }}</span>
+                    }
+                </label>
+                <div class="form-row">
+                    <label class="dot-checkbox success inline"
+                        (click)="$event.stopPropagation()"
+                    >
+                        <input type="checkbox" formControlName="isFrozen"/>
+                        <div class="dot-checkbox-box"></div>
+                        <span class="dot-checkbox-text">Congelado</span>
+                    </label>
+                </div>
+                <div class="form-row">
+                    <label class="dot-checkbox success inline"
+                        (click)="$event.stopPropagation()"
+                    >
+                        <input type="checkbox" formControlName="isSaleEnabled"/>
+                        <div class="dot-checkbox-box"></div>
+                        <span class="dot-checkbox-text">Habilitado para la venta</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        
+    </div>
+
+    <div class="section-col sticky mobile-reverse">
+    <!-- Card Plantilla Seleccionada -->
+    @if (chosenTemplate()) {
+        <!-- <div class="product-template-resume"> -->
+        <div class="dot-card shadow product-template-resume" [class.transparent]="!isMobile()">
+            <div class="readonly-product-info-container">
+            <div class="header">
+                <h3>Ficha de la plantilla</h3>
+                <!-- <button class="dot-btn">
+                    Editar
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </button> -->
+            </div>
+            <div class="item horizontal">
+                <div class="item-info image-side">
+                @if (chosenTemplate().image) {
+                    <img [src]="chosenTemplate().image" alt="Imagen del producto" class="selected-product-img">
+                } @else {
+                    <dot-no-image />
+                }
+                </div>
+               <div class="main-fields">
+                <div class="field-row">
+                    <div class="icon-container">
+                    <i class="fa-solid fa-box"></i>
+                    </div>
+                    <div class="field-content">
+                    <span class="label">Nombre</span>
+                    <span class="value">{{ chosenTemplate().name }}</span>
+                    </div>
+                </div>
+                <div class="field-row">
+                    <div class="icon-container">
+                    <i class="fa-solid fa-align-left"></i>
+                    </div>
+                    <div class="field-content">
+                    <span class="label">Descripción</span>
+                    <span class="value">{{ chosenTemplate().description }}</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+            @if (chosenTemplate().categories && chosenTemplate().categories.length) {
+                <div class="item">
+                <div class="icon-container">
+                    <i class="fa-solid fa-tags"></i>
+                </div>
+                <div class="item-info">
+                    <span class="label">Categorías</span>
+                    <span class="value">
+                    @for (cat of chosenTemplate().categories; track cat.name) {
+                        <span class="dot-badge secondary sm">{{ cat.name }}</span>
+                    }
+                    </span>
+                </div>
+                </div>
+            }
+            @if (chosenTemplate().codes && chosenTemplate().codes.length) {
+                <div class="item">
+                <div class="icon-container">
+                    <i class="fa-solid fa-barcode"></i>
+                </div>
+                <div class="item-info">
+                    <span class="label">Códigos</span>
+                    <span class="value">
+                    @for (c of chosenTemplate().codes; track c.name) {
+                        <span class="dot-badge sm">{{ c.name }}: {{ c.value }}</span>
+                    }
+                    </span>
+                </div>
+                </div>
+            }
+            </div>
+        </div>
+        }
+
+        <!-- Card Multiselect -->
+        <div class="dot-card shadow multiselect-card" data-card="1">
+            <div class="card-header-info">
+            <!-- Aqui iba anteriormente UNIDAD DE INVENTARIO -->
+
+                <!-- SECCIÓN: UNIDADES DE CONTEO -->
+                <div class="unit-type-block">
+                <h3>Unidades de Conteo</h3>
+                <div class="count-unit-section">
+                    <dot-select
+                    #countUnitSelect
+                    [options]="getAvailableCountUnits()"
+                    [searchBy]="'label'"
+                    icon="fa-solid fa-list"
+                    label="Seleccionar unidades de conteo..."
+                    [fullWidth]="true"
+                    (changeOption)="countUnitChange($event)"
+                    />
+
+                    @if (countUnits.controls.length > 0) {
+                    <div class="selected-units-table">
+                        <table>
+                        <thead>
+                            <tr>
+                            <th>Unidad</th>
+                            <th>Factor de Conversión</th>
+                            <th class="actions-units">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (unitControl of countUnits.controls; track unitControl.value; let i = $index) {
+                            <tr>
+                                <td>{{ unitControl.get('label')?.value }}</td>
+                                <td>{{ unitControl.get('conversionFactor')?.value }}</td>
+                                <td>
+                                <div class="dot-row justify-center align-center">
+                                    <button class="dot-btn icon danger sm" (click)="removeCountUnit(i)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                        </table>
+                    </div>
+                    } @else {
+                    <div class="empty-container">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <div class="dot-col gap-05 align-center">
+                        <span class="empty-title">Aún no se han agregado unidades de conteo</span>
+                        <p>Agrega una o más unidades para configurar correctamente el producto.</p>
+                        </div>
+                    </div>
+                    }
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</dot-section-wrapper>
+<dot-modal #newUnitModal
+    tittleText="Crear Nueva Unidad"
+    [noFooter]="true"
+    [isLateral]="false"
+    [longModal]="false"
+    (onClose)="onNewUnitModalClose()">
+    <!-- CAMBIO: Se envuelve el contenido en un div para mejor control de estilos -->
+    <div class="modal-form-container">
+        <form [formGroup]="newUnitForm" class="product-form" (ngSubmit)="addNewUnit()">
+            <!-- Se aplica un contenedor de grid para los campos -->
+            <div class="form-grid">
+                <!-- Campo: Nombre de la unidad (estilo actualizado) -->
+                <div class="form-row">
+                    <label class="dot-label input" tabindex="1" dot-input>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-tag"></i>
+                        </div>
+                        <span class="dot-label-text">Nombre de la Unidad</span>
+                        <input type="text" formControlName="nombre" placeholder="Ej: Caja de 12 Unidades">
+                        @if (newUnitForm.get('nombre')?.invalid && newUnitForm.get('nombre')?.touched) {
+                             <span class="error">{{ newUnitForm.get('nombre')?.getError('required') || 'El nombre es obligatorio' }}</span>
+                        }
+                    </label>
+                </div>
+
+                <!-- Campo: Unidad Base (estilo actualizado para dot-select) -->
+                <div class="form-row">
+                    <label class="dot-label input" tabindex="1" dot-input>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-ruler"></i>
+                        </div>
+                        <span class="dot-label-text">Unidad Base</span>
+                        <input type="text" formControlName="unidadBase" placeholder="Ej: KG, L (código exacto)">
+                        @if (newUnitForm.get('unidadBase')?.invalid && newUnitForm.get('unidadBase')?.touched) {
+                            <span class="error">{{ newUnitForm.get('unidadBase')?.getError('required') || 'La unidad base es obligatoria' }}</span>
+                     }
+                    </label>
+                </div>
+
+                <!-- Campo: Factor de Conversión (estilo actualizado) -->
+                <div class="form-row">
+                    <label class="dot-label input" tabindex="1" dot-input>
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <span class="dot-label-text">Factor de Conversión</span>
+                        <input type="number" formControlName="factorConversion" placeholder="Ej: 12">
+                        @if (newUnitForm.get('factorConversion')?.invalid && newUnitForm.get('factorConversion')?.touched) {
+                            <span class="error">{{ newUnitForm.get('factorConversion')?.getError('required') || 'El factor de conversión es obligatorio' }}</span>
+                        }
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botones de Acción (sin cambios en la estructura, pero se moverán con el grid) -->
+            <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                <button class="dot-btn secondary" type="button" (click)="newUnitModal.closeModal()">
+                    Cancelar
+                </button>
+                <button class="dot-btn success" type="submit" [disabled]="newUnitForm.invalid">
+                    <i class="fa-solid fa-plus"></i> Agregar Unidad
+                </button>
+            </div>
+        </form>
+    </div>
+</dot-modal>

@@ -1,0 +1,40 @@
+<div class="dot-card shadow">
+  <div class="card-header">
+    <h2>Top 20 Productos Más Solicitados</h2>
+  </div>
+
+  <div class="card-body">
+    <div class="widget-description">
+      <p>Ranking de los 20 productos con mayor número de solicitudes de compra en {{ currentMonth() }}. Permite identificar artículos de alta demanda para optimizar reposición de inventario.</p>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="top-products-table">
+        <thead>
+          <tr>
+            <th class="ranking-col">Ranking</th>
+            <th>Producto</th>
+            <th>Tienda</th>
+            <th class="requests-col"># Solicitudes</th>
+            <th class="percentage-col">% del Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of topProducts(); track product.ranking) {
+            <tr>
+              <td class="ranking-col">
+                <span [ngClass]="getRankingClass(product.ranking)" class="ranking-badge">
+                  #{{ product.ranking }}
+                </span>
+              </td>
+              <td class="product-name">{{ product.productName }}</td>
+              <td>{{ product.store }}</td>
+              <td class="requests-col">{{ product.requests }}</td>
+              <td class="percentage-col">{{ product.percentageOfTotal }}%</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

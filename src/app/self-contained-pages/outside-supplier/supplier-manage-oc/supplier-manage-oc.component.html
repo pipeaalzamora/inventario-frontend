@@ -1,0 +1,364 @@
+<ng-template #headerOnScroll>
+    <div class="header-on-scoll">
+        <span class="header-scoll-title">{{actualPurchase()?.displayId}}</span>
+        <div class="header-scoll-column">
+            <button class="dot-btn success" (click)="confirmationModal.openModal()">
+                <i class="fa-regular fa-paper-plane"></i>
+                Enviar
+            </button>
+        </div>
+    </div>
+</ng-template>
+
+<div class="main-container">
+    <dot-on-scroll-toolbar
+        [templateRef]="headerOnScroll"
+        [noLayout]="true"
+        [pxToTriggerShow]="60"
+    />
+    <header>
+        <div class="header-column">
+            <h1>Revisión de pedido</h1>
+            <span>Orden de compra: {{ actualPurchase()?.displayId }}</span>
+        </div>
+        <div class="header-column">
+            <button class="dot-btn success" (click)="confirmationModal.openModal()">
+                <i class="fa-regular fa-paper-plane"></i>
+                Enviar
+            </button>
+        </div>
+    </header>
+    <section>
+        <div class="section-content">
+            <div class="section-col sticky-col">
+                <div class="dot-card shadow">
+                    <div class="card-header">
+                        <div class="cont">
+                            <i class="fa-solid fa-dollar"></i>
+                            <h3>Resumen de totales</h3>
+                        </div>
+                    </div>
+
+                    <div class="total-summary-container">
+                        <div class="prev-total">
+                            <div class="total-item">
+                                <div class="total-item-label">
+                                    Total inicial:
+                                </div>
+                                <div class="total-item-value">
+                                    <span class="total-item-quantity">
+                                        {{ products()?.length }} items
+                                    </span>
+                                    <span class="total-item-amount">
+                                        {{ getTotal() | clpCurrency }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="total-item">
+                                <span class="total-item-label">
+                                    Productos rechazados
+                                </span>
+                                <div class="total-item-value">
+                                    <span class="total-item-quantity">
+                                        {{ productRejected().length }} items
+                                    </span>
+                                    <span class="total-item-amount">
+                                        {{ getTotalRejected() | clpCurrency }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="total">
+                            <span class="total-item-label">Total a pagar</span>
+                            <span class="total-item-value">
+                                <span class="total-item-quantity">
+                                    {{ productApproved().length }} items
+                                </span>
+                                {{ getTotalApproved() | clpCurrency }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dot-card shadow">
+
+                    <label class="dot-label textarea" 
+                        dot-input
+                        [withValueConfirmation]="true"
+                    >
+                        <div class="dot-label-icon">
+                            <i class="fa-solid fa-comment"></i>
+                        </div>
+                        <span class="dot-label-text">Observación</span>
+                        <textarea
+                            placeholder="Esta observación dejará un registro en la orden de compra." 
+                            (input)="setObservationValue($event)"
+                        ></textarea>
+                    </label>
+
+                </div>
+            </div>
+            <div class="section-col">
+                <div class="oc-info-container">
+                    <div class="dot-card shadow">
+                        <div class="card-header">
+                            <h3>Información de la orden</h3>
+                        </div>
+    
+                        <div class="info-container">
+                            <div class="info-item-core">
+                                <div class="core-item">
+                                    <span class="core-item-label">N° de orden</span>
+                                    <span class="core-item-value">
+                                        <i class="fa-solid fa-file-invoice"></i>
+                                        {{ actualPurchase()?.displayId }}
+                                    </span>
+                                </div>
+                                <div class="core-item">
+                                    <span class="core-item-label">Fecha de creación</span>
+                                    <span class="core-item-value">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        <time datetime="DD/MM/YYYY">
+                                            {{ actualPurchase()?.createdAt | date: 'dd/MM/yyyy' }}
+                                        </time>
+                                        <time datetime="HH:mm">
+                                            {{ actualPurchase()?.createdAt | date: 'HH:mm' }}
+                                        </time>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-item-label">Proveedor</span>
+                                <span class="info-item-value">{{ actualPurchase()?.supplierName }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-item-label">Tienda</span>
+                                <span class="info-item-value">{{ actualPurchase()?.storeName }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-item-label">Destino</span>
+                                <span class="info-item-value">{{ actualPurchase()?.warehouseName }}</span>
+                            </div>
+                        </div>
+                    </div>
+    
+                    <div class="dot-card shadow more-info">
+                        <div class="card-header">
+                            <h3>Más información</h3>
+                        </div>
+    
+                        <div class="info-container">
+                            <div class="info-item">
+                                <span class="info-item-label">Teléfono bodega</span>
+                                <span class="info-item-value">{{ actualPurchase()?.warehousePhone }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-item-label">Teléfono proveedor</span>
+                                <span class="info-item-value">{{ actualPurchase()?.supplierPhone }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dot-card shadow">
+                    
+                    <div class="products-toolbar">
+                        <div class="col-products">
+                            <h3>
+                                Productos
+                            </h3>
+                            <span class="dot-badge lg secondary">
+                                {{ products()?.length }}
+                            </span> 
+                        </div>
+                        <dot-search [controller]="controller"
+                            placeholder="Nombre, id"
+                        />
+                    </div>
+                    <div class="dot-table">
+                        <table>
+                            <dot-sorter-header 
+                                [withBulkCheckbox]="true"
+                                [controller]="controller"
+                                [headers]="columns"
+                                [checkboxValue]="bulkValue()"
+                                (bulkCheckboxChecked)="toggleSelectAll($event)"
+                            />
+                            <tbody class="products-body">
+                                @for (product of controller.GetData().data; track product.id) {
+                                    <tr (click)="selectProduct(product)" [class.selected]="isSelected(product)">
+                                        <td class="center">
+                                            <label class="dot-checkbox">
+                                                <input 
+                                                    type="checkbox" 
+                                                    [checked]="isSelected(product)"
+                                                    (change)="toggleSelectionByCheckbox($event, product)"
+                                                >
+                                                <div class="dot-checkbox-box"></div>
+                                            </label>
+                                        </td>
+                                        <td>
+                                            {{ product.productName }}
+                                        </td>
+                                        <td>
+                                            <div class="badge-container">
+                                                <span class="dot-badge contrast all-width not-bordered"
+                                                    [class.success]="product.status === 'approved'"
+                                                    [class.danger]="product.status === 'rejected'"
+                                                >
+                                                    @switch (product.status) {
+                                                        @case ('pending') {
+                                                            Pendiente
+                                                        }
+                                                        @case ('approved') {
+                                                            Aprobado
+                                                        } @case ('rejected') {
+                                                            Rechazado
+                                                        }
+                                                    }
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td class="center">
+                                            {{ product.quantity }}
+                                        </td>
+                                        <td class="center">
+                                            {{ product.unitPrice | clpCurrency}}
+                                        </td>
+                                        <td class="center">
+                                            {{ product.subtotal | clpCurrency}}
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="selected-products-toolbar shadow" [class.show]="selectedProducts().length > 0">
+                <button 
+                    class="dot-btn danger" 
+                    (click)="switchSelectedStatus('rejected')"
+                    [disabled]="selectedAllStatus('rejected')"
+                >
+                    <i class="fa-solid fa-xmark"></i>
+                    Rechazar @if (!isMobile()){seleccionados}
+                </button>
+
+                <button 
+                    class="dot-btn success" 
+                    (click)="switchSelectedStatus('approved')"
+                    [disabled]="selectedAllStatus('approved')"
+                >
+                    <i class="fa-solid fa-thumbs-up"></i>
+                    Aprobar @if (!isMobile()){seleccionados}
+                </button>
+
+                <span class="selected-products-quantity">
+                    {{ selectedProducts().length }} 
+                    item@if (selectedProducts().length > 1) {s}
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <div class="loading-container-backdrop" [class.hide]="!isLoading()">
+        <div class="loading-container">
+            <div class="supplier-spinner"></div>
+        </div>
+    </div>
+</div>
+
+<dot-modal
+    #confirmationModal
+    [noFooter]="productPending().length > 0"
+    okText="Confirmar y enviar"
+    [withCancel]="productPending().length <= 0"
+    modalType="success"
+    cancelText="Revisar"
+    (cancelCallback)="confirmationModal.closeModal()"
+    (callback)="postPurchase()"
+>
+    @if (productPending().length > 0) {
+        <span>
+            Los siguientes productos están pendientes de revisión.
+        </span>
+        <div class="summary-pending-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th class="center">Cantidad</th>
+                        <th class="center">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (product of productPending(); track product.id) {
+                        <tr>
+                            <td>
+                                {{ product.productName }}
+                            </td>
+                            <td class="center">
+                                {{ product.quantity }}
+                            </td>
+                            <td class="center">
+                                {{ product.subtotal | clpCurrency}}
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    } @else {
+        <div class="success-confimation-container">
+            <div class="success-container-header">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <h3>Confirmar Solicitud</h3>
+                <p>Estás a punto de enviar la solicitud de orden de compra</p>
+            </div>
+
+            <div class="success-container-summary">
+                <div class="success-summary-item">
+                    <div class="success-container-summary-label">
+                        Items aprobados
+                    </div>
+                    <div class="success-container-summary-value">
+                        {{ productApproved().length }}
+                    </div>
+                </div>
+                <div class="success-summary-item">
+                    <div class="success-container-summary-label">
+                        Items rechazados
+                    </div>
+                    <div class="success-container-summary-value">
+                        {{ productRejected().length }}
+                    </div>
+                </div>
+                <div class="success-summary-item">
+                    <div class="success-container-summary-label">
+                        Valor a cancelar
+                    </div>
+                    <div class="success-container-summary-value">
+                        {{ getTotalApproved() | clpCurrency }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="success-advice">
+                <div class="success-advice-header">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <h3>Aviso</h3>
+                </div>
+
+                <p>
+                    Una vez confirmada, se generará una orden de compra con los datos ingresados. No podrás modificar la información después de enviarla.
+                </p>
+            </div>
+        </div>
+    }
+</dot-modal>

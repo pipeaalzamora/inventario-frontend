@@ -1,0 +1,839 @@
+<ng-template #headerRef>
+    <div class="dot-row align-center gap-05">
+        <dot-go-back fallback="supplier" />
+
+        <div class="dot-col no-gap">
+            <h1 [matTooltip]="isMobile() && isEditMode() && actualSupplier() && actualSupplier()!.name.length > 18 ? actualSupplier()!.name : ''">
+                @if (!isEditMode()) {
+                    Proveedor
+                } @else if (actualSupplier()){
+                    @if (isMobile()) { 
+                        {{ actualSupplier()?.name | slice:0:18 }}{{ actualSupplier()!.name!.length > 18 ? '...' : '' }}
+                    } @else {
+                        {{ actualSupplier()?.name}}
+                    }
+                }
+            </h1>
+            <span class="dot-badge not-bordered"
+                [class.new]="!isEditMode()"
+                [class.secondary]="isEditMode() && !actualSupplier()?.available"
+                [class.success]="isEditMode() && actualSupplier()?.available"
+            >
+                @if (!isEditMode()) {
+                    Nuevo
+                } @else if (isEditMode() && !actualSupplier()?.available) {
+                    No disponible
+                } @else if (isEditMode() && actualSupplier()?.available) {
+                    Disponible
+                }
+            </span>
+        </div>
+    </div>
+
+    @if (!isEditMode()) {
+        <button class="dot-btn success"
+            [disabled]="supplierForm().invalid() || selectedContacts().length === 0"
+            (click)="submitSupplierForm()"
+        >
+            <i class="fa-solid fa-floppy-disk"></i>
+            @if (!isMobile()) {
+                Crear proveedor
+            }
+        </button>
+    }
+</ng-template>
+
+<dot-section-wrapper 
+    [headerRef]="headerRef" 
+    [withStickyToolbar]="true"
+    [columns]="isEditMode() ? '1fr .5fr' : '1fr .8fr'"
+>
+    @if (!isEditMode()) {
+        <div class="section-col sticky">
+            <div class="dot-card shadow">
+                <div class="card-header">
+                    <h3>Información del proveedor</h3>
+                </div>
+    
+                <form>
+                    <dot-input 
+                        [field]="supplierForm.name"
+                        label="Nombre"
+                        icon="fa-solid fa-building"
+                    />
+
+                    <dot-input 
+                        [field]="supplierForm.description"
+                        label="Descripción"
+                        icon="fa-solid fa-align-left"
+                    />
+                </form>
+            </div>
+    
+            <div class="dot-card shadow">
+                <div class="card-header">
+                    <h3>Datos fiscales</h3>
+                </div>
+    
+                <form>
+                    <div class="dot-row gap-1 wrap">
+                        <dot-input 
+                            [field]="supplierForm.fiscalName"
+                            label="Nombre empresa"
+                            icon="fa-solid fa-building-columns"
+                        />
+
+                        <dot-input 
+                            [field]="supplierForm.idFiscal"
+                            label="RUT"
+                            icon="fa-solid fa-id-card"
+                        />
+                    </div>
+
+                    <dot-input 
+                        [field]="supplierForm.email"
+                        label="Email"
+                        icon="fa-solid fa-envelope"
+                    />
+        
+                    <div class="dot-row gap-1 wrap">
+                        <dot-input 
+                            [field]="supplierForm.fiscalAddress"
+                            label="Dirección fiscal"
+                            icon="fa-solid fa-location-dot"
+                        />
+
+                        <dot-input 
+                            [field]="supplierForm.fiscalCity"
+                            label="Ciudad"
+                            icon="fa-solid fa-city"
+                        />
+
+                        <dot-input 
+                            [field]="supplierForm.fiscalState"
+                            label="Estado | Provincia"
+                            icon="fa-solid fa-city"
+                        />
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    @if (isMobile()) {
+        <button class="dot-btn success add-product"
+            (click)="productListModal.openModal()"
+            [disabled]="editProductPriceMode()"
+        >
+            <i class="fa-regular fa-plus"></i>
+        </button>
+    }
+
+    <div class="section-col">
+        @if (!isEditMode()) {
+            <div class="dot-card shadow contacts-card">
+                @if (selectedContacts().length > 0) {
+                    <dot-accordion>
+                        <div class="card-header" accordion-header>
+                            <div class="dot-row align-center gap-1">
+                                <h3>Contactos</h3>
+                                <span class="dot-badge secondary">
+                                    {{ selectedContacts().length }}
+                                </span>
+                            </div>
+        
+                            <button class="dot-btn success md" (click)="$event.stopPropagation();contactFormModal.openModal()">
+                                <i class="fa-regular fa-plus"></i>
+                                Agregar contacto
+                            </button>
+                        </div>
+        
+                        <div class="contact-list-container" accordion-content>
+                            @for (contact of selectedContacts(); track contact.id) {
+                                <div 
+                                    class="contact-item" 
+                                    (click)="openEditContactModal(contact)" 
+                                    tabindex="0" 
+                                    (keydown.enter)="openEditContactModal(contact)"
+                                    animate.enter="scaleIn"
+                                    animate.leave="scaleOut"
+                                >
+                                    <div class="dot-row gap-2">
+                                        <i class="fa-solid fa-user contact-icon"></i>
+            
+                                        <div class="contact-info">
+                                            <h4>{{contact.name}}</h4>
+            
+                                            <div class="dot-col no-gap">
+                                                <div class="contact-info-item">
+                                                    <i class="fa-solid fa-phone"></i> 
+                                                    {{contact.phone | phoneNumber }}
+                                                </div>
+                                                <div class="contact-info-item">
+                                                    <i class="fa-solid fa-envelope"></i>  
+                                                    {{contact.email}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+        
+                                    <button class="dot-btn" (click)="$event.stopPropagation(); deleteContactModal.openModal(contact.id)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </dot-accordion>
+                } @else {
+                    <div class="empty-container">
+                        <i class="fa-solid fa-address-book"></i>
+                        <div class="dot-col gap-05 align-center">
+                            <span class="empty-title">Aún no tienes contactos asignados</span>
+                            <p>Agrega uno o más contactos para mantener una comunicación directa con este proveedor.</p>
+                        </div>
+                        <button class="dot-btn success" (click)="contactFormModal.openModal()">
+                            <i class="fa-regular fa-plus"></i>
+                            Agregar
+                        </button>
+                    </div>
+                }
+            </div>
+        } @else {
+            <ng-template #productListHeaderActions>
+                <div class="dot-row gap-05">
+                    @if (!editProductPriceMode()) {
+                        <button class="dot-btn md" (click)="editProductPriceMode.set(true)">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                            Editar precios
+                        </button>
+                    } @else {
+                        <button class="dot-btn md" (click)="cancelQuickEditPrices()">
+                            Cancelar
+                        </button>
+                        <button class="dot-btn primary md" 
+                            (click)="editProductPriceModal.openModal()"
+                            [disabled]="productPriceToEdit().size === 0"
+                        >
+                            Guardar
+                        </button>
+                    }
+
+                    @if (!isMobile()) {
+                        <button class="dot-btn success add-product md"
+                            (click)="productListModal.openModal()"
+                            [disabled]="editProductPriceMode()"
+                        >
+                            <i class="fa-regular fa-plus"></i>
+                            Agregar producto
+                        </button>
+                    }
+                </div>
+            </ng-template>
+
+            <div class="dot-card shadow product-list-card">
+                @if (selectedProducts().length > 0) {
+                    <div class="toolbar">
+                        <div class="card-header">
+                            <div class="dot-row align-center gap-1">
+                                <h3>Productos del proveedor</h3>
+                                <span class="dot-badge secondary">
+                                    {{ selectedProducts().length }}
+                                </span>
+                            </div>
+
+                            @if (!isMobile()) {
+                                <ng-container *ngTemplateOutlet="productListHeaderActions" />
+                            }
+                        </div>
+
+                        @if (isMobile()) {
+                            <ng-container *ngTemplateOutlet="productListHeaderActions" />
+                        }
+
+                        @if (editProductPriceMode()) {
+                            <div class="edit-price-info-container" animate.enter="fade-in" animate.leave="fade-out">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <div class="dot-col no-gap">
+                                    <h4>Modo edición de precios</h4>
+                                    <span>Modifica los precios a cambiar y presiona "Guardar" para aplicar.</span>
+                                </div>
+                            </div>
+                        }
+                    
+                        <div class="search-row dot-row gap-1 align-center justify-between">
+                            <dot-search [controller]="productsController" [noCollapse]="true" [fullWidth]="true"/>
+
+                            <label class="toggle-pagination dot-checkbox md no-wrap">
+                                <input 
+                                    type="checkbox" 
+                                    (change)="togglePagination($event)"
+                                    [checked]="!productsController.GetData().isSlicedMode"
+                                    [disabled]="editProductPriceMode()"
+                                >
+                                <div class="dot-checkbox-box"></div>
+                                <div class="dot-checkbox-label">Mostrar todo</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="dot-table">
+                    <table class="table-striped">
+                        <dot-table-caption [controller]="productsController" [center]="isMobile()"/>
+                        <dot-sorter-header [controller]="productsController" [headers]="productColumns"/>
+                        <tbody>
+                            @for (product of productsController.GetData().data; track product.productId) {
+                                @defer(on viewport) {
+                                    <tr [class.unavailable]="!product.available">
+                                        <td>
+                                            {{ product.sku }}
+                                        </td>
+                                        <td>
+                                            {{ product.name }}
+                                        </td>
+                                        <td>
+                                            @if (editProductPriceMode()) {
+                                                <dot-input
+                                                    animate.enter="pop-in"
+                                                    [standalone]="true"
+                                                    prefix="$"
+                                                    [value]="product.price"
+                                                    type="number"
+                                                    [compact]="true"
+                                                    [success]="productPriceToEdit().has(product.productId)"
+                                                    (onblur)="quickChangePriceProduct(product.productId, product.name, product.price, $event)"
+                                                />
+                                            } @else {
+                                                {{ product.price | clpCurrency }}
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="dot-badge unit-measure all-width">
+                                                {{ product.unitName }}
+                                            </span>
+                                        </td>
+                                        <td [matTooltip]="product.description">
+                                            {{ product.description | slice:0:30 }}{{ product.description.length > 50 ? '...' : '' }}
+                                        </td>
+                                        <td>
+                                            <button class="dot-btn md lg" 
+                                                (click)="editProduct(product)"
+                                                [disabled]="editProductPriceMode()"
+                                            >
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                } @placeholder (minimum 300ms) {
+                                    <tr class="tr-item-skeleton">
+                                        <td class="table-item-skeleton" [colSpan]="productColumns.length"></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+
+                    </div>
+                    @if (productsController.GetData().isSlicedMode) {
+                        <dot-pagination [controller]="productsController" />
+                    }
+                } @else {
+                    <div class="empty-container">
+                        <i class="fa-solid fa-box-open"></i>
+                        <div class="dot-col gap-05 align-center">
+                            <span class="empty-title">Aún no has seleccionado productos</span>
+                            <p>Agrega uno o más productos para completar la configuración de este proveedor.</p>
+                        </div>
+                        <button class="dot-btn success" (click)="productListModal.openModal()">
+                            <i class="fa-regular fa-plus"></i>
+                            Agregar
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (isEditMode()) {
+        <div class="section-col sticky">
+            <div class="dot-card shadow supplier-resume" [class.transparent]="!isMobile()">
+                <div class="readonly-supplier-info-container">
+                    <div class="header">
+                        <h3>Ficha del proveedor</h3>
+
+                        <button class="dot-btn" (click)="openEditSupplierModal()">
+                            Editar
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                    </div>
+
+                    <div class="item">
+                        <div class="icon-container">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <div class="item-info">
+                            <span class="label">Nombre</span>
+                            <span class="value">{{ actualSupplier()?.name }}</span>
+                        </div>
+                    </div>
+
+                    <div class="item">
+                        <div class="icon-container">
+                            <i class="fa-solid fa-align-left"></i>
+                        </div>
+                        <div class="item-info">
+                            <span class="label">Descripción</span>
+                            <span class="value">{{ actualSupplier()?.description }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="readonly-supplier-info-container">
+                    <div class="header">
+                        <h3>Información fiscal</h3>
+                    </div>
+
+                    <div class="dot-row wrap gap-1">
+                        <div class="item">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-building-columns"></i>
+                            </div>
+                            <div class="item-info">
+                                <span class="label">Nombre empresa</span>
+                                <span class="value">{{ actualSupplier()?.fiscalData?.fiscalName }}</span>
+                            </div>
+                        </div>
+    
+                        <div class="item">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-id-card"></i>
+                            </div>
+                            <div class="item-info">
+                                <span class="label">RUT</span>
+                                <span class="value">{{ actualSupplier()?.fiscalData?.idFiscal | countryFlag}}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dot-row gap-1 wrap">
+                        <div class="item">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="item-info">
+                                <span class="label">Email</span>
+                                <span class="value">{{ actualSupplier()?.fiscalData?.email }}</span>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div class="item-info">
+                                <span class="label">Dirección</span>
+                                <span class="value">{{ actualSupplier()?.fiscalData?.fiscalAddress }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dot-row wrap gap-1">
+                        <div class="item">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-city"></i>
+                            </div>
+                            <div class="item-info">
+                                <span class="label">Ciudad:</span>
+                                <span class="value">{{ actualSupplier()?.fiscalData?.fiscalCity }}</span>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-city"></i>
+                            </div>
+                            <div class="item-info">
+                                <span class="label">Estado:</span>
+                                <span class="value">{{ actualSupplier()?.fiscalData?.fiscalState }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="readonly-supplier-info-container">
+                    <div class="header">
+                        <h3>Contactos</h3>
+                        <button class="dot-btn" (click)="contactFormModal.openModal()">
+                            Agregar
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+
+                    @for (contact of selectedContacts(); track contact.id) {
+                        <div class="item contact" (click)="openEditContactModal(contact)">
+                            <div class="dot-row gap-1 align-center">
+                                <div class="icon-container">
+                                    <i class="fa-solid fa-user"></i>
+                                    <i class="fa-solid fa-pen"></i>
+                                </div>
+                                <div class="item-info">
+                                    <span class="value">
+                                        {{ contact.name }}
+                                    </span>
+    
+                                    <span class="label">
+                                        <i class="fa-solid fa-envelope"></i>
+                                        {{ contact.email }}
+                                    </span>
+    
+                                    <span class="label">
+                                        <i class="fa-solid fa-phone"></i>
+                                        {{ contact.phone | phoneNumber }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <i class="fa-solid fa-xmark" (click)="$event.stopPropagation(); "></i>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</dot-section-wrapper>
+
+<dot-modal #contactFormModal
+    [tittleText]="selectedContactId() ? 'Editar contacto' : 'Agregar contacto'"
+    okText="Guardar"
+    modalType="success"
+    (callback)="addContact()"
+    [disabledIf]="contactForm().invalid()"
+    (onOpen)="contactNameInput.focusInput()"
+    (onClose)="contactForm().reset({
+        name: '',
+        phone: '',
+        email: '',
+        description: ''
+    }); selectedContactId.set(null)"
+>
+
+    <form class="contact-form">
+        <div class="dot-row gap-1 wrap">
+
+            <dot-input 
+                #contactNameInput
+                [field]="contactForm.name"
+                label="Nombre completo"
+                icon="fa-solid fa-user"
+            />
+
+            <dot-input
+                #contactPhoneInput
+                [field]="contactForm.phone"
+                label="Teléfono"
+                prefix="+56 9"
+                icon="fa-solid fa-phone"
+            />
+        </div>
+
+        <dot-input 
+            [field]="contactForm.email"
+            label="Email"
+            icon="fa-solid fa-envelope"
+        />
+    </form>
+</dot-modal>
+
+<ng-template #paginationProductList>
+    <dot-pagination [controller]="controller" />
+</ng-template>
+
+<ng-template #productListHeaderActions>
+    <div class="toolbar">
+        <p class="stepper-instruction">
+            <i class="fa-solid fa-circle-info"></i>
+            Busca y utiliza plantillas de productos.
+        </p>
+        <div class="dot-row gap-05 align-center">
+            <dot-filter [controller]="controller" [columns]="templateProductColumns" />
+            <dot-search [controller]="controller" [noCollapse]="true" [fullWidth]="true"/>
+        </div>
+
+        <dot-table-caption [controller]="controller" [noTable]="true"/>
+    </div>
+</ng-template>
+
+<dot-modal #productListModal
+    tittleText="Productos"
+    [footerRef]="paginationProductList"
+    [headerRef]="productListHeaderActions"
+    [longModal]="isMobile()"
+    [isLateral]="true"
+>
+    <div class="product-list-container">
+        @for (product of controller.GetData().data; track product.id) {
+            <div class="product-list-item" (click)="selectProduct(product)" [class.selected]="isSelected(product.id)">
+                <div class="img-container" loading>
+                    @if (product.image) {
+                        <img 
+                            ngSrc="{{ product.image }}" 
+                            alt=""
+                            [width]="60"
+                            [height]="60"
+                            loading="lazy"
+                        >
+                    } @else {
+                        <dot-no-image [contrast]="isSelected(product.id)"/>
+                    }
+                </div>
+                <div class="product-info-container">
+                    <span class="product-name">
+                        {{ product.name }}
+                    </span>
+                    <span class="product-description">
+                        {{ product.description | slice:0:50 }}{{ product.description.length > 50 ? '...' : '' }}
+                    </span>
+                    <div class="product-cat-container">
+                        @for (category of product.categories; track category.id) {
+                            <span class="dot-badge sm">
+                                {{ category.name }}
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</dot-modal>
+
+<dot-modal #deleteContactModal
+    tittleText="Eliminar contacto"
+    modalType="danger"
+    okText="Eliminar"
+    [withCancel]="true"
+    (cancelCallback)="deleteContactModal.closeModal()"
+    (callback)="removeContact($event)"
+>
+    <p>¿Estás seguro de que deseas eliminar este contacto? Esta acción no se puede deshacer.</p>
+</dot-modal> 
+
+<dot-modal #productEditModal
+    [tittleText]="isEditProductMode() ? 'Editar producto' : 'Agregar producto'"
+    (onClose)="resetFormProduct()"
+    modalType="success"
+    [okText]="isEditProductMode() ? 'Editar' : 'Agregar'"
+    (callback)="saveEditedProduct()"
+    [disabledIf]="!productEditForm().touched() || productEditForm().invalid()"
+>
+    <div class="edit-product-container">
+        @if (!isMobile()) {
+            <div class="actual-product-resume" [class.disabled]="!productEditFormModel().available">
+                <div class="img-container">
+                    @if (selectedProductToEdit()?.image) {
+                        <img 
+                            ngSrc="{{ selectedProductToEdit()?.image }}" 
+                            alt=""
+                            [width]="120"
+                            [height]="120"
+                            loading="lazy"
+                        >
+                    } @else {
+                        <dot-no-image />
+                    }
+                </div>
+                <div class="info-container">
+                    <div class="dot-col no-gap">
+                        <h4 class="product-name">
+                            {{ productEditForm().value().name }}
+                        </h4>
+        
+                        <span class="product-code">
+                            {{ productEditForm().value().sku }}
+                        </span>
+                    </div>
+    
+                    <span class="product-price">
+                        {{ productEditForm().value().price | clpCurrency }}
+                    </span>
+                        @if (productEditFormModel().unitId && productEditFormModel().unitId !== 0) {
+                        <span class="dot-badge unit-measure">
+                            {{ getUnitNameById()(productEditFormModel().unitId) }}
+                        </span>
+                    }
+        
+                    <div class="product-cat-container">
+                        @for (category of selectedProductToEdit()?.categories; track category.id) {
+                            <span class="dot-badge sm">
+                                {{ category.name }}
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        <form class="product-edit-form">
+            <div class="dot-row wrap gap-1">
+
+                <dot-input 
+                    [field]="productEditForm.name"
+                    label="Nombre del producto"
+                    icon="fa-solid fa-box"
+                />
+
+                <dot-input 
+                    [field]="productEditForm.sku"
+                    label="SKU"
+                    icon="fa-solid fa-barcode"
+                />
+            </div>
+
+            <dot-input 
+                [field]="productEditForm.description"
+                label="Descripción"
+                icon="fa-solid fa-align-left"
+            />
+
+            <div class="dot-row wrap gap-1">
+
+                <dot-input 
+                    [field]="productEditForm.price"
+                    label="Precio"
+                    type="number"
+                    icon="fa-solid fa-dollar-sign"
+                />
+
+                <dot-select
+                    [field]="productEditForm.unitId"
+                    [options]="unitsMeasures()"
+                    [searchBy]="unitSearchBy"
+                    label="Unidad de medida"
+                    [returnKey]="'id'"
+                    [fullWidth]="isMobile()"
+                />
+            </div>
+
+            <label class="dot-checkbox inline success md mt-05">
+                <input type="checkbox" [field]="productEditForm.available">
+                <div class="dot-checkbox-box"></div>
+                <div class="dot-label-text">Disponible</div>
+            </label>
+        </form>
+    </div>
+</dot-modal>
+
+<dot-modal #editSupplierModal
+    tittleText="Editar proveedor"
+    modalType="success"
+    okText="Guardar cambios"
+    (callback)="submitEditSupplierForm()"
+    (onClose)="resetEditSupplierForm()"
+    [disabledIf]="supplierForm().invalid()"
+    [longModal]="true"
+>
+
+    <form class="edit-supplier-form">
+        <dot-input 
+            [field]="supplierForm.name"
+            label="Nombre proveedor"
+            icon="fa-solid fa-building"
+        />
+
+        <dot-input 
+            [field]="supplierForm.description"
+            label="Descripción"
+            icon="fa-solid fa-align-left"
+        />
+
+        <div class="dot-row gap-1 wrap">
+            <dot-input 
+                [field]="supplierForm.fiscalName"
+                label="Nombre empresa"
+                icon="fa-solid fa-building-columns"
+            />
+
+            <dot-input 
+                #suppRutInput
+                [field]="supplierForm.idFiscal"
+                label="RUT"
+                icon="fa-solid fa-id-card"
+            />
+        </div>
+
+        <dot-input 
+            [field]="supplierForm.email"
+            label="Email"
+            icon="fa-solid fa-envelope"
+        />
+
+        <div class="dot-row gap-1 wrap">
+            <dot-input 
+                [field]="supplierForm.fiscalAddress"
+                label="Dirección fiscal"
+                icon="fa-solid fa-location-dot"
+            />
+
+            <dot-input 
+                [field]="supplierForm.fiscalCity"
+                label="Ciudad"
+                icon="fa-solid fa-city"
+            />
+
+            <dot-input 
+                [field]="supplierForm.fiscalState"
+                label="Estado | Provincia"
+                icon="fa-solid fa-city"
+            />
+        </div>
+
+        <label class="dot-checkbox inline success md mt-05">
+            <input type="checkbox" [field]="supplierForm.available">
+            <div class="dot-checkbox-box"></div>
+            <div class="dot-label-text">Disponible</div>
+        </label>
+    </form>
+</dot-modal>
+
+<dot-modal #editProductPriceModal
+    tittleText="Confirmar actualización de precios"
+    modalType="success"
+    okText="Guardar cambios"
+    [longModal]="true"
+    [withCancel]="true"
+    [bodyWithScroll]="true"
+    (callback)="saveQuickEditedPrices()"
+    (cancelCallback)="editProductPriceModal.closeModal()"
+    [disabledIf]="productPriceToEdit().size === 0"
+>
+    <div class="warning-container-bulk-price">
+        <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+
+        <div class="dot-col gap-05">
+            <p class="warning-text">
+                Los precios de los productos se actualizarán con los valores que ingresaste.
+            </p>
+            
+            <p class="warning-text">
+                Revisa los cambios antes de confirmar.
+            </p>
+        </div>
+    </div>
+
+    @for (product of productPriceToEdit().values(); track product.productId) {
+        <div class="product-edited-item">
+            <span class="product-name">
+                - {{product.productName}}
+            </span>
+
+            <div class="dot-row gap-05 justify-between">
+                <span class="product-price old">
+                    {{ product.oldPrice | clpCurrency }}
+                </span>
+
+                <div class="chevron-container">
+                    <i class="fa-solid fa-angles-right"></i>
+                </div>
+
+                <span class="product-price new">
+                    {{ product.newPrice | clpCurrency }}
+                </span>
+            </div>
+        </div>
+    }
+</dot-modal>

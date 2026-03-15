@@ -1,0 +1,61 @@
+.dot-alert {
+    position: relative;
+    overflow: hidden;
+
+    pointer-events: none;
+    transform: translateY(5rem);
+    opacity: 0;
+    width: fit-content;
+
+    margin-top: .5rem;
+
+    transition: 
+        transform var(--animation-duration-default) ease-in-out, 
+        opacity var(--animation-duration-default) ease-in-out, 
+        scale var(--animation-duration-long) ease-in-out 80ms,
+        margin-bottom var(--animation-duration-long) ease-in-out 80ms
+    ;
+
+    .timing-close {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        
+        background: light-dark( rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.03));
+        border-radius: 50rem;
+        animation: toast-close 5s ease-in-out forwards;
+    }
+
+    &.show {
+        pointer-events: all;
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    &.hide {
+        margin-bottom: -10rem;
+        scale: 0;
+    }
+
+    &.top {
+        transform: translateY(-5rem);
+
+        &.show {
+            transform: translateY(0); 
+        }
+    }
+}
+
+@keyframes toast-close {
+    from {
+        width: 40rem;
+        height: 40rem;
+    }
+
+    to {
+        width: 0;
+        height: 0;
+    }
+}

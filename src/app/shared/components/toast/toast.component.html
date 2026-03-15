@@ -1,0 +1,46 @@
+<div class="dot-alert">
+    @if (toastData().templateRef) {
+
+        <ng-container *ngTemplateOutlet="toastData().templateRef"></ng-container>
+
+    } @else {
+        <div class="dot-alert-info">
+            <div class="dot-alert-icon">
+                @if (toastData().icon) {
+                    <i class="{{ toastData().icon }}"></i>
+                } @else {
+                    <i class="fa-regular fa-bell"></i>
+                }
+            </div>
+            <div class="dot-alert-content">
+                @if (toastData().title) {
+                    <span class="dot-alert-title">
+                        {{ toastData().title }}
+                    </span>
+                }
+    
+                @if (toastData().text) {
+                    <span class="dot-alert-text">
+                        {{ toastData().text }}
+                    </span>
+                }
+            </div>
+        </div>
+        @if (toastData().method) {
+            <div class="dot-alert-action">
+                <button 
+                    class="dot-btn tertiary {{ toastData().type! }}"
+                    (click)="toastData().method!.call(this)"
+                >
+                    @if(toastData().buttonText) {
+                        {{ toastData().buttonText }}
+                    } @else {
+                        Aceptar
+                    }
+                </button>
+            </div>
+        }
+    }
+
+    <div class="timing-close"></div>
+</div>

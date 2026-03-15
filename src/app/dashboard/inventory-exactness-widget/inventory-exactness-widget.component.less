@@ -1,0 +1,103 @@
+.widget-description {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: var(--background-3);
+  border-left: 4px solid var(--brand);
+  border-radius: 0.5rem;
+
+  p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.exactness-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+
+  thead {
+    background: var(--background-3);
+    border-bottom: 2px solid var(--border-light);
+
+    th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-very-light);
+      transition: background-color 0.2s;
+
+      &:hover {
+        background: var(--background-4);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 1rem;
+      color: var(--text);
+    }
+  }
+}
+
+.store-name {
+  font-weight: 500;
+}
+
+.exactness-value {
+  text-align: center;
+
+  span {
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.35rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+}
+
+.exactness-good {
+  background: var(--success-light);
+  color: var(--success);
+}
+
+.exactness-warning {
+  background: var(--caution-light);
+  color: var(--caution);
+}
+
+.exactness-danger {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+
+.count-date {
+  text-align: right;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+@media (min-width: 1024px) {
+  .exactness-table {
+    font-size: 1rem;
+
+    thead th,
+    tbody td {
+      padding: 1.25rem;
+    }
+  }
+}

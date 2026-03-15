@@ -1,0 +1,53 @@
+.kpi-card {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 140px;
+}
+
+.kpi-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--brand);
+  line-height: 1;
+}
+
+.kpi-label {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  text-align: center;
+  font-weight: 500;
+}
+
+@media (min-width: 430px) {
+  .kpi-card {
+    min-height: 160px;
+    padding: 2rem 1.5rem;
+  }
+
+  .kpi-value {
+    font-size: 3rem;
+  }
+
+  .kpi-label {
+    font-size: 0.95rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .kpi-card {
+    min-height: 140px;
+    padding: 1.5rem;
+  }
+
+  .kpi-value {
+    font-size: 2.8rem;
+  }
+
+  .kpi-label {
+    font-size: 0.9rem;
+  }
+}

@@ -1,0 +1,45 @@
+@use '@angular/material' as mat;
+@use './angular-material_theme-colors.scss' as dot-theme;
+
+html {
+  color-scheme: light dark;
+  @include mat.theme((
+    color: (
+      primary: dot-theme.$primary-palette,
+      tertiary: dot-theme.$tertiary-palette
+    ),
+    typography: Montserrat,
+    density: -3
+  ));
+
+  @include mat.select-overrides((
+    panel-background-color: var(--background-2),
+  ));
+
+  @include mat.tooltip-overrides((
+    supporting-text-size: .8rem,
+    supporting-text-line-height: 1.2rem,
+    supporting-text-weight: 550,
+    supporting-text-color: var(--contrast-inverted),
+  ));
+}
+
+
+// PALETAS PREBUILT DE ANGULAR
+
+// $red-palette
+// $green-palette
+// $blue-palette
+// $yellow-palette
+// $cyan-palette
+// $magenta-palette
+// $orange-palette
+// $chartreuse-palette
+// $spring-green-palette
+// $azure-palette
+// $violet-palette
+// $rose-palette
+
+// GENERAR PALETA PERSONALIZADA
+// ng generate @angular/material:theme-color
+// ruta: src/assets/angular-material

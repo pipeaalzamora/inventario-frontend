@@ -1,0 +1,108 @@
+<section>
+    <div class="section-header">
+        <h1>Usuarios</h1>
+        <span class="dot-badge tertiary lg">{{controller.GetData().data.length}}</span>
+
+        @if (POWER_CAN_CREATE) {
+            @if (isMobile()) {
+                <button class="dot-btn create" link="user-form-new">
+                    <i class="fa-regular fa-plus"></i>
+                </button>
+            } @else {
+                <button class="dot-btn flashy ml-2" link="user-form-new">
+                    <i class="fa-regular fa-plus"></i>
+                    <span>Crear usuario</span>
+                </button>
+            }
+        }
+    </div>
+
+    <div class="dot-card shadow">
+        <div class="toolbar">
+            @if (!isMobile()) {
+                <div class="col">
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                    <dot-search [controller]="controller" placeholder="Nombre, id, descr."/>
+                </div>
+            } @else {
+                <div class="col">
+                    <dot-search [controller]="controller" [noCollapse]="true" placeholder="Nombre, id, descr."/>
+                    <dot-filter [controller]="controller" [columns]="columns" />
+                </div>
+            }
+        </div>
+
+        <div class="dot-table">
+            <table class="table-striped">
+            <dot-table-caption [controller]="controller" />
+            <dot-sorter-header [controller]="controller" [headers]="columns" />
+            <tbody>
+                @for (user of controller.GetData().data; track user.id) {
+                    <tr [class.unavailable]="!user.available">
+                        <td>
+                            @if (POWER_CAN_UPDATE) {
+                                <ng-template #userNameTrigger>
+                                    <span class="user-name">
+                                        <a class="dot-anchor">{{ user.userName }}</a>
+                                        @if (user.isNewAccount) {
+                                            <span class="new-user">Nuevo</span>
+                                        }
+                                    </span>
+                                </ng-template>
+
+                                <dot-dropdown [dropdownTrigger]="userNameTrigger" [fullWidth]="true">
+                                    <button class="dot-btn" link="user-form" [params]="{ id: user.id }">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                        <span>Editar</span>
+                                    </button>
+                                </dot-dropdown>
+                            } @else {
+                                {{ user.userName }}
+                            }
+                        </td>
+                        <td>{{ user.userEmail }}</td>
+                        <td>{{ user.description }}</td>
+                        <td>
+                            <div class="profile-container">
+                                @for (profile of limitedProfiles(user.profiles); track profile.id) {
+                                    <span class="dot-badge"> {{ profile.profileName }} </span>
+                                } @empty {
+                                    <span> Sin perfil </span>
+                                }
+
+                                @if (user.profiles.length > limitedProfiles(user.profiles).length) {
+                                    <span class="dot-anchor" role="button" (click)="selectUser(user)">
+                                        Ver todos ({{ user.profiles.length }})
+                                    </span>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+        </div>
+
+        <dot-pagination [controller]="controller" />
+    </div>
+</section>
+
+<dot-modal
+    #detailProfilesModal
+    [tittleText]="selectedUser() ? selectedUser()!.userName : ''"
+    [noFooter]="true"
+    [longModal]="true"
+>
+    <dot-search
+        [controller]="detailProfilesController"
+        placeholder="Nombre, ID"
+        [fullWidth]="true"
+        [noCollapse]="true"
+    />
+
+    <div class="profiles-list">
+        @for (profile of detailProfilesController.GetData().data; track profile.id) {
+            <span class="dot-badge"> {{ profile.profileName }} </span>
+        }
+    </div>
+</dot-modal>

@@ -1,0 +1,25 @@
+<div class="dot-dropdown" #dropdownContainer [class.full-width]="fullWidth()">
+
+    <div 
+        (click)="toggleDropdown(!isPanelOpen())" 
+        class="trigger-container"
+        #dropdownTriggerContainer
+    >
+        @if (dropdownTrigger()) {
+            <ng-container *ngTemplateOutlet="dropdownTrigger()"></ng-container>
+        } @else {
+            <button class="dot-btn">
+                Dropdown
+            </button>
+        }
+    </div>
+
+    <div class="dot-dropdown-panel shadow-md"
+        [class.hide]="!isPanelOpen()" 
+        [class.horizontal]="horizontal()"
+        (click)="onPanelClick($event)"
+        #dropdownItemsContainer
+    >
+        <ng-content></ng-content>
+    </div>
+</div> 
