@@ -125,11 +125,14 @@ export class AuthService {
     includeAuth: boolean = true,
     additionalHeaders?: Record<string, string>
   ): RequestInit {
+    const isFormData = body instanceof FormData;
     const baseHeaders: Record<string, string> = {
       'Accept': 'application/json',
-      'Content-Type': 'application/json',
       ...additionalHeaders
     };
+    if (!isFormData) {
+      baseHeaders['Content-Type'] = 'application/json';
+    }
 
     if (includeAuth) {
       const authHeaders = this.getHeaderToken();
@@ -142,7 +145,7 @@ export class AuthService {
     };
 
     if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-      options.body = typeof body === 'string' ? body : JSON.stringify(body);
+      options.body = isFormData ? body : typeof body === 'string' ? body : JSON.stringify(body);
     }
 
     return options;

@@ -16,7 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BytesFormatPipe } from '@/shared/pipes/bytes-format.pipe';
 import { DatePipe } from '@angular/common';
 import { InputComponent } from "@/shared/components/input/input.component";
-import { form, Field, required } from '@angular/forms/signals';
+import { form, FormField, required } from '@angular/forms/signals';
 
 
 @Component({
@@ -33,7 +33,7 @@ import { form, Field, required } from '@angular/forms/signals';
     BytesFormatPipe,
     DatePipe,
     InputComponent,
-    Field
+    FormField
   ],
   templateUrl: './product-form.component.html',
   styleUrl: './product-form.component.less',

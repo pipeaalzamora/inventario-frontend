@@ -127,4 +127,5 @@ export type TransferRequest = {
     sourceWarehouseId: string;
     targetWarehouseId: string;
     items: TransferItem[];
+    observation?: string;
 }

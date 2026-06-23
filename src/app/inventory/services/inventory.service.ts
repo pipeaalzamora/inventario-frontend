@@ -77,9 +77,26 @@ export class InventoryService {
  }
 
  public async createTransfer(companyId: string, storeId: string, transfer: TransferRequest): Promise<boolean> {
-  // TODO: Implementar endpoint real
-  console.log('Transfer request:', { companyId, storeId, transfer });
-  this.toastService.info('Funcionalidad de transferencia de inventario en desarrollo.');
+  const response = await this.authService.authenticatedRequest<ProductMovements[]>(
+    'product-movements/transfer',
+    'POST',
+    JSON.stringify({
+      companyId,
+      storeId,
+      fromWarehouseId: transfer.sourceWarehouseId,
+      toWarehouseId: transfer.targetWarehouseId,
+      observation: transfer.observation ?? '',
+      products: transfer.items.map(item => ({
+        storeProductId: item.productId,
+        quantity: item.quantity,
+        unitCost: item.unitCost,
+      })),
+    })
+  );
+
+  if (!response.success) return false;
+
+  this.toastService.success('Transferencia de inventario creada con éxito.');
   return true;
  }
 }

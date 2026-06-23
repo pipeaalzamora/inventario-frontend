@@ -37,9 +37,9 @@
     <!-- Field mirror for Signal Forms integration -->
     @if (field(); as fieldRef) {
         @if (isNumericField()) {
-            <input type="number" [field]="fieldNumber()" hidden>
+            <input type="number" [formField]="fieldNumber()" style="display: none">
         } @else {
-            <input type="text" [field]="fieldString()" hidden>
+            <input type="text" [formField]="fieldString()" style="display: none">
         }
     }
 

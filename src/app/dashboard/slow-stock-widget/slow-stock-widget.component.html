@@ -37,6 +37,10 @@
                 <td>{{ item.store }}</td>
                 <td class="percentage">{{ item.percentageOfTotal }}%</td>
               </tr>
+            } @empty {
+              <tr>
+                <td colspan="6">Sin productos con stock valorizado para la tienda seleccionada.</td>
+              </tr>
             }
           </tbody>
         </table>
@@ -63,6 +67,10 @@
                   <td>{{ item.product }}</td>
                   <td class="days"><span class="stock-slow">{{ item.days }}d</span></td>
                 </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3">Sin registros.</td>
+                </tr>
               }
             </tbody>
           </table>
@@ -87,6 +95,10 @@
                   <td>{{ item.product }}</td>
                   <td class="days"><span class="stock-moderate">{{ item.days }}d</span></td>
                 </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3">Sin registros.</td>
+                </tr>
               }
             </tbody>
           </table>
@@ -110,6 +122,10 @@
                   <td class="ranking">{{ idx + 1 }}</td>
                   <td>{{ item.product }}</td>
                   <td class="days"><span class="stock-fast">{{ item.days }}d</span></td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3">Sin registros.</td>
                 </tr>
               }
             </tbody>

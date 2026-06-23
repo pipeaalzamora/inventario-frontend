@@ -1,0 +1,238 @@
+<section class="branding-page">
+  <header class="page-header">
+    <div>
+      <p>Mi Empresa</p>
+      <h1>Personalización</h1>
+    </div>
+    <button class="dot-btn success" type="button" [disabled]="!canSave() || saving()" (click)="save()">
+      <i class="fa-solid fa-floppy-disk"></i>
+      Guardar
+    </button>
+  </header>
+
+  @if (branding(); as brand) {
+    <div class="branding-layout">
+      <section class="settings-section">
+        <h2>Identidad</h2>
+        <label>
+          <span>Nombre visible</span>
+          <input [value]="brand.appName" (input)="update('appName', $any($event.target).value)">
+        </label>
+        <label>
+          <span>Logo URL</span>
+          <input [value]="brand.logoUrl ?? ''" (input)="update('logoUrl', $any($event.target).value)">
+        </label>
+        <label>
+          <span>Favicon URL</span>
+          <input [value]="brand.faviconUrl ?? ''" (input)="update('faviconUrl', $any($event.target).value)">
+        </label>
+        <div class="upload-actions">
+          <label class="file-action">
+            <i class="fa-solid fa-image"></i>
+            <span>Subir logo</span>
+            <input type="file" accept="image/*" [disabled]="uploadingAsset()" (change)="uploadAsset('logo', $event)">
+          </label>
+          <label class="file-action">
+            <i class="fa-solid fa-star"></i>
+            <span>Subir favicon</span>
+            <input type="file" accept="image/*" [disabled]="uploadingAsset()" (change)="uploadAsset('favicon', $event)">
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Colores</h2>
+        <div class="color-grid">
+          <label>
+            <span>Principal</span>
+            <input type="color" [value]="brand.primaryColor" (input)="update('primaryColor', $any($event.target).value)">
+          </label>
+          <label>
+            <span>Secundario</span>
+            <input type="color" [value]="brand.accentColor" (input)="update('accentColor', $any($event.target).value)">
+          </label>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Dominio y correos</h2>
+        <label>
+          <span>Subdominio</span>
+          <input [value]="brand.subdomain ?? ''" (input)="update('subdomain', $any($event.target).value)">
+        </label>
+        <label>
+          <span>Dominio propio</span>
+          <input [value]="brand.customDomain ?? ''" (input)="update('customDomain', $any($event.target).value)">
+        </label>
+        <label>
+          <span>Remitente de correo</span>
+          <input [value]="brand.emailFromName" (input)="update('emailFromName', $any($event.target).value)">
+        </label>
+        <label>
+          <span>Correo soporte</span>
+          <input type="email" [value]="brand.supportEmail ?? ''" (input)="update('supportEmail', $any($event.target).value)">
+        </label>
+      </section>
+
+      <section class="settings-section preview-section">
+        <h2>Vista previa</h2>
+        <div class="brand-preview" [style.--preview-primary]="brand.primaryColor" [style.--preview-accent]="brand.accentColor">
+          <div class="preview-topbar">
+            @if (brand.logoUrl) {
+              <img [src]="brand.logoUrl" alt="">
+            }
+            <strong>{{ brand.appName }}</strong>
+          </div>
+          <p>{{ brand.welcomeText || 'Bienvenido al portal de inventario y compras.' }}</p>
+          <button type="button">Acción principal</button>
+        </div>
+        <label>
+          <span>Texto de bienvenida</span>
+          <textarea [value]="brand.welcomeText ?? ''" (input)="update('welcomeText', $any($event.target).value)"></textarea>
+        </label>
+      </section>
+
+      <section class="settings-section assets-section">
+        <div class="section-title-row">
+          <h2>Imágenes</h2>
+          <label class="file-action compact">
+            <i class="fa-solid fa-upload"></i>
+            <span>Subir</span>
+            <input type="file" accept="image/*" [disabled]="uploadingAsset()" (change)="uploadAsset('image', $event)">
+          </label>
+        </div>
+        <div class="asset-grid">
+          @for (asset of assets(); track asset.id) {
+            <article class="asset-item">
+              <div class="asset-thumb">
+                <img [src]="asset.fileUrl" alt="">
+              </div>
+              <div>
+                <strong>{{ asset.assetType }}</strong>
+                <span>{{ asset.fileName }}</span>
+                <small>{{ formatSize(asset.fileSize) }}</small>
+              </div>
+              <button type="button" class="icon-button danger" (click)="deleteAsset(asset)" aria-label="Eliminar imagen">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </article>
+          } @empty {
+            <p class="empty-state">Sin imágenes cargadas.</p>
+          }
+        </div>
+      </section>
+
+      <section class="settings-section templates-section">
+        <h2>Plantillas de correo</h2>
+        <div class="template-list">
+          @for (template of templates(); track template.templateKey) {
+            <article class="template-item">
+              <div class="section-title-row">
+                <h3>{{ templateLabel(template.templateKey) }}</h3>
+                <button class="dot-btn success sm" type="button" (click)="saveTemplate(template)">
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  Guardar
+                </button>
+              </div>
+              <label>
+                <span>Asunto</span>
+                <input [value]="template.subject" (input)="updateTemplate(template.templateKey, 'subject', $any($event.target).value)">
+              </label>
+              <label>
+                <span>HTML</span>
+                <textarea [value]="template.bodyHtml" (input)="updateTemplate(template.templateKey, 'bodyHtml', $any($event.target).value)"></textarea>
+              </label>
+              <label>
+                <span>Texto plano</span>
+                <textarea [value]="template.bodyText ?? ''" (input)="updateTemplate(template.templateKey, 'bodyText', $any($event.target).value)"></textarea>
+              </label>
+            </article>
+          }
+        </div>
+      </section>
+
+      <section class="settings-section import-section">
+        <h2>Importación inicial</h2>
+        <div class="import-controls">
+          <label>
+            <span>Tipo</span>
+            <select [value]="importType()" (change)="importType.set($any($event.target).value)">
+              <option value="products">Productos</option>
+              <option value="suppliers">Proveedores</option>
+              <option value="inventory">Inventario</option>
+            </select>
+          </label>
+          <label class="file-action">
+            <i class="fa-solid fa-file-import"></i>
+            <span>{{ importing() ? 'Procesando' : 'CSV/XLSX' }}</span>
+            <input type="file" accept=".csv,.xlsx" [disabled]="importing()" (change)="uploadImport($event)">
+          </label>
+        </div>
+
+        @if (importJobs()[0]; as job) {
+          <div class="import-summary">
+            <strong>{{ job.fileName }}</strong>
+            <span>{{ job.totalRows }} filas</span>
+            <span>{{ job.status }}</span>
+            @if (job.processedRows || job.failedRows) {
+              <span>{{ job.processedRows }} procesadas</span>
+              <span>{{ job.failedRows }} con error</span>
+            }
+          </div>
+
+          <div class="mapping-grid">
+            @for (field of mappingFields(); track field.key) {
+              <label>
+                <span>{{ field.label }}{{ field.required ? ' *' : '' }}</span>
+                <select [value]="importMapping()[field.key] || ''" (change)="updateImportMapping(field.key, $any($event.target).value)">
+                  <option value="">No importar</option>
+                  @for (header of job.headers; track header) {
+                    <option [value]="header">{{ header }}</option>
+                  }
+                </select>
+              </label>
+            }
+          </div>
+
+          <div class="import-actions">
+            <button class="dot-btn success sm" type="button" [disabled]="!canExecuteImport() || executingImport()" (click)="executeImport(job)">
+              <i class="fa-solid fa-play"></i>
+              {{ executingImport() ? 'Ejecutando' : 'Ejecutar importación' }}
+            </button>
+          </div>
+
+          @if (job.errors?.length) {
+            <div class="import-errors">
+              @for (error of job.errors; track error) {
+                <span>{{ error }}</span>
+              }
+            </div>
+          }
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  @for (header of job.headers; track header) {
+                    <th>{{ header }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of job.sampleRows; track $index) {
+                  <tr>
+                    @for (header of job.headers; track header) {
+                      <td>{{ row[header] }}</td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <p class="empty-state">Sin importaciones cargadas.</p>
+        }
+      </section>
+    </div>
+  }
+</section>

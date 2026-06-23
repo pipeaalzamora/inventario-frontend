@@ -13,7 +13,7 @@ import { SearchBarComponent } from '@/shared/components/controller/search-bar/se
 import { PaginationComponent } from '@/shared/components/controller/pagination/pagination.component';
 import { NgOptimizedImage, NgTemplateOutlet, SlicePipe} from '@angular/common';
 import { AuthService } from '@/auth/services/auth.service';
-import { Field, form, minLength, required, validate, readonly } from '@angular/forms/signals';
+import { FormField, form, minLength, required, validate, readonly } from '@angular/forms/signals';
 import { ErrorService } from '@/shared/services/error.service';
 import { InputComponent } from '@/shared/components/input/input.component';
 import { Store, StoreWarehouse } from '@/shared/models/store';
@@ -57,7 +57,7 @@ const CONTROLLER_COMPONENTS = [
     SelectComponent,
     NgOptimizedImage,
     NoImageComponent,
-    Field,
+    FormField,
     LoadingDirective,
     SlicePipe,
     MatTooltip
@@ -345,7 +345,7 @@ export class StoreFormComponent {
 
     if (!store) return;
 
-    this.storeForm().setControlValue({
+    this.storeForm().controlValue.set({
       externalCode: store.externalCode || '',
       storeName: store.storeName || '',
       description: store.description || '',
@@ -473,7 +473,7 @@ export class StoreFormComponent {
     if (warehouse) {
       this.isWarehouseEditMode.set(true);
       this.editingWarehouse.set(warehouse);
-      this.warehouseForm().setControlValue({
+      this.warehouseForm().controlValue.set({
         warehouseName: warehouse.warehouseName,
         description: warehouse.description || '',
         warehouseAddress: warehouse.warehouseAddress,
@@ -732,7 +732,7 @@ export class StoreFormComponent {
       return;
     }
 
-    this.productForm().setControlValue({
+    this.productForm().controlValue.set({
       sku: storeProduct.sku || '',
       productName: storeProduct.productName,
       estimatedCost: storeProduct.costs.costEstimated || 0,
@@ -740,7 +740,7 @@ export class StoreFormComponent {
       isSellable: storeProduct.itemSale,
     });
 
-    this.limitsForm().setControlValue({
+    this.limitsForm().controlValue.set({
       minimalStock: storeProduct.quantities.minimalStock || 0,
       maximalStock: storeProduct.quantities.maximalStock || 0,
       maxQuantity: storeProduct.quantities.maxQuantity || 0,

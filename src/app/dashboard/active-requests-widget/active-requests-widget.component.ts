@@ -1,13 +1,7 @@
-import { Component, ChangeDetectionStrategy, OnInit, signal, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ViewChild, ElementRef, AfterViewInit, OnDestroy, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart as ChartJS, registerables } from 'chart.js';
-
-interface StoreRequest {
-  store: string;
-  pending: number;
-  inTransit: number;
-  toReceive: number;
-}
+import { DashboardMetricsService, StoreRequestMetric } from '../services/dashboard-metrics.service';
 
 @Component({
   selector: 'dot-active-requests-widget',
@@ -17,35 +11,23 @@ interface StoreRequest {
   styleUrl: './active-requests-widget.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ActiveRequestsWidgetComponent implements OnInit, AfterViewInit, OnDestroy {
+export class ActiveRequestsWidgetComponent implements AfterViewInit, OnDestroy {
   @ViewChild('activeRequestsChart') chartCanvas!: ElementRef<HTMLCanvasElement>;
   
-  protected storeData = signal<StoreRequest[]>([]);
+  private metrics = inject(DashboardMetricsService);
+  protected storeData = this.metrics.activeByStore;
   private chart: ChartJS | null = null;
 
   constructor() {
     ChartJS.register(...registerables);
-  }
-
-  ngOnInit() {
-    this.initializeData();
+    effect(() => {
+      this.storeData();
+      this.renderChart();
+    });
   }
 
   ngAfterViewInit() {
     this.renderChart();
-  }
-
-  private initializeData() {
-    // Mock data realista: máx 3 solicitudes por tienda, algunas sin solicitudes
-    const mockData: StoreRequest[] = [
-      { store: 'Tienda Centro', pending: 2, inTransit: 1, toReceive: 0 },
-      { store: 'Tienda Norte', pending: 1, inTransit: 0, toReceive: 2 },
-      { store: 'Tienda Sur', pending: 0, inTransit: 0, toReceive: 0 },
-      { store: 'Tienda Este', pending: 3, inTransit: 0, toReceive: 0 },
-      { store: 'Tienda Oeste', pending: 1, inTransit: 1, toReceive: 1 },
-      { store: 'Tienda Plaza', pending: 2, inTransit: 2, toReceive: 0 }
-    ];
-    this.storeData.set(mockData);
   }
 
   private renderChart() {
@@ -54,7 +36,7 @@ export class ActiveRequestsWidgetComponent implements OnInit, AfterViewInit, OnD
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const data = this.storeData();
+    const data: StoreRequestMetric[] = this.storeData();
     const labels = data.map(d => d.store);
     const pendingData = data.map(d => d.pending);
     const inTransitData = data.map(d => d.inTransit);
@@ -105,7 +87,9 @@ export class ActiveRequestsWidgetComponent implements OnInit, AfterViewInit, OnD
           x: {
             stacked: true,
             beginAtZero: true,
-            max: 3
+            ticks: {
+              precision: 0
+            }
           },
           y: {
             stacked: true

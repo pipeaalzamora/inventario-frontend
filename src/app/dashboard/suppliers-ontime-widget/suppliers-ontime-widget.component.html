@@ -32,6 +32,10 @@
               </td>
               <td class="deliveries-col">{{ supplier.deliveries }}</td>
             </tr>
+          } @empty {
+            <tr>
+              <td colspan="4">Sin recepciones completadas en {{ currentMonth() }}.</td>
+            </tr>
           }
         </tbody>
       </table>

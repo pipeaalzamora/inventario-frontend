@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { DashboardMetricsService } from '../services/dashboard-metrics.service';
 
 @Component({
   selector: 'dot-total-requests-widget',
@@ -9,5 +10,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TotalRequestsWidgetComponent {
-  protected totalRequests = 487;
+  private metrics = inject(DashboardMetricsService);
+  protected totalRequests = this.metrics.totalPurchasesThisMonth;
 }

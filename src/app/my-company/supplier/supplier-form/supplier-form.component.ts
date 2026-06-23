@@ -3,7 +3,7 @@ import { SectionWrapperComponent } from '@/shared/layout/components/section-wrap
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { Contact, ProductEditForm, QuickProductPriceChange, SupplierDetail, SupplierFormType } from '@/my-company/supplier/models/supplier';
 import { ModalComponent } from '@/shared/components/modal/modal.component';
-import { email, maxLength, minLength, pattern, required, form, Field} from '@angular/forms/signals';
+import { email, maxLength, minLength, pattern, required, form, FormField } from '@angular/forms/signals';
 import { Router } from '@angular/router';
 import { SupplierService } from '@/my-company/supplier/services/supplier.service';
 import { ProductsService } from '@/shared/services/products.service';
@@ -51,7 +51,7 @@ const CONTROLLER_COMPONENTS = [
     InputComponent,
     ClpCurrencyPipe,
     CountryFlagPipe,
-    Field,
+    FormField,
     NgTemplateOutlet,
     FilterComponent
 ],
@@ -438,7 +438,7 @@ export class SupplierFormComponent {
 
     this.contactModal()?.openModal();
 
-    this.contactForm().setControlValue({
+    this.contactForm().controlValue.set({
       name: contact.name,
       email: contact.email,
       phone: contact.phone.slice(4),
@@ -489,7 +489,7 @@ export class SupplierFormComponent {
 
     if (!actualSupplier) return;
 
-    this.supplierForm().setControlValue({
+    this.supplierForm().controlValue.set({
       name: actualSupplier.name,
       description: actualSupplier.description,
       idFiscal: actualSupplier.fiscalData.idFiscal,

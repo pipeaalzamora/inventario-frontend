@@ -282,6 +282,16 @@ const myCompany: MenuItem = {
         //     ]
         // },
         {
+            name: 'company-branding',
+            text: 'Personalización',
+            url: 'branding',
+            icon: 'fa-solid fa-palette',
+            loadComponent: () => import('@/my-company/branding/branding.component').then(m => m.BrandingComponent),
+            powers: [],
+            isMenuVisible: true,
+            menuList: []
+        },
+        {
             name: 'my-suppliers',
             text: 'Mis Proveedores',
             url: 'my-suppliers',

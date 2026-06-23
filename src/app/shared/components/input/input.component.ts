@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, model, output, Renderer2, untracked, viewChild } from '@angular/core';
-import { Field, FieldTree } from '@angular/forms/signals';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'dot-input',
   imports: [
-    Field,
+    FormField,
     MatTooltipModule,
   ],
   templateUrl: './input.component.html',

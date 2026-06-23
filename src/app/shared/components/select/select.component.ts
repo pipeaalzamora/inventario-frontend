@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, HostListener, inject, input, model, output, Renderer2, signal, untracked, viewChild } from '@angular/core';
-import { Field, FieldTree } from '@angular/forms/signals';
+import { FieldTree, FormField } from '@angular/forms/signals';
 import { ModalComponent } from '@shared/components/modal/modal.component';
 import { debounceTime, filter, fromEvent } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -13,7 +13,7 @@ export type DefaultSelectOption = {
 
 @Component({
   selector: 'dot-select',
-  imports: [ModalComponent, Field, MatTooltipModule],
+  imports: [ModalComponent, FormField, MatTooltipModule],
   templateUrl: './select.component.html',
   styleUrl: './select.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,

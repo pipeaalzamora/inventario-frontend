@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { DashboardMetricsService } from '../services/dashboard-metrics.service';
 
 @Component({
   selector: 'dot-open-requests-widget',
@@ -9,5 +10,6 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OpenRequestsWidgetComponent {
-  protected openRequests = 142;
+  private metrics = inject(DashboardMetricsService);
+  protected openRequests = this.metrics.openPurchases;
 }

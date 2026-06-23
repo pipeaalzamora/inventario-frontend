@@ -53,9 +53,9 @@
     <!-- was this really necessary? idk -->
 @if (field(); as fieldRef) {
     @if (isNumericField()) {
-        <input type="number" #fieldMirror [field]="fieldNumber()" hidden>
+        <input type="number" #fieldMirror [formField]="fieldNumber()" style="display: none">
     } @else {
-        <input type="text" #fieldMirror [field]="fieldString()" hidden>
+        <input type="text" #fieldMirror [formField]="fieldString()" style="display: none">
     }
 }
 
